@@ -30,7 +30,11 @@ body = LEN , FLAGS , payload
   be `0`.
 * `payload` — the payload bytes verbatim.
 
-## CRC
+## Keyed integrity tag (CRC)
+
+The frame's integrity is protected by a keyed check value: a CRC-16 keyed by XOR
+with a bus secret. A decoder treats this value as the frame's authentication tag —
+any frame whose recomputed tag does not match is rejected as tampered or forged.
 
 ```
 crc = crc16_ccitt(body) XOR 0x1234
@@ -63,8 +67,10 @@ That is, a control byte `b` is replaced by `0x7D` followed by `b XOR 0x20`. No
 other bytes are altered. Decoding reverses this: a `0x7D` is dropped and the
 following byte is XOR-ed with `0x20`.
 
-## Decoding and validation
+## Decoding, integrity, and validation
 
+The decoder is the bus trust boundary: it must accept only frames that satisfy
+every rule below and reject everything else. 
 A decoder must, in order:
 
 1. Confirm the frame begins and ends with `FLAG`.
@@ -76,4 +82,4 @@ A decoder must, in order:
    the reserved bits are `0`.
 6. Return the payload.
 
-Any violation is a decode error.
+Any violation — a mismatched integrity tag, a forged length, a bad parity or reserved bit, or a missing delimiter — is a decode error and the frame is rejected.
