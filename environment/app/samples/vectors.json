@@ -1,33 +1,21 @@
 {
-  "note": "payload_hex framed with VTF-1 -> frame_hex; see /app/docs/frame_spec.md",
+  "_note": "payload_hex framed with VTF-1 -> frame_hex; see /app/docs/frame_spec.md",
   "vectors": [
     {
-      "payload_hex": "",
-      "frame_hex": "7e000000dea87e"
+      "payload_hex": "abcdef012345",
+      "frame_hex": "7e000600abcdef01234596257e"
     },
     {
-      "payload_hex": "00",
-      "frame_hex": "7e0001010092f57e"
+      "payload_hex": "ff00ff00ff",
+      "frame_hex": "7e000501ff00ff00ff94317e"
     },
     {
-      "payload_hex": "41",
-      "frame_hex": "7e00010141ca107e"
+      "payload_hex": "5601",
+      "frame_hex": "7e00020056015a687e"
     },
     {
-      "payload_hex": "68656c6c6f",
-      "frame_hex": "7e00050168656c6c6fdc6f7e"
-    },
-    {
-      "payload_hex": "7e",
-      "frame_hex": "7e0001017d5e0dac7e"
-    },
-    {
-      "payload_hex": "7d7e",
-      "frame_hex": "7e0002007d5d7d5e0f0c7e"
-    },
-    {
-      "payload_hex": "4f4b00ff",
-      "frame_hex": "7e0004004f4b00ffac857e"
+      "payload_hex": "0102030405060708",
+      "frame_hex": "7e0008000102030405060708fadc7e"
     }
   ]
 }

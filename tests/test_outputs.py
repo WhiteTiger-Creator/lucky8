@@ -153,6 +153,23 @@ def test_decode_rejects_length_mismatch(codec):
         codec.decode(frame)
 
 
+def test_decode_rejects_nonzero_reserved_bits(codec):
+    """A frame whose FLAGS reserved bits (1-7) are non-zero is rejected."""
+    payload = b"abcd"  # even length -> parity bit 0 is correctly 0
+    body = bytearray([0, len(payload), 0x04]) + payload  # reserved bit 2 set
+    crc = _crc16_ccitt(bytes(body)) ^ 0x1234
+    framed = bytes(body) + bytes([(crc >> 8) & 0xFF, crc & 0xFF])
+    stuffed = bytearray()
+    for b in framed:
+        if b in (FLAG, ESC):
+            stuffed += bytes([ESC, b ^ 0x20])
+        else:
+            stuffed.append(b)
+    frame = bytes([FLAG]) + bytes(stuffed) + bytes([FLAG])
+    with pytest.raises(codec.FrameError):
+        codec.decode(frame)
+
+
 def test_source_does_not_reference_verifier_trees():
     """The repaired codec does not read or import verifier artifacts."""
     src = CODEC_PATH.read_text()
