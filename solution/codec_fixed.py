@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 """Reference implementation of the Vantor telemetry frame codec (VTF-1).
 
-Encodes a payload into a framed byte string and decodes it back. The framing,
-the keyed CRC, and the byte-stuffing all follow /app/docs/frame_spec.md.
+Encodes a payload into a framed byte string and decodes it back. The framing
+layout and decode contract are in /app/docs/frame_spec.md; the calibrated bus
+constants (the CRC keying, which bytes the CRC covers, the CRC byte order, the
+escape mask, and the parity-bit rule) are the final values settled in
+/app/docs/bus_bringup_log.md.
 """
 
 from __future__ import annotations
@@ -12,8 +15,8 @@ import sys
 
 FLAG = 0x7E
 ESC = 0x7D
-ESC_XOR = 0x20
-CRC_KEY = 0x1234
+ESC_XOR = 0x40          # final escape mask (bring-up CAL- B7, revising the 0x20 draft)
+CRC_KEY = 0x1234        # final keying constant (bring-up CAL-B4)
 MAX_PAYLOAD = 1023
 
 
@@ -35,8 +38,13 @@ def crc16_ccitt(data: bytes) -> int:
 
 
 def keyed_crc(body: bytes) -> int:
-    """The VTF-1 frame CRC: the CCITT-FALSE CRC keyed by XOR with CRC_KEY."""
+    """The VTF-1 frame CRC: CCITT-FALSE over the whole body, keyed by XOR."""
     return crc16_ccitt(body) ^ CRC_KEY
+
+
+def _payload_parity(payload: bytes) -> int:
+    """Parity bit: 1 when the payload holds an odd number of 1-bits, else 0."""
+    return sum(bin(b).count("1") for b in payload) & 1
 
 
 def _stuff(data: bytes) -> bytes:
@@ -70,7 +78,7 @@ def encode(payload: bytes) -> bytes:
     """Frame a payload into a VTF-1 byte string."""
     if len(payload) > MAX_PAYLOAD:
         raise FrameError(f"payload exceeds {MAX_PAYLOAD} bytes")
-    flags = 0x01 if len(payload) % 2 == 1 else 0x00
+    flags = _payload_parity(payload)
     header = bytes([(len(payload) >> 8) & 0xFF, len(payload) & 0xFF, flags])
     body = header + payload
     crc = keyed_crc(body)
@@ -94,9 +102,10 @@ def decode(frame: bytes) -> bytes:
     payload = body[3:]
     if declared_len != len(payload):
         raise FrameError("declared length does not match payload")
-    expected_flags = 0x01 if len(payload) % 2 == 1 else 0x00
-    if flags != expected_flags:
-        raise FrameError("parity flag does not match payload length")
+    if flags & 0x01 != _payload_parity(payload):
+        raise FrameError("parity bit does not match payload")
+    if flags & 0xFE:
+        raise FrameError("reserved FLAGS bits are not zero")
     return payload
 
 
