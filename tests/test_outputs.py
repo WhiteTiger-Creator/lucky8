@@ -1,181 +1,137 @@
-"""Verifier for the VTF-1 telemetry frame codec repair task.
+"""Verifier for the Sentinel-1 remediation-planning task.
 
-The agent's implementation at /app/codec.py is imported fresh and exercised
-against the authoritative wire format: exact frame bytes for held-out vectors,
-round-trip identity, the keyed CRC, control-byte stuffing, the parity bit, and
-the decode-time validation rules.
+The agent's /app/remediate.py is run against the shipped bundle set and against a
+held-out alternate set. Outputs are checked against exact fixtures and against
+structural invariants (canonical checksum, the asset-disjoint packing objective,
+and the fact that neither the total-severity sum nor a greedy selection is the
+answer).
 """
 
 from __future__ import annotations
 
-import importlib.util
+import hashlib
 import json
 import os
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
 
-CODEC_PATH = Path("/app/codec.py")
-FIXTURES = Path(os.environ.get("TEST_DIR", "/tests")) / "fixtures" / "vectors.json"
-
-FLAG = 0x7E
-ESC = 0x7D
-ESC_XOR = 0x40
-CRC_KEY = 0x1234
+APP = Path("/app/remediate.py")
+DATA = Path("/app/data/remediation.json")
+TEST_DIR = Path(os.environ.get("TEST_DIR", "/tests"))
+FIX = TEST_DIR / "fixtures"
+EXPECTED = json.loads((FIX / "expected_plan.json").read_text())
 
 
-def _load_codec():
-    spec = importlib.util.spec_from_file_location("agent_codec", CODEC_PATH)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+def _run(tmp: Path, input_path: Path = DATA) -> dict:
+    out = tmp / "out"
+    subprocess.run(
+        [sys.executable, str(APP), "--input", str(input_path), "--output-dir", str(out)],
+        check=True, capture_output=True, text=True,
+    )
+    return json.loads((out / "plan.json").read_text())
+
+
+def _canonical(bundle_rows):
+    by_id = {}
+    for row in bundle_rows:
+        bid = str(row["id"])
+        sev = int(row["severity"])
+        assets = sorted({int(a) for a in row["assets"]})
+        if sev < 1 or sev > 9 or not assets:
+            continue
+        if bid not in by_id or sev > by_id[bid]["severity"]:
+            by_id[bid] = {"id": bid, "severity": sev, "assets": assets}
+    return [by_id[bid] for bid in sorted(by_id)]
+
+
+def _sum_all(bundle_rows):
+    return sum(b["severity"] for b in _canonical(bundle_rows))
+
+
+def _greedy(bundle_rows):
+    used, total = set(), 0
+    for b in sorted(_canonical(bundle_rows), key=lambda b: -b["severity"]):
+        assets = set(b["assets"])
+        if not (assets & used):
+            used |= assets
+            total += b["severity"]
+    return total
 
 
 @pytest.fixture(scope="module")
-def codec():
-    """Import the agent's repaired codec module from /app/codec.py."""
-    assert CODEC_PATH.exists(), "codec.py is missing"
-    return _load_codec()
+def result(tmp_path_factory) -> dict:
+    """Run the agent's planner once on the shipped bundle set."""
+    assert APP.exists(), "remediate.py is missing"
+    return _run(tmp_path_factory.mktemp("primary"))
 
 
-@pytest.fixture(scope="module")
-def vectors():
-    """Load the held-out payload/frame vectors used for exact-match checks."""
-    return json.loads(FIXTURES.read_text())["vectors"]
+def test_result_has_required_keys(result):
+    """plan.json carries exactly the contracted key set."""
+    assert set(result) == {"asset_count", "bundle_count", "total_proposed_severity",
+                           "max_single_bundle_severity", "max_contained_severity",
+                           "bundle_checksum", "plan_checksum"}
 
 
-def _crc16_ccitt(data: bytes) -> int:
-    crc = 0xFFFF
-    for byte in data:
-        crc ^= byte << 8
-        for _ in range(8):
-            crc = ((crc << 1) ^ 0x1021) & 0xFFFF if crc & 0x8000 else (crc << 1) & 0xFFFF
-    return crc
+def test_matches_fixture(result):
+    """The full plan matches the reference fixture exactly."""
+    assert result == EXPECTED
 
 
-def _parity(payload: bytes) -> int:
-    """VTF-1 parity bit: 1 when the payload holds an odd number of 1-bits."""
-    return sum(bin(b).count("1") for b in payload) & 1
+def test_generalizes_to_alternate_input(tmp_path):
+    """The planner reproduces the reference output for a held-out bundle set."""
+    alt_expected = json.loads((FIX / "alt_expected.json").read_text())
+    got = _run(tmp_path, input_path=FIX / "alt_remediation.json")
+    assert got == alt_expected
 
 
-def _stuff(data: bytes) -> bytes:
-    out = bytearray()
-    for b in data:
-        if b in (FLAG, ESC):
-            out += bytes([ESC, b ^ ESC_XOR])
-        else:
-            out.append(b)
-    return bytes(out)
+def test_bundle_checksum_consistent(result):
+    """bundle_checksum is the SHA-256 of the canonical-bundle serialization."""
+    data = json.loads(DATA.read_text())
+    bundles = _canonical(data["bundles"])
+    payload = "\n".join(
+        f"{b['id']}|{b['severity']}|{','.join(str(a) for a in b['assets'])}" for b in bundles
+    )
+    assert result["bundle_checksum"] == hashlib.sha256(payload.encode()).hexdigest()
 
 
-def _frame_from_body(body: bytes) -> bytes:
-    """Wrap an already-built body (LEN|FLAGS|payload) into a full VTF-1 frame."""
-    crc = _crc16_ccitt(body) ^ CRC_KEY
-    framed = body + bytes([(crc >> 8) & 0xFF, crc & 0xFF])
-    return bytes([FLAG]) + _stuff(framed) + bytes([FLAG])
+def test_plan_checksum_consistent(result):
+    """plan_checksum is the SHA-256 of the contracted plan payload."""
+    payload = (
+        f"{result['asset_count']}|{result['total_proposed_severity']}|"
+        f"{result['max_single_bundle_severity']}|{result['max_contained_severity']}"
+    )
+    assert result["plan_checksum"] == hashlib.sha256(payload.encode()).hexdigest()
 
 
-def test_codec_exposes_encode_decode(codec):
-    """The module exposes callable encode, decode, and a FrameError type."""
-    assert callable(codec.encode)
-    assert callable(codec.decode)
-    assert isinstance(codec.FrameError, type) and issubclass(codec.FrameError, Exception)
+def test_canonicalization_drops_invalid(result):
+    """bundle_count reflects canonicalization (invalid/empty/dup bundles removed)."""
+    data = json.loads(DATA.read_text())
+    assert result["bundle_count"] == len(_canonical(data["bundles"]))
+    assert result["bundle_count"] < len(data["bundles"])
 
 
-def test_encode_matches_held_out_frames(codec, vectors):
-    """encode produces byte-identical frames for every held-out payload."""
-    for v in vectors:
-        payload = bytes.fromhex(v["payload_hex"])
-        assert codec.encode(payload).hex() == v["frame_hex"], v["payload_hex"]
+def test_contained_is_packing_not_total_sum(result):
+    """max_contained_severity is the packing, strictly below the total-severity sum here."""
+    data = json.loads(DATA.read_text())
+    assert result["max_contained_severity"] <= _sum_all(data["bundles"])
+    assert result["max_contained_severity"] != result["total_proposed_severity"], \
+        "max_contained_severity equals the total sum (wrong objective)"
 
 
-def test_decode_recovers_held_out_payloads(codec, vectors):
-    """decode recovers the exact payload from every held-out frame."""
-    for v in vectors:
-        assert codec.decode(bytes.fromhex(v["frame_hex"])).hex() == v["payload_hex"]
-
-
-def test_round_trip_identity(codec):
-    """decode(encode(p)) == p across sizes, parities, and control-byte content."""
-    blob = bytes((i * 37 + 11) & 0xFF for i in range(2048))
-    payloads = [b"", b"\x7e", b"\x7d", b"\x7e\x7d\x7e", bytes([0x7e]) * 9, bytes(range(256))]
-    payloads += [blob[:n] for n in (1, 2, 3, 16, 17, 255, 256, 257, 1023)]
-    for p in payloads:
-        assert codec.decode(codec.encode(p)) == p, p.hex()
-
-
-def test_crc_is_keyed_with_bus_constant(codec):
-    """The frame CRC is the CCITT-FALSE CRC keyed by XOR with 0x1234."""
-    payload = b"telemetry"
-    body = bytes([0, len(payload), _parity(payload)]) + payload
-    # a frame carrying the UNKEYED CRC must be rejected as tampered
-    unkeyed = _crc16_ccitt(body)
-    framed = body + bytes([(unkeyed >> 8) & 0xFF, unkeyed & 0xFF])
-    forged = bytes([FLAG]) + _stuff(framed) + bytes([FLAG])
-    with pytest.raises(codec.FrameError):
-        codec.decode(forged)
-    # the properly keyed frame round-trips
-    assert codec.decode(codec.encode(payload)) == payload
-
-
-def test_control_bytes_are_stuffed(codec):
-    """Flag/escape bytes are escaped so the delimiter appears only at the ends."""
-    frame = codec.encode(b"\x7e\x7d")
-    assert frame[0] == FLAG and frame[-1] == FLAG
-    assert FLAG not in frame[1:-1], "raw flag byte leaked into the frame body"
-    assert bytes([ESC, 0x7E ^ ESC_XOR]) in frame  # 0x7e -> 7d 3e
-    assert bytes([ESC, 0x7D ^ ESC_XOR]) in frame  # 0x7d -> 7d 3d
-
-
-def test_parity_flag_tracks_payload_content(codec):
-    """FLAGS bit 0 is the parity of the payload's 1-bits (odd -> 1, even -> 0)."""
-    odd = codec.encode(b"\x01")   # one 1-bit -> parity 1; unstuffed: 7e | 00 01 01 ...
-    even = codec.encode(b"\x03")  # two 1-bits -> parity 0; unstuffed: 7e | 00 01 00 ...
-    assert odd[3] == 0x01
-    assert even[3] == 0x00
-
-
-def test_decode_rejects_bad_crc(codec):
-    """A frame whose CRC does not verify is rejected."""
-    frame = bytearray(codec.encode(b"payload"))
-    frame[-2] ^= 0xFF
-    with pytest.raises(codec.FrameError):
-        codec.decode(bytes(frame))
-
-
-def test_decode_rejects_wrong_parity_flag(codec):
-    """A frame whose parity flag contradicts the payload is rejected."""
-    payload = b"odd"
-    body = bytes([0, len(payload), _parity(payload) ^ 0x01]) + payload  # parity flipped
-    with pytest.raises(codec.FrameError):
-        codec.decode(_frame_from_body(body))
-
-
-def test_decode_rejects_missing_delimiters(codec):
-    """A frame not delimited by flag bytes is rejected."""
-    inner = codec.encode(b"x")[1:-1]
-    with pytest.raises(codec.FrameError):
-        codec.decode(inner)
-
-
-def test_decode_rejects_length_mismatch(codec):
-    """A frame whose declared LEN disagrees with the payload is rejected."""
-    payload = b"1234"
-    body = bytes([0, 9, _parity(payload)]) + payload  # LEN says 9 but payload is 4
-    with pytest.raises(codec.FrameError):
-        codec.decode(_frame_from_body(body))
-
-
-def test_decode_rejects_nonzero_reserved_bits(codec):
-    """A frame whose FLAGS reserved bits (1-7) are non-zero is rejected."""
-    payload = b"abcd"
-    body = bytes([0, len(payload), _parity(payload) | 0x04]) + payload  # reserved bit 2 set
-    with pytest.raises(codec.FrameError):
-        codec.decode(_frame_from_body(body))
+def test_contained_beats_greedy(result):
+    """The exact packing is at least, and here strictly above, a greedy selection."""
+    data = json.loads(DATA.read_text())
+    greedy = _greedy(data["bundles"])
+    assert result["max_contained_severity"] >= greedy
+    assert result["max_contained_severity"] != greedy, \
+        "max_contained_severity equals the greedy selection (not the exact optimum)"
 
 
 def test_source_does_not_reference_verifier_trees():
-    """The repaired codec does not read or import verifier artifacts."""
-    src = CODEC_PATH.read_text()
-    for token in ("/tests", "/solution", "vectors.json"):
+    """The planner source does not read or import verifier artifacts."""
+    src = APP.read_text()
+    for token in ("/tests", "/solution", "expected_plan.json", "alt_expected.json"):
         assert token not in src

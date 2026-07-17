@@ -1,0 +1,9 @@
+{
+  "asset_count": 12,
+  "bundle_count": 16,
+  "total_proposed_severity": 109,
+  "max_single_bundle_severity": 9,
+  "max_contained_severity": 39,
+  "bundle_checksum": "e02dbcdae3d99f4553d1df5cb6f9eeddc4626ca210ba4a2efe2a5d88126ccd33",
+  "plan_checksum": "7404b6bc2c0b3153cf8978f0a8946e1f8300bd6aaaf467b76feab819f1ef2fc7"
+}

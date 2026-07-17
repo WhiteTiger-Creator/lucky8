@@ -1,0 +1,137 @@
+{
+  "asset_count": 12,
+  "bundles": [
+    {
+      "id": "ab-00",
+      "severity": 7,
+      "assets": [
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "id": "ab-01",
+      "severity": 5,
+      "assets": [
+        1,
+        3
+      ]
+    },
+    {
+      "id": "ab-02",
+      "severity": 8,
+      "assets": [
+        2,
+        4
+      ]
+    },
+    {
+      "id": "ab-03",
+      "severity": 6,
+      "assets": [
+        3,
+        5
+      ]
+    },
+    {
+      "id": "ab-04",
+      "severity": 9,
+      "assets": [
+        4,
+        6,
+        7
+      ]
+    },
+    {
+      "id": "ab-05",
+      "severity": 4,
+      "assets": [
+        5,
+        8
+      ]
+    },
+    {
+      "id": "ab-06",
+      "severity": 8,
+      "assets": [
+        6,
+        9
+      ]
+    },
+    {
+      "id": "ab-07",
+      "severity": 5,
+      "assets": [
+        7,
+        10
+      ]
+    },
+    {
+      "id": "ab-08",
+      "severity": 9,
+      "assets": [
+        8,
+        9,
+        11
+      ]
+    },
+    {
+      "id": "ab-09",
+      "severity": 6,
+      "assets": [
+        10,
+        0
+      ]
+    },
+    {
+      "id": "ab-10",
+      "severity": 7,
+      "assets": [
+        1,
+        4
+      ]
+    },
+    {
+      "id": "ab-11",
+      "severity": 8,
+      "assets": [
+        2,
+        5,
+        9
+      ]
+    },
+    {
+      "id": "ab-12",
+      "severity": 5,
+      "assets": [
+        3,
+        7
+      ]
+    },
+    {
+      "id": "ab-13",
+      "severity": 9,
+      "assets": [
+        6,
+        10
+      ]
+    },
+    {
+      "id": "ab-14",
+      "severity": 6,
+      "assets": [
+        8,
+        11
+      ]
+    },
+    {
+      "id": "ab-15",
+      "severity": 7,
+      "assets": [
+        0,
+        5
+      ]
+    }
+  ]
+}
