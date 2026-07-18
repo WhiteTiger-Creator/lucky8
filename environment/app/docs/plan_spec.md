@@ -45,6 +45,25 @@ highest-severity still-compatible bundle is not optimal for this packing and in
 general yields a strictly smaller total than the exact maximum. Compute the
 exact maximum-weight asset-disjoint packing.
 
+## The selected set and its tie-break
+
+The objective value `max_contained_severity` may be achievable by more than one
+pairwise asset-disjoint bundle set (ties are common). The **contained set** is
+selected deterministically: among **all** pairwise asset-disjoint bundle sets
+whose summed severity equals `max_contained_severity`, choose the one whose
+bundle ids, sorted ascending, form the **lexicographically smallest tuple**,
+compared element by element as strings (so `("rb-01",)` precedes
+`("rb-02",)`, and at equal first elements a shorter/earlier second element
+wins). Note this is a tie-break over **whole optimal sets**, not a greedy
+smallest-id-first construction: you must consider every set that attains the
+maximum and then take the lexicographically least. `contained_bundle_ids` lists
+that set's ids in ascending order; the empty set (value 0) is the baseline when
+no bundle can be selected.
+
+The **residual packing** re-runs the identical maximum-weight asset-disjoint
+objective over only the canonical bundles that are **not** in the contained set,
+and `residual_contained_severity` is that packing's value (0 if none remain).
+
 ## Output
 
 Write `plan.json` to the output directory (`/app/output` by default) with
@@ -57,12 +76,20 @@ exactly these keys:
 * `max_single_bundle_severity` — the largest single canonical bundle severity
   (0 if none).
 * `max_contained_severity` — the exact packing objective defined above.
+* `contained_bundle_ids` — the tie-broken contained set's bundle ids, ascending.
+* `contained_bundle_count` — the number of ids in `contained_bundle_ids`.
+* `contained_asset_count` — the number of distinct assets locked by the
+  contained set.
+* `uncontained_severity` — `total_proposed_severity - max_contained_severity`.
+* `residual_contained_severity` — the residual packing value defined above.
 * `bundle_checksum` — the SHA-256 hex digest of the canonical bundles serialized
   as follows: for each bundle in `id` order, the line `id|severity|a0,a1,...`
   (assets ascending, comma-joined); lines joined by a single `\n`, no trailing
   newline; hash the UTF-8 encoding.
 * `plan_checksum` — the SHA-256 hex digest of the UTF-8 encoding of
-  `asset_count|total_proposed_severity|max_single_bundle_severity|max_contained_severity`.
+  `asset_count|total_proposed_severity|max_single_bundle_severity|max_contained_severity|contained_asset_count|residual_contained_severity|id0,id1,...`
+  where the trailing segment is `contained_bundle_ids` comma-joined in ascending
+  order.
 
 The program reads its input from `--input` (default `/app/data/remediation.json`)
 and writes to `--output-dir` (default `/app/output`).

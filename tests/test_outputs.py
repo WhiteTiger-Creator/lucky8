@@ -72,6 +72,9 @@ def test_result_has_required_keys(result):
     """plan.json carries exactly the contracted key set."""
     assert set(result) == {"asset_count", "bundle_count", "total_proposed_severity",
                            "max_single_bundle_severity", "max_contained_severity",
+                           "contained_bundle_ids", "contained_bundle_count",
+                           "contained_asset_count", "uncontained_severity",
+                           "residual_contained_severity",
                            "bundle_checksum", "plan_checksum"}
 
 
@@ -101,9 +104,35 @@ def test_plan_checksum_consistent(result):
     """plan_checksum is the SHA-256 of the contracted plan payload."""
     payload = (
         f"{result['asset_count']}|{result['total_proposed_severity']}|"
-        f"{result['max_single_bundle_severity']}|{result['max_contained_severity']}"
+        f"{result['max_single_bundle_severity']}|{result['max_contained_severity']}|"
+        f"{result['contained_asset_count']}|{result['residual_contained_severity']}|"
+        f"{','.join(result['contained_bundle_ids'])}"
     )
     assert result["plan_checksum"] == hashlib.sha256(payload.encode()).hexdigest()
+
+
+def test_contained_set_is_valid_optimal_and_disjoint(result):
+    """contained_bundle_ids is a pairwise asset-disjoint set summing to the objective."""
+    data = json.loads(DATA.read_text())
+    by_id = {b["id"]: b for b in _canonical(data["bundles"])}
+    chosen = result["contained_bundle_ids"]
+    assert chosen == sorted(chosen), "contained_bundle_ids must be ascending"
+    assert result["contained_bundle_count"] == len(chosen)
+    used, total, assets_all = set(), 0, set()
+    for bid in chosen:
+        assets = set(by_id[bid]["assets"])
+        assert not (assets & used), "contained set is not asset-disjoint"
+        used |= assets
+        total += by_id[bid]["severity"]
+        assets_all |= assets
+    assert total == result["max_contained_severity"], "contained set severity != objective"
+    assert result["contained_asset_count"] == len(assets_all)
+    assert result["uncontained_severity"] == result["total_proposed_severity"] - result["max_contained_severity"]
+
+
+def test_residual_is_below_contained(result):
+    """The residual packing (over unselected bundles) is a valid, smaller packing."""
+    assert 0 <= result["residual_contained_severity"] <= result["max_contained_severity"]
 
 
 def test_canonicalization_drops_invalid(result):
