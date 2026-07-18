@@ -58,6 +58,25 @@ log; this contract fixes only the key set and the serializations below.
   response set else `0`; lines joined by a single `\n`, no trailing newline; hash
   the UTF-8 encoding. (The urgency, critical flag and carry_out are defined by the
   review log's response-urgency ledger decision.)
+* `total_conflict_load` — the summed conflict load over the contained set (per log).
+* `scheduled_bundle_ids` — a JSON **array** of the scheduled bundles' ids, sorted
+  ascending (which bundles are scheduled is governed by the review log).
+* `scheduled_bundle_count` — the number of ids in `scheduled_bundle_ids`.
+* `total_scheduled_effort` — the summed effort over the scheduled bundles (per log).
+* `max_scheduled_effort` — the largest single scheduled effort, `0` when none are
+  scheduled (per log).
+* `schedule_class_counts` — a JSON **object** whose keys are exactly the three class
+  names `immediate`, `planned`, `deferred`, in that order, mapping to the number of
+  scheduled bundles in each class. All three keys are always present, emitting `0`
+  for a class with no scheduled bundles. These three lowercase strings are the only
+  accepted class labels; which class a bundle earns is governed by the review log.
+* `schedule_order` — a JSON **array** of the scheduled bundle ids in the log's
+  scheduling order. This is an ordering, **not** sorted ascending; contrast
+  `scheduled_bundle_ids`, which is the sorted one.
+* `schedule_checksum` — the SHA-256 hex digest of one line per scheduled bundle in
+  `schedule_order` order, each `id|schedule_class|effort|conflict_assets`, lines
+  joined by a single newline with no trailing newline, hashed over the UTF-8
+  encoding (each value per the log).
 * `bundle_checksum` — the SHA-256 hex digest of the canonical bundles serialized
   as follows: for each bundle in `id` order, the line `id|severity|a0,a1,...`
   (assets ascending, comma-joined); lines joined by a single `\n`, no trailing
