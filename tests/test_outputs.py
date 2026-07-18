@@ -136,7 +136,7 @@ def test_response_urgency_ledger_consistent(result):
         shared = len(assets & prev)
         carry_in = max(prev_out - (shared * 7) // 3, 0)
         pressure = b["severity"] * len(assets)
-        urgency = pressure + carry_in // 5
+        urgency = pressure + (-(-carry_in // 5))
         carry_out = min(carry_in + pressure - (len(assets) // 2), 90)
         if urgency >= 30:
             crit.append(b["id"])

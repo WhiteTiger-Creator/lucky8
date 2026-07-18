@@ -132,7 +132,8 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict]) -> dict:
         shared_prev = len(assets & prev_assets)
         carry_in = max(prev_carry_out - (shared_prev * 7) // 3, 0)
         pressure = b["severity"] * len(assets)
-        urgency = pressure + carry_in // 5
+        # Carry credit into urgency is rounded UP (ceil) per SR-2219. ceil(x/5)=-(-x//5).
+        urgency = pressure + (-(-carry_in // 5))
         carry_out = min(carry_in + pressure - (len(assets) // 2), CARRY_CAP)
         if urgency >= URGENCY_THRESHOLD:
             critical_response_ids.append(b["id"])
