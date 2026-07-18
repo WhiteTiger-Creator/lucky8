@@ -40,8 +40,8 @@
   "critical_response_count": 2,
   "max_urgency": 30,
   "urgency_ledger_checksum": "f77921281cb2e407031f32120a6fbfe0e1887a1a39497f73cd3e28d5849423ed",
-  "total_conflict_load": 8,
-  "scheduled_bundle_ids": [
+  "total_exposure_overlap": 8,
+  "response_wave_ids": [
     "ra-01",
     "ra-02",
     "ra-03",
@@ -51,15 +51,15 @@
     "ra-08",
     "ra-09"
   ],
-  "scheduled_bundle_count": 8,
-  "total_scheduled_effort": 164,
-  "max_scheduled_effort": 25,
-  "schedule_class_counts": {
+  "response_wave_count": 8,
+  "total_response_load": 164,
+  "max_response_load": 25,
+  "response_tier_counts": {
     "immediate": 0,
-    "planned": 3,
-    "deferred": 5
+    "urgent": 3,
+    "routine": 5
   },
-  "schedule_order": [
+  "response_order": [
     "ra-01",
     "ra-02",
     "ra-07",
@@ -69,7 +69,7 @@
     "ra-09",
     "ra-03"
   ],
-  "schedule_checksum": "f61b361d060244e02e38f4792033b2441099f550a961b190b821dede5eebc3af",
+  "response_wave_checksum": "d90a19807a7760ec2714dc710ce53b574fc2f2cb2b90828a0e1d5633be849916",
   "bundle_checksum": "25cd01bd9bc14e9481446e8f9b3d985279588b079d7fda4b96940ca8a7945617",
   "plan_checksum": "34acd05256651f760144f27ff81e6fe31f063b6b9d12e068a66db7b7b694e2af"
 }

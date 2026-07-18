@@ -1,4 +1,9 @@
-# Sentinel-1 remediation-planning — output contract
+# Sentinel-1 incident containment — output contract
+
+The Sentinel-1 containment planner turns proposed remediation bundles for compromised
+assets into an incident containment plan: the threat severity that can be contained in
+one quarantine pass, the bundle set that achieves it, the exposure left uncontained, the
+response-urgency ledger, and the responder tiers assigned for the containment pass.
 
 This document is the **output contract only**: it fixes the input shape, the
 exact `plan.json` key set, and the byte-level checksum serialization. It does
@@ -58,23 +63,23 @@ log; this contract fixes only the key set and the serializations below.
   response set else `0`; lines joined by a single `\n`, no trailing newline; hash
   the UTF-8 encoding. (The urgency, critical flag and carry_out are defined by the
   review log's response-urgency ledger decision.)
-* `total_conflict_load` — the summed conflict load over the contained set (per log).
-* `scheduled_bundle_ids` — a JSON **array** of the scheduled bundles' ids, sorted
-  ascending (which bundles are scheduled is governed by the review log).
-* `scheduled_bundle_count` — the number of ids in `scheduled_bundle_ids`.
-* `total_scheduled_effort` — the summed effort over the scheduled bundles (per log).
-* `max_scheduled_effort` — the largest single scheduled effort, `0` when none are
-  scheduled (per log).
-* `schedule_class_counts` — a JSON **object** whose keys are exactly the three class
-  names `immediate`, `planned`, `deferred`, in that order, mapping to the number of
-  scheduled bundles in each class. All three keys are always present, emitting `0`
-  for a class with no scheduled bundles. These three lowercase strings are the only
+* `total_exposure_overlap` — the summed exposure overlap over the contained set (per log).
+* `response_wave_ids` — a JSON **array** of the response-wave bundles' ids, sorted
+  ascending (which bundles join the response wave is governed by the review log).
+* `response_wave_count` — the number of ids in `response_wave_ids`.
+* `total_response_load` — the summed response_load over the response-wave bundles (per log).
+* `max_response_load` — the largest single response load in the wave, `0` when none are
+  in the wave (per log).
+* `response_tier_counts` — a JSON **object** whose keys are exactly the three class
+  names `immediate`, `urgent`, `routine`, in that order, mapping to the number of
+  response-wave bundles in each class. All three keys are always present, emitting `0`
+  for a class with no response-wave bundles. These three lowercase strings are the only
   accepted class labels; which class a bundle earns is governed by the review log.
-* `schedule_order` — a JSON **array** of the scheduled bundle ids in the log's
-  scheduling order. This is an ordering, **not** sorted ascending; contrast
-  `scheduled_bundle_ids`, which is the sorted one.
-* `schedule_checksum` — the SHA-256 hex digest of one line per scheduled bundle in
-  `schedule_order` order, each `id|schedule_class|effort|conflict_assets`, lines
+* `response_order` — a JSON **array** of the response-wave bundle ids in the log's
+  response order. This is an ordering, **not** sorted ascending; contrast
+  `response_wave_ids`, which is the sorted one.
+* `response_wave_checksum` — the SHA-256 hex digest of one line per response-wave bundle in
+  `response_order` order, each `id|response_tier|response_load|exposure_overlap`, lines
   joined by a single newline with no trailing newline, hashed over the UTF-8
   encoding (each value per the log).
 * `bundle_checksum` — the SHA-256 hex digest of the canonical bundles serialized

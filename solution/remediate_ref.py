@@ -145,70 +145,70 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict]) -> dict:
     critical_response_count = len(critical_response_ids)
     urgency_ledger_checksum = hashlib.sha256("\n".join(ledger_rows).encode("utf-8")).hexdigest()
 
-    # Remediation scheduling layer. Each contained bundle carries the conflict
+    # Remediation response-wave layer. Each contained bundle carries the conflict
     # load it inherits from the bundles that were NOT contained but contend for
-    # its assets. The conflict half of the effort is HALVED AND ROUNDED UP (ceil)
+    # its assets. The conflict half of the response_load is HALVED AND ROUNDED UP (ceil)
     # per SR-2231, while the asset relief that follows it is floored; ceil(x/2) is
-    # written -(-x // 2). Both terms clamp the effort at zero. The scheduling
-    # floor sits directly on the effort distribution, so a one-unit slip in a
+    # written -(-x // 2). Both terms clamp the response load at zero. The response-wave
+    # floor sits directly on the response_load distribution, so a one-unit slip in a
     # conflict count, a ceil read as a floor, or a wrong contained set moves
-    # bundles across the boundary and changes the scheduled set, the class
-    # counts, the schedule order and the schedule checksum together.
-    SCHEDULE_FLOOR = 16
-    SCHEDULE_CLASSES = ("immediate", "planned", "deferred")
-    CLASS_RANK = {n: len(SCHEDULE_CLASSES) - i for i, n in enumerate(SCHEDULE_CLASSES)}
+    # bundles across the boundary and changes the wave membership, the tier
+    # counts, the response order and the wave checksum together.
+    RESPONSE_WAVE_FLOOR = 16
+    RESPONSE_TIERS = ("immediate", "urgent", "routine")
+    CLASS_RANK = {n: len(RESPONSE_TIERS) - i for i, n in enumerate(RESPONSE_TIERS)}
     uncontained_bundles = [b for b in bundles if b["id"] not in contained_set]
-    total_conflict_load = 0
-    scheduled = []
+    total_exposure_overlap = 0
+    wave_candidates = []
     for b in bundles:
         if b["id"] not in contained_set:
             continue
         assets = set(b["assets"])
-        conflict_assets = sum(len(assets & set(o["assets"])) for o in uncontained_bundles)
-        conflict_count = sum(1 for o in uncontained_bundles if assets & set(o["assets"]))
-        total_conflict_load += conflict_assets
-        effort = max(b["severity"] * 3 + (-(-conflict_assets // 2)) - (len(assets) // 2), 0)
-        scheduled.append(
+        exposure_overlap = sum(len(assets & set(o["assets"])) for o in uncontained_bundles)
+        exposing_bundle_count = sum(1 for o in uncontained_bundles if assets & set(o["assets"]))
+        total_exposure_overlap += exposure_overlap
+        response_load = max(b["severity"] * 3 + (-(-exposure_overlap // 2)) - (len(assets) // 2), 0)
+        wave_candidates.append(
             {
                 "id": b["id"],
                 "severity": b["severity"],
                 "n_assets": len(assets),
-                "conflict_assets": conflict_assets,
-                "conflict_count": conflict_count,
-                "effort": effort,
+                "exposure_overlap": exposure_overlap,
+                "exposing_bundle_count": exposing_bundle_count,
+                "response_load": response_load,
             }
         )
-    admitted = [r for r in scheduled if r["effort"] >= SCHEDULE_FLOOR]
+    admitted = [r for r in wave_candidates if r["response_load"] >= RESPONSE_WAVE_FLOOR]
     # Class per SR-2233, clauses in order; the first match fixes the class.
     for r in admitted:
-        if r["effort"] >= 27:
-            r["schedule_class"] = "immediate"
-        elif r["effort"] >= 21 or r["conflict_assets"] >= 4:
-            r["schedule_class"] = "planned"
+        if r["response_load"] >= 27:
+            r["response_tier"] = "immediate"
+        elif r["response_load"] >= 21 or r["exposure_overlap"] >= 4:
+            r["response_tier"] = "urgent"
         else:
-            r["schedule_class"] = "deferred"
-    schedule_class_counts = {n: 0 for n in SCHEDULE_CLASSES}
+            r["response_tier"] = "routine"
+    response_tier_counts = {n: 0 for n in RESPONSE_TIERS}
     for r in admitted:
-        schedule_class_counts[r["schedule_class"]] += 1
-    ordered_schedule = sorted(
+        response_tier_counts[r["response_tier"]] += 1
+    ordered_wave = sorted(
         admitted,
         key=lambda r: (
-            -CLASS_RANK[r["schedule_class"]],
-            -r["effort"],
+            -CLASS_RANK[r["response_tier"]],
+            -r["response_load"],
             -r["severity"],
-            -r["conflict_count"],
+            -r["exposing_bundle_count"],
             r["id"],
         ),
     )
-    schedule_order = [r["id"] for r in ordered_schedule]
-    scheduled_bundle_ids = sorted(r["id"] for r in admitted)
-    scheduled_bundle_count = len(admitted)
-    total_scheduled_effort = sum(r["effort"] for r in admitted)
-    max_scheduled_effort = max((r["effort"] for r in admitted), default=0)
-    schedule_checksum = hashlib.sha256(
+    response_order = [r["id"] for r in ordered_wave]
+    response_wave_ids = sorted(r["id"] for r in admitted)
+    response_wave_count = len(admitted)
+    total_response_load = sum(r["response_load"] for r in admitted)
+    max_response_load = max((r["response_load"] for r in admitted), default=0)
+    response_wave_checksum = hashlib.sha256(
         "\n".join(
-            f"{r['id']}|{r['schedule_class']}|{r['effort']}|{r['conflict_assets']}"
-            for r in ordered_schedule
+            f"{r['id']}|{r['response_tier']}|{r['response_load']}|{r['exposure_overlap']}"
+            for r in ordered_wave
         ).encode("utf-8")
     ).hexdigest()
 
@@ -225,10 +225,10 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict]) -> dict:
         f"{proposed_tier_counts['critical']},{proposed_tier_counts['major']},{proposed_tier_counts['minor']}|"
         f"{contained_tier_counts['critical']},{contained_tier_counts['major']},{contained_tier_counts['minor']}|"
         f"{critical_response_count}|{max_urgency}|{','.join(critical_response_ids)}|"
-        f"{total_conflict_load}|{scheduled_bundle_count}|{total_scheduled_effort}|"
-        f"{max_scheduled_effort}|"
-        f"{schedule_class_counts['immediate']},{schedule_class_counts['planned']},{schedule_class_counts['deferred']}|"
-        f"{','.join(schedule_order)}|"
+        f"{total_exposure_overlap}|{response_wave_count}|{total_response_load}|"
+        f"{max_response_load}|"
+        f"{response_tier_counts['immediate']},{response_tier_counts['urgent']},{response_tier_counts['routine']}|"
+        f"{','.join(response_order)}|"
         f"{','.join(contained_bundle_ids)}"
     )
     plan_checksum = hashlib.sha256(plan_payload.encode("utf-8")).hexdigest()
@@ -255,14 +255,14 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict]) -> dict:
         "critical_response_count": critical_response_count,
         "max_urgency": max_urgency,
         "urgency_ledger_checksum": urgency_ledger_checksum,
-        "total_conflict_load": total_conflict_load,
-        "scheduled_bundle_ids": scheduled_bundle_ids,
-        "scheduled_bundle_count": scheduled_bundle_count,
-        "total_scheduled_effort": total_scheduled_effort,
-        "max_scheduled_effort": max_scheduled_effort,
-        "schedule_class_counts": schedule_class_counts,
-        "schedule_order": schedule_order,
-        "schedule_checksum": schedule_checksum,
+        "total_exposure_overlap": total_exposure_overlap,
+        "response_wave_ids": response_wave_ids,
+        "response_wave_count": response_wave_count,
+        "total_response_load": total_response_load,
+        "max_response_load": max_response_load,
+        "response_tier_counts": response_tier_counts,
+        "response_order": response_order,
+        "response_wave_checksum": response_wave_checksum,
         "bundle_checksum": bundle_checksum,
         "plan_checksum": plan_checksum,
     }

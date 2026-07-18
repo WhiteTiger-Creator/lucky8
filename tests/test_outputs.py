@@ -80,10 +80,10 @@ def test_result_has_required_keys(result):
                            "coverage_permille", "residual_pressure",
                            "critical_response_ids", "critical_response_count",
                            "max_urgency", "urgency_ledger_checksum",
-                           "total_conflict_load", "scheduled_bundle_ids",
-                           "scheduled_bundle_count", "total_scheduled_effort",
-                           "max_scheduled_effort", "schedule_class_counts",
-                           "schedule_order", "schedule_checksum",
+                           "total_exposure_overlap", "response_wave_ids",
+                           "response_wave_count", "total_response_load",
+                           "max_response_load", "response_tier_counts",
+                           "response_order", "response_wave_checksum",
                            "bundle_checksum", "plan_checksum"}
 
 
@@ -113,7 +113,7 @@ def test_plan_checksum_consistent(result):
     """plan_checksum is the SHA-256 of the contracted plan payload."""
     pc = result["proposed_tier_counts"]
     cc = result["contained_tier_counts"]
-    sc = result["schedule_class_counts"]
+    sc = result["response_tier_counts"]
     payload = (
         f"{result['asset_count']}|{result['total_proposed_severity']}|"
         f"{result['max_single_bundle_severity']}|{result['max_contained_severity']}|"
@@ -125,10 +125,10 @@ def test_plan_checksum_consistent(result):
         f"{cc['critical']},{cc['major']},{cc['minor']}|"
         f"{result['critical_response_count']}|{result['max_urgency']}|"
         f"{','.join(result['critical_response_ids'])}|"
-        f"{result['total_conflict_load']}|{result['scheduled_bundle_count']}|"
-        f"{result['total_scheduled_effort']}|{result['max_scheduled_effort']}|"
-        f"{sc['immediate']},{sc['planned']},{sc['deferred']}|"
-        f"{','.join(result['schedule_order'])}|"
+        f"{result['total_exposure_overlap']}|{result['response_wave_count']}|"
+        f"{result['total_response_load']}|{result['max_response_load']}|"
+        f"{sc['immediate']},{sc['urgent']},{sc['routine']}|"
+        f"{','.join(result['response_order'])}|"
         f"{','.join(result['contained_bundle_ids'])}"
     )
     assert result["plan_checksum"] == hashlib.sha256(payload.encode()).hexdigest()
@@ -242,12 +242,12 @@ def test_source_does_not_reference_verifier_trees():
         assert token not in src
 
 
-SCHEDULE_CLASSES = ("immediate", "planned", "deferred")
-CLASS_RANK = {n: len(SCHEDULE_CLASSES) - i for i, n in enumerate(SCHEDULE_CLASSES)}
+RESPONSE_TIERS = ("immediate", "urgent", "routine")
+CLASS_RANK = {n: len(RESPONSE_TIERS) - i for i, n in enumerate(RESPONSE_TIERS)}
 
 
-def _schedule_layer(bundles: list[dict], contained_ids: list[str]) -> list[dict]:
-    """Recompute the scheduling layer per SR-2231/2233/2235, independently."""
+def _response_wave_layer(bundles: list[dict], contained_ids: list[str]) -> list[dict]:
+    """Recompute the response-wave layer per SR-2231/2233/2235, independently."""
     contained = set(contained_ids)
     uncontained = [b for b in bundles if b["id"] not in contained]
     rows = []
@@ -255,62 +255,62 @@ def _schedule_layer(bundles: list[dict], contained_ids: list[str]) -> list[dict]
         if b["id"] not in contained:
             continue
         assets = set(b["assets"])
-        conflict_assets = sum(len(assets & set(o["assets"])) for o in uncontained)
-        conflict_count = sum(1 for o in uncontained if assets & set(o["assets"]))
-        effort = max(
-            b["severity"] * 3 + (-(-conflict_assets // 2)) - (len(assets) // 2), 0
+        exposure_overlap = sum(len(assets & set(o["assets"])) for o in uncontained)
+        exposing_bundle_count = sum(1 for o in uncontained if assets & set(o["assets"]))
+        response_load = max(
+            b["severity"] * 3 + (-(-exposure_overlap // 2)) - (len(assets) // 2), 0
         )
         rows.append({"id": b["id"], "severity": b["severity"],
-                     "conflict_assets": conflict_assets,
-                     "conflict_count": conflict_count, "effort": effort})
-    admitted = [r for r in rows if r["effort"] >= 16]
+                     "exposure_overlap": exposure_overlap,
+                     "exposing_bundle_count": exposing_bundle_count, "response_load": response_load})
+    admitted = [r for r in rows if r["response_load"] >= 16]
     for r in admitted:
-        if r["effort"] >= 27:
-            r["schedule_class"] = "immediate"
-        elif r["effort"] >= 21 or r["conflict_assets"] >= 4:
-            r["schedule_class"] = "planned"
+        if r["response_load"] >= 27:
+            r["response_tier"] = "immediate"
+        elif r["response_load"] >= 21 or r["exposure_overlap"] >= 4:
+            r["response_tier"] = "urgent"
         else:
-            r["schedule_class"] = "deferred"
-    return sorted(admitted, key=lambda r: (-CLASS_RANK[r["schedule_class"]], -r["effort"],
-                                           -r["severity"], -r["conflict_count"], r["id"]))
+            r["response_tier"] = "routine"
+    return sorted(admitted, key=lambda r: (-CLASS_RANK[r["response_tier"]], -r["response_load"],
+                                           -r["severity"], -r["exposing_bundle_count"], r["id"]))
 
 
-def test_schedule_layer_matches_independent_computation(result):
-    """The scheduling layer reproduces the log-governed effort, admission and ordering."""
+def test_response_wave_layer_matches_independent_computation(result):
+    """The response-wave layer reproduces the log-governed response_load, admission and ordering."""
     bundles = _canonical(json.loads(DATA.read_text())["bundles"])
-    ordered = _schedule_layer(bundles, result["contained_bundle_ids"])
-    assert result["schedule_order"] == [r["id"] for r in ordered]
-    assert result["scheduled_bundle_ids"] == sorted(r["id"] for r in ordered)
-    assert result["scheduled_bundle_count"] == len(ordered)
-    assert result["total_scheduled_effort"] == sum(r["effort"] for r in ordered)
-    assert result["max_scheduled_effort"] == max((r["effort"] for r in ordered), default=0)
-    expected_counts = {n: 0 for n in SCHEDULE_CLASSES}
+    ordered = _response_wave_layer(bundles, result["contained_bundle_ids"])
+    assert result["response_order"] == [r["id"] for r in ordered]
+    assert result["response_wave_ids"] == sorted(r["id"] for r in ordered)
+    assert result["response_wave_count"] == len(ordered)
+    assert result["total_response_load"] == sum(r["response_load"] for r in ordered)
+    assert result["max_response_load"] == max((r["response_load"] for r in ordered), default=0)
+    expected_counts = {n: 0 for n in RESPONSE_TIERS}
     for r in ordered:
-        expected_counts[r["schedule_class"]] += 1
-    assert list(result["schedule_class_counts"]) == list(SCHEDULE_CLASSES)
-    assert result["schedule_class_counts"] == expected_counts
+        expected_counts[r["response_tier"]] += 1
+    assert list(result["response_tier_counts"]) == list(RESPONSE_TIERS)
+    assert result["response_tier_counts"] == expected_counts
 
 
-def test_schedule_checksum_and_conflict_load_consistent(result):
-    """schedule_checksum hashes the ordered schedule rows; conflict load covers the contained set."""
+def test_response_wave_checksum_and_conflict_load_consistent(result):
+    """response_wave_checksum hashes the ordered response-wave rows; exposure overlap covers the contained set."""
     bundles = _canonical(json.loads(DATA.read_text())["bundles"])
-    ordered = _schedule_layer(bundles, result["contained_bundle_ids"])
+    ordered = _response_wave_layer(bundles, result["contained_bundle_ids"])
     payload = "\n".join(
-        f"{r['id']}|{r['schedule_class']}|{r['effort']}|{r['conflict_assets']}"
+        f"{r['id']}|{r['response_tier']}|{r['response_load']}|{r['exposure_overlap']}"
         for r in ordered
     )
-    assert result["schedule_checksum"] == hashlib.sha256(payload.encode("utf-8")).hexdigest()
+    assert result["response_wave_checksum"] == hashlib.sha256(payload.encode("utf-8")).hexdigest()
     contained = set(result["contained_bundle_ids"])
     uncontained = [b for b in bundles if b["id"] not in contained]
-    assert result["total_conflict_load"] == sum(
+    assert result["total_exposure_overlap"] == sum(
         len(set(b["assets"]) & set(o["assets"]))
         for b in bundles if b["id"] in contained
         for o in uncontained
     )
 
 
-def test_schedule_effort_conflict_half_is_ceilinged(result):
-    """The conflict half of effort rounds UP; a floored halving admits a different set."""
+def test_response_load_exposure_half_is_ceilinged(result):
+    """The conflict half of response_load rounds UP; a floored halving admits a different set."""
     bundles = _canonical(json.loads(DATA.read_text())["bundles"])
     contained = set(result["contained_bundle_ids"])
     uncontained = [b for b in bundles if b["id"] not in contained]
@@ -322,4 +322,4 @@ def test_schedule_effort_conflict_half_is_ceilinged(result):
         ca = sum(len(assets & set(o["assets"])) for o in uncontained)
         if max(b["severity"] * 3 + (ca // 2) - (len(assets) // 2), 0) >= 16:
             floored.append(b["id"])
-    assert sorted(floored) != result["scheduled_bundle_ids"]
+    assert sorted(floored) != result["response_wave_ids"]
