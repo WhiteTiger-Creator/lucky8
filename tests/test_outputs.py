@@ -78,6 +78,8 @@ def test_result_has_required_keys(result):
                            "contained_tier_counts", "total_asset_pressure",
                            "max_asset_pressure", "containment_score",
                            "coverage_permille", "residual_pressure",
+                           "critical_response_ids", "critical_response_count",
+                           "max_urgency", "urgency_ledger_checksum",
                            "bundle_checksum", "plan_checksum"}
 
 
@@ -116,9 +118,35 @@ def test_plan_checksum_consistent(result):
         f"{result['residual_pressure']}|"
         f"{pc['critical']},{pc['major']},{pc['minor']}|"
         f"{cc['critical']},{cc['major']},{cc['minor']}|"
+        f"{result['critical_response_count']}|{result['max_urgency']}|"
+        f"{','.join(result['critical_response_ids'])}|"
         f"{','.join(result['contained_bundle_ids'])}"
     )
     assert result["plan_checksum"] == hashlib.sha256(payload.encode()).hexdigest()
+
+
+def test_response_urgency_ledger_consistent(result):
+    """The response-urgency ledger reproduces the log-governed carry/threshold rule."""
+    data = json.loads(DATA.read_text())
+    bundles = _canonical(data["bundles"])
+    prev_out, prev = 0, set()
+    crit, max_u, rows = [], 0, []
+    for b in bundles:
+        assets = set(b["assets"])
+        shared = len(assets & prev)
+        carry_in = max(prev_out - (shared * 7) // 3, 0)
+        pressure = b["severity"] * len(assets)
+        urgency = pressure + carry_in // 5
+        carry_out = min(carry_in + pressure - (len(assets) // 2), 90)
+        if urgency >= 30:
+            crit.append(b["id"])
+        max_u = max(max_u, urgency)
+        rows.append(f"{b['id']}|{urgency}|{1 if urgency >= 30 else 0}|{carry_out}")
+        prev_out, prev = carry_out, assets
+    assert result["critical_response_ids"] == sorted(crit)
+    assert result["critical_response_count"] == len(crit)
+    assert result["max_urgency"] == max_u
+    assert result["urgency_ledger_checksum"] == hashlib.sha256("\n".join(rows).encode()).hexdigest()
 
 
 def test_scoring_layer_consistent(result):

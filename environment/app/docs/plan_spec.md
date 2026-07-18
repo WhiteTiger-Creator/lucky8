@@ -48,14 +48,26 @@ log; this contract fixes only the key set and the serializations below.
 * `containment_score` — the floored weighted score over the contained set (per log).
 * `coverage_permille` — the coverage measure over `asset_count` (per log).
 * `residual_pressure` — the asset-pressure sum over the log-defined complement.
+* `critical_response_ids` — the ids (ascending) admitted to the critical response
+  set by the sequential response-urgency ledger (definition per the review log).
+* `critical_response_count` — the number of ids in `critical_response_ids`.
+* `max_urgency` — the maximum per-bundle urgency over all canonical bundles.
+* `urgency_ledger_checksum` — the SHA-256 hex digest of the ledger rows serialized
+  as follows: for each canonical bundle in `id` order, the line
+  `id|urgency|c|carry_out` where `c` is `1` if the bundle is in the critical
+  response set else `0`; lines joined by a single `\n`, no trailing newline; hash
+  the UTF-8 encoding. (The urgency, critical flag and carry_out are defined by the
+  review log's response-urgency ledger decision.)
 * `bundle_checksum` — the SHA-256 hex digest of the canonical bundles serialized
   as follows: for each bundle in `id` order, the line `id|severity|a0,a1,...`
   (assets ascending, comma-joined); lines joined by a single `\n`, no trailing
   newline; hash the UTF-8 encoding.
 * `plan_checksum` — the SHA-256 hex digest of the UTF-8 encoding of
-  `asset_count|total_proposed_severity|max_single_bundle_severity|max_contained_severity|contained_asset_count|residual_contained_severity|total_asset_pressure|max_asset_pressure|containment_score|coverage_permille|residual_pressure|PC|CC|id0,id1,...`
+  `asset_count|total_proposed_severity|max_single_bundle_severity|max_contained_severity|contained_asset_count|residual_contained_severity|total_asset_pressure|max_asset_pressure|containment_score|coverage_permille|residual_pressure|PC|CC|CRC|MU|CRI|id0,id1,...`
   where `PC` is `proposed_tier_counts` as `critical,major,minor`, `CC` is
-  `contained_tier_counts` as `critical,major,minor`, and the trailing segment is
+  `contained_tier_counts` as `critical,major,minor`, `CRC` is
+  `critical_response_count`, `MU` is `max_urgency`, `CRI` is
+  `critical_response_ids` comma-joined ascending, and the trailing segment is
   `contained_bundle_ids` comma-joined in ascending order.
 
 The program reads its input from `--input` (default `/app/data/remediation.json`)

@@ -112,6 +112,38 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict]) -> dict:
     max_asset_pressure = max(asset_pressures, default=0)
     coverage_permille = (contained_asset_count * 1000) // asset_count if asset_count else 0
 
+    # Sequential response-urgency ledger over canonical bundles in id order.
+    # Carry propagates between consecutive bundles and decays by a shared-asset
+    # penalty; a bundle is admitted to the critical response set when its urgency
+    # reaches the threshold. This is boundary-sensitive and order-dependent: a
+    # small slip in any floored term shifts a bundle's urgency across the
+    # threshold and changes the set, the count and the ledger checksum. The
+    # decay/credit divisors, the threshold and the carry cap are governed by the
+    # review log.
+    URGENCY_THRESHOLD = 30
+    CARRY_CAP = 90
+    prev_carry_out = 0
+    prev_assets: set[int] = set()
+    critical_response_ids: list[str] = []
+    max_urgency = 0
+    ledger_rows: list[str] = []
+    for b in bundles:
+        assets = set(b["assets"])
+        shared_prev = len(assets & prev_assets)
+        carry_in = max(prev_carry_out - (shared_prev * 7) // 3, 0)
+        pressure = b["severity"] * len(assets)
+        urgency = pressure + carry_in // 5
+        carry_out = min(carry_in + pressure - (len(assets) // 2), CARRY_CAP)
+        if urgency >= URGENCY_THRESHOLD:
+            critical_response_ids.append(b["id"])
+        max_urgency = max(max_urgency, urgency)
+        ledger_rows.append(f"{b['id']}|{urgency}|{1 if urgency >= URGENCY_THRESHOLD else 0}|{carry_out}")
+        prev_carry_out = carry_out
+        prev_assets = assets
+    critical_response_ids = sorted(critical_response_ids)
+    critical_response_count = len(critical_response_ids)
+    urgency_ledger_checksum = hashlib.sha256("\n".join(ledger_rows).encode("utf-8")).hexdigest()
+
     bundle_payload = "\n".join(
         f"{b['id']}|{b['severity']}|{','.join(str(a) for a in b['assets'])}" for b in bundles
     )
@@ -124,6 +156,7 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict]) -> dict:
         f"{coverage_permille}|{residual_pressure}|"
         f"{proposed_tier_counts['critical']},{proposed_tier_counts['major']},{proposed_tier_counts['minor']}|"
         f"{contained_tier_counts['critical']},{contained_tier_counts['major']},{contained_tier_counts['minor']}|"
+        f"{critical_response_count}|{max_urgency}|{','.join(critical_response_ids)}|"
         f"{','.join(contained_bundle_ids)}"
     )
     plan_checksum = hashlib.sha256(plan_payload.encode("utf-8")).hexdigest()
@@ -146,6 +179,10 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict]) -> dict:
         "containment_score": containment_score,
         "coverage_permille": coverage_permille,
         "residual_pressure": residual_pressure,
+        "critical_response_ids": critical_response_ids,
+        "critical_response_count": critical_response_count,
+        "max_urgency": max_urgency,
+        "urgency_ledger_checksum": urgency_ledger_checksum,
         "bundle_checksum": bundle_checksum,
         "plan_checksum": plan_checksum,
     }

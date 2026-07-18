@@ -89,6 +89,17 @@ No planner semantics changed in this entry; parameters remain as approved by the
 ### Review entry 0039 — scoring lane
 > **Board decision (2026-05-16 - SR-2217)** Marta: `residual_pressure` is the sum of asset pressure over only the canonical bundles that are NOT in the contained set — the same complement used by the residual packing. This supersedes SR-2124.
 
+### Review entry 0026b — response-ledger lane
+> **Board proposal (2026-02-19 - SR-1930)** Tomas: response-urgency ledger — process canonical bundles in id order; carry_in = max(previous carry_out - (shared_prev_assets * 5) // 2, 0) where shared_prev_assets is the asset overlap with the previous canonical bundle; urgency = asset_pressure + carry_in // 4; carry_out = min(carry_in + asset_pressure, 80); a bundle joins the critical response set when urgency >= 25. *(Superseded — reversed in the 2026-05 review; see the matching decision.)*
+Analysts should reconcile behavior questions against the SR decision entries rather than chat excerpts.
+
+### Review entry 0029b — response-ledger lane
+> **Board decision (2026-04-30 - SR-2126)** Priya: response-urgency ledger interim — carry_in = max(previous carry_out - (shared_prev_assets * 7) // 2, 0); urgency = asset_pressure + carry_in // 4; carry_out = min(carry_in + asset_pressure - asset_count // 2, 100); critical when urgency >= 28. *(Revised — see the 2026-05 review.)*
+No planner semantics changed in this entry; parameters remain as approved by the board.
+
+### Review entry 0040 — response-ledger lane
+> **Board decision (2026-05-18 - SR-2219)** Marta: response-urgency ledger (final) — process canonical bundles in id order; carry starts at 0. For each bundle: shared_prev is the count of assets shared with the immediately-preceding canonical bundle (0 for the first); `carry_in = max(previous_carry_out - (shared_prev * 7) // 3, 0)`; `urgency = asset_pressure + carry_in // 5` (asset_pressure = severity * asset_count per SR-2211); `carry_out = min(carry_in + asset_pressure - (asset_count // 2), 90)`; a bundle is admitted to the critical response set when `urgency >= 30`. `critical_response_ids` are the admitted bundle ids sorted ascending; `critical_response_count` is their number; `max_urgency` is the maximum urgency over all canonical bundles. The `* 7`/`// 3` decay, the `// 5` carry credit, the 90 cap and the 30 threshold are final and revise SR-2126; this supersedes SR-1930.
+
 ### Review entry 0041 — audit lane
 Shift lead logged a routine audit observation; quarterly recertification touched this lane, no planner-relevant configuration changed.
 

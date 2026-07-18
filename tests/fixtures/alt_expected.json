@@ -33,6 +33,12 @@
   "containment_score": 95,
   "coverage_permille": 1000,
   "residual_pressure": 42,
+  "critical_response_ids": [
+    "ra-11"
+  ],
+  "critical_response_count": 1,
+  "max_urgency": 30,
+  "urgency_ledger_checksum": "25f7b771f8dc281d6b0db9d584c67b459e9283d1fffbf82cb706adbcfc5e017b",
   "bundle_checksum": "25cd01bd9bc14e9481446e8f9b3d985279588b079d7fda4b96940ca8a7945617",
-  "plan_checksum": "1796a05dacb04e958087cde117dc5afc27869361ce3e7270cbc8286bfac7f265"
+  "plan_checksum": "7afa4806cb872c94da3d4987ce62e902db4a4c588f2e3f48fa737c55f446b10a"
 }
