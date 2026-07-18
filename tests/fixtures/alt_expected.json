@@ -1,23 +1,23 @@
 {
-  "asset_count": 14,
-  "bundle_count": 13,
+  "asset_count": 12,
+  "bundle_count": 12,
   "total_proposed_severity": 75,
   "max_single_bundle_severity": 8,
-  "max_contained_severity": 46,
+  "max_contained_severity": 54,
   "contained_bundle_ids": [
-    "ra-00",
     "ra-01",
+    "ra-02",
+    "ra-03",
     "ra-05",
     "ra-06",
     "ra-07",
     "ra-08",
-    "ra-09",
-    "ra-12"
+    "ra-09"
   ],
   "contained_bundle_count": 8,
-  "contained_asset_count": 14,
-  "uncontained_severity": 29,
-  "residual_contained_severity": 29,
-  "bundle_checksum": "107c21645f7df384b1752651c8d7678aa3086b7772955d46562d3364eb8b537a",
-  "plan_checksum": "6c4a5a217817f6966379168b8e54f1e63b9bc7107a93429edf37437b35ede591"
+  "contained_asset_count": 12,
+  "uncontained_severity": 21,
+  "residual_contained_severity": 21,
+  "bundle_checksum": "25cd01bd9bc14e9481446e8f9b3d985279588b079d7fda4b96940ca8a7945617",
+  "plan_checksum": "08830bb5e8b7e773f099654a6a4a5024ddbcbebaaa401bb4a0c08ef32e7804a8"
 }

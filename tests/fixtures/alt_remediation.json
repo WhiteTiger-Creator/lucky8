@@ -1,9 +1,9 @@
 {
-  "asset_count": 14,
+  "asset_count": 12,
   "bundles": [
     {
       "id": "ra-00",
-      "severity": 5,
+      "severity": 2,
       "assets": [
         0,
         1
@@ -11,25 +11,23 @@
     },
     {
       "id": "ra-01",
-      "severity": 5,
+      "severity": 8,
       "assets": [
-        2,
-        3
+        0
       ]
     },
     {
       "id": "ra-02",
-      "severity": 5,
+      "severity": 8,
       "assets": [
-        0,
-        2
+        1
       ]
     },
     {
       "id": "ra-03",
-      "severity": 5,
+      "severity": 6,
       "assets": [
-        1,
+        2,
         3
       ]
     },
@@ -96,14 +94,6 @@
       ]
     },
     {
-      "id": "ra-12",
-      "severity": 4,
-      "assets": [
-        12,
-        13
-      ]
-    },
-    {
       "id": "ra-bad",
       "severity": 0,
       "assets": [
@@ -117,7 +107,7 @@
     },
     {
       "id": "ra-00",
-      "severity": 2,
+      "severity": 1,
       "assets": [
         0,
         1

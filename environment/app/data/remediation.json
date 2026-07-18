@@ -3,7 +3,7 @@
   "bundles": [
     {
       "id": "rb-00",
-      "severity": 6,
+      "severity": 3,
       "assets": [
         0,
         1
@@ -11,25 +11,23 @@
     },
     {
       "id": "rb-01",
-      "severity": 6,
+      "severity": 9,
       "assets": [
-        2,
-        3
+        0
       ]
     },
     {
       "id": "rb-02",
-      "severity": 6,
+      "severity": 9,
       "assets": [
-        0,
-        2
+        1
       ]
     },
     {
       "id": "rb-03",
-      "severity": 6,
+      "severity": 7,
       "assets": [
-        1,
+        2,
         3
       ]
     },
@@ -129,7 +127,7 @@
     },
     {
       "id": "rb-00",
-      "severity": 3,
+      "severity": 2,
       "assets": [
         0,
         1
