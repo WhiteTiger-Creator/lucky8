@@ -87,12 +87,19 @@ log; this contract fixes only the key set and the serializations below.
   (assets ascending, comma-joined); lines joined by a single `\n`, no trailing
   newline; hash the UTF-8 encoding.
 * `plan_checksum` — the SHA-256 hex digest of the UTF-8 encoding of
-  `asset_count|total_proposed_severity|max_single_bundle_severity|max_contained_severity|contained_asset_count|residual_contained_severity|total_asset_pressure|max_asset_pressure|containment_score|coverage_permille|residual_pressure|PC|CC|CRC|MU|CRI|id0,id1,...`
+  `asset_count|total_proposed_severity|max_single_bundle_severity|max_contained_severity|contained_asset_count|residual_contained_severity|total_asset_pressure|max_asset_pressure|containment_score|coverage_permille|residual_pressure|PC|CC|CRC|MU|CRI|TEO|RWC|TRL|MRL|RTC|RO|id0,id1,...`
   where `PC` is `proposed_tier_counts` as `critical,major,minor`, `CC` is
   `contained_tier_counts` as `critical,major,minor`, `CRC` is
   `critical_response_count`, `MU` is `max_urgency`, `CRI` is
-  `critical_response_ids` comma-joined ascending, and the trailing segment is
+  `critical_response_ids` comma-joined ascending, `TEO` is
+  `total_exposure_overlap`, `RWC` is `response_wave_count`, `TRL` is
+  `total_response_load`, `MRL` is `max_response_load`, `RTC` is
+  `response_tier_counts` as `immediate,urgent,routine`, `RO` is `response_order`
+  comma-joined in response order (not ascending), and the trailing segment is
   `contained_bundle_ids` comma-joined in ascending order.
+
+  The six segments `TEO|RWC|TRL|MRL|RTC|RO` sit between `CRI` and the trailing
+  `contained_bundle_ids`; the payload does not end at `CRI`.
 
 The program reads its input from `--input` (default `/app/data/remediation.json`)
 and writes to `--output-dir` (default `/app/output`).
