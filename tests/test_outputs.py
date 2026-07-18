@@ -74,7 +74,10 @@ def test_result_has_required_keys(result):
                            "max_single_bundle_severity", "max_contained_severity",
                            "contained_bundle_ids", "contained_bundle_count",
                            "contained_asset_count", "uncontained_severity",
-                           "residual_contained_severity",
+                           "residual_contained_severity", "proposed_tier_counts",
+                           "contained_tier_counts", "total_asset_pressure",
+                           "max_asset_pressure", "containment_score",
+                           "coverage_permille", "residual_pressure",
                            "bundle_checksum", "plan_checksum"}
 
 
@@ -102,13 +105,49 @@ def test_bundle_checksum_consistent(result):
 
 def test_plan_checksum_consistent(result):
     """plan_checksum is the SHA-256 of the contracted plan payload."""
+    pc = result["proposed_tier_counts"]
+    cc = result["contained_tier_counts"]
     payload = (
         f"{result['asset_count']}|{result['total_proposed_severity']}|"
         f"{result['max_single_bundle_severity']}|{result['max_contained_severity']}|"
         f"{result['contained_asset_count']}|{result['residual_contained_severity']}|"
+        f"{result['total_asset_pressure']}|{result['max_asset_pressure']}|"
+        f"{result['containment_score']}|{result['coverage_permille']}|"
+        f"{result['residual_pressure']}|"
+        f"{pc['critical']},{pc['major']},{pc['minor']}|"
+        f"{cc['critical']},{cc['major']},{cc['minor']}|"
         f"{','.join(result['contained_bundle_ids'])}"
     )
     assert result["plan_checksum"] == hashlib.sha256(payload.encode()).hexdigest()
+
+
+def test_scoring_layer_consistent(result):
+    """Tier counts and pressure aggregates follow the log-governed formulas."""
+    data = json.loads(DATA.read_text())
+    bundles = _canonical(data["bundles"])
+    contained = set(result["contained_bundle_ids"])
+    def tier(s):
+        return "critical" if s >= 7 else "major" if s >= 4 else "minor"
+    exp_prop = {"critical": 0, "major": 0, "minor": 0}
+    exp_cont = {"critical": 0, "major": 0, "minor": 0}
+    pressures, score, residual = [], 0, 0
+    for b in bundles:
+        exp_prop[tier(b["severity"])] += 1
+        p = b["severity"] * len(b["assets"])
+        pressures.append(p)
+        if b["id"] in contained:
+            exp_cont[tier(b["severity"])] += 1
+            score += (b["severity"] * 5 + len(b["assets"]) * 2) // 3
+        else:
+            residual += p
+    assert result["proposed_tier_counts"] == exp_prop
+    assert result["contained_tier_counts"] == exp_cont
+    assert result["total_asset_pressure"] == sum(pressures)
+    assert result["max_asset_pressure"] == (max(pressures) if pressures else 0)
+    assert result["containment_score"] == score
+    assert result["residual_pressure"] == residual
+    ac = result["asset_count"]
+    assert result["coverage_permille"] == (result["contained_asset_count"] * 1000 // ac if ac else 0)
 
 
 def test_contained_set_is_valid_optimal_and_disjoint(result):

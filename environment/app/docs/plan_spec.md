@@ -39,14 +39,24 @@ log; this contract fixes only the key set and the serializations below.
   contained set.
 * `uncontained_severity` — `total_proposed_severity - max_contained_severity`.
 * `residual_contained_severity` — the residual packing value (see the review log).
+* `proposed_tier_counts` — a JSON object `{"critical": n, "major": n, "minor": n}`
+  counting canonical bundles per severity tier (tier cutoffs per the review log).
+* `contained_tier_counts` — the same object shape over the contained set only.
+* `total_asset_pressure` — sum of per-bundle asset pressure over canonical bundles
+  (asset-pressure definition per the review log).
+* `max_asset_pressure` — the largest single per-bundle asset pressure (0 if none).
+* `containment_score` — the floored weighted score over the contained set (per log).
+* `coverage_permille` — the coverage measure over `asset_count` (per log).
+* `residual_pressure` — the asset-pressure sum over the log-defined complement.
 * `bundle_checksum` — the SHA-256 hex digest of the canonical bundles serialized
   as follows: for each bundle in `id` order, the line `id|severity|a0,a1,...`
   (assets ascending, comma-joined); lines joined by a single `\n`, no trailing
   newline; hash the UTF-8 encoding.
 * `plan_checksum` — the SHA-256 hex digest of the UTF-8 encoding of
-  `asset_count|total_proposed_severity|max_single_bundle_severity|max_contained_severity|contained_asset_count|residual_contained_severity|id0,id1,...`
-  where the trailing segment is `contained_bundle_ids` comma-joined in ascending
-  order.
+  `asset_count|total_proposed_severity|max_single_bundle_severity|max_contained_severity|contained_asset_count|residual_contained_severity|total_asset_pressure|max_asset_pressure|containment_score|coverage_permille|residual_pressure|PC|CC|id0,id1,...`
+  where `PC` is `proposed_tier_counts` as `critical,major,minor`, `CC` is
+  `contained_tier_counts` as `critical,major,minor`, and the trailing segment is
+  `contained_bundle_ids` comma-joined in ascending order.
 
 The program reads its input from `--input` (default `/app/data/remediation.json`)
 and writes to `--output-dir` (default `/app/output`).

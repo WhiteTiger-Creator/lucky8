@@ -42,6 +42,26 @@ Analysts should reconcile behavior questions against the SR decision entries rat
 > **Board decision (2026-04-16 - SR-2112)** Dana: the residual severity is the best packing over the bundles whose assets are entirely disjoint from the selected set's assets. *(Revised — see the 2026-05 review.)*
 No planner semantics changed in this entry; parameters remain as approved by the board.
 
+### Review entry 0024 — scoring lane
+> **Board decision (2026-04-18 - SR-2116)** Priya: severity tiers — a bundle is `critical` when its severity is 8 or 9, `major` when 5 to 7, and `minor` when 4 or below. *(Revised — see the 2026-05 review.)*
+Analysts should reconcile behavior questions against the SR decision entries rather than chat excerpts.
+
+### Review entry 0025 — scoring lane
+> **Board decision (2026-04-20 - SR-2118)** Priya: a bundle's asset pressure is `severity + asset_count`; `total_asset_pressure` sums it over canonical bundles and `max_asset_pressure` is the largest. *(Revised — see the 2026-05 review.)*
+No planner semantics changed in this entry; parameters remain as approved by the board.
+
+### Review entry 0026 — scoring lane
+> **Board decision (2026-04-22 - SR-2120)** Dana: `containment_score` = sum over the contained set of `severity * 3 + asset_count`, with no divisor. *(Revised — see the 2026-05 review.)*
+Thread archived; see the SR decision entries for anything affecting planner behavior.
+
+### Review entry 0027 — scoring lane
+> **Board decision (2026-04-24 - SR-2122)** Dana: `coverage_permille` reports coverage as a percent — `contained_asset_count * 100 // asset_count` (0 when asset_count is 0). *(Revised — see the 2026-05 review.)*
+Analysts should reconcile behavior questions against the SR decision entries rather than chat excerpts.
+
+### Review entry 0028 — scoring lane
+> **Board decision (2026-04-28 - SR-2124)** Dana: `residual_pressure` is the sum of asset pressure over ALL canonical bundles (contained and not). *(Revised — see the 2026-05 review.)*
+No planner semantics changed in this entry; parameters remain as approved by the board.
+
 ### Review entry 0031 — canonicalization lane
 > **Board decision (2026-05-03 - SR-2201)** Ilya: bundle canonicalization — drop any bundle whose severity is outside the inclusive range 1..9, and drop any bundle with an empty asset list. Within a bundle, deduplicate the asset ids and sort them ascending. When the same bundle id appears more than once, keep the single occurrence with the MAXIMUM severity. The canonical bundle list is ordered by bundle id ascending. This supersedes SR-1902, SR-1905 and SR-2104.
 
@@ -53,6 +73,21 @@ No planner semantics changed in this entry; parameters remain as approved by the
 
 ### Review entry 0034 — residual lane
 > **Board decision (2026-05-10 - SR-2207)** Marta: the residual packing re-runs the identical maximum-weight asset-disjoint objective over only the canonical bundles that are NOT in the contained set (identified by bundle id); `residual_contained_severity` is that packing's value (0 if none remain). The bundles that lost the tie-break contend among themselves, so this is a genuine second packing — it is NOT restricted to bundles asset-disjoint from the selected set. This supersedes SR-2112.
+
+### Review entry 0035 — scoring lane
+> **Board decision (2026-05-12 - SR-2209)** Ilya: severity tiers — a bundle is `critical` when its severity is 7 or greater, `major` when 4 to 6 inclusive, and `minor` when 3 or below. `proposed_tier_counts` counts the canonical bundles in each tier; `contained_tier_counts` counts only the bundles in the contained set in each tier. This supersedes SR-2116.
+
+### Review entry 0036 — scoring lane
+> **Board decision (2026-05-13 - SR-2211)** Ilya: a bundle's asset pressure is the PRODUCT `severity * asset_count` (asset_count being the number of distinct locked assets after canonicalization). `total_asset_pressure` sums asset pressure over all canonical bundles; `max_asset_pressure` is the largest single value (0 if none). This supersedes SR-2118.
+
+### Review entry 0037 — scoring lane
+> **Board decision (2026-05-14 - SR-2213)** Marta: `containment_score` = sum over the bundles in the contained set of `(severity * 5 + asset_count * 2) // 3` — the weighted term is floored with integer division per bundle before summing. This supersedes SR-2120.
+
+### Review entry 0038 — scoring lane
+> **Board decision (2026-05-15 - SR-2215)** Marta: `coverage_permille` = `contained_asset_count * 1000 // asset_count` (per-mille, not percent), and 0 when asset_count is 0. This supersedes SR-2122.
+
+### Review entry 0039 — scoring lane
+> **Board decision (2026-05-16 - SR-2217)** Marta: `residual_pressure` is the sum of asset pressure over only the canonical bundles that are NOT in the contained set — the same complement used by the residual packing. This supersedes SR-2124.
 
 ### Review entry 0041 — audit lane
 Shift lead logged a routine audit observation; quarterly recertification touched this lane, no planner-relevant configuration changed.

@@ -89,6 +89,29 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict]) -> dict:
     residual_bundles = [b for b in bundles if b["id"] not in contained_set]
     residual_contained_severity, _ = _best_packing(residual_bundles)
 
+    # Severity-tier and pressure scoring layer. Tier cutoffs, the asset-pressure
+    # product, the containment-score weights/divisor and the coverage scale are
+    # all governed by the review log; each aggregate is a floored integer.
+    tiers = ("critical", "major", "minor")
+    proposed_tier_counts = {t: 0 for t in tiers}
+    contained_tier_counts = {t: 0 for t in tiers}
+    asset_pressures = []
+    containment_score = 0
+    residual_pressure = 0
+    for b in bundles:
+        tier = "critical" if b["severity"] >= 7 else "major" if b["severity"] >= 4 else "minor"
+        proposed_tier_counts[tier] += 1
+        pressure = b["severity"] * len(b["assets"])
+        asset_pressures.append(pressure)
+        if b["id"] in contained_set:
+            contained_tier_counts[tier] += 1
+            containment_score += (b["severity"] * 5 + len(b["assets"]) * 2) // 3
+        else:
+            residual_pressure += pressure
+    total_asset_pressure = sum(asset_pressures)
+    max_asset_pressure = max(asset_pressures, default=0)
+    coverage_permille = (contained_asset_count * 1000) // asset_count if asset_count else 0
+
     bundle_payload = "\n".join(
         f"{b['id']}|{b['severity']}|{','.join(str(a) for a in b['assets'])}" for b in bundles
     )
@@ -97,6 +120,10 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict]) -> dict:
     plan_payload = (
         f"{asset_count}|{total_proposed_severity}|{max_single_bundle_severity}|"
         f"{max_contained_severity}|{contained_asset_count}|{residual_contained_severity}|"
+        f"{total_asset_pressure}|{max_asset_pressure}|{containment_score}|"
+        f"{coverage_permille}|{residual_pressure}|"
+        f"{proposed_tier_counts['critical']},{proposed_tier_counts['major']},{proposed_tier_counts['minor']}|"
+        f"{contained_tier_counts['critical']},{contained_tier_counts['major']},{contained_tier_counts['minor']}|"
         f"{','.join(contained_bundle_ids)}"
     )
     plan_checksum = hashlib.sha256(plan_payload.encode("utf-8")).hexdigest()
@@ -112,6 +139,13 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict]) -> dict:
         "contained_asset_count": contained_asset_count,
         "uncontained_severity": uncontained_severity,
         "residual_contained_severity": residual_contained_severity,
+        "proposed_tier_counts": proposed_tier_counts,
+        "contained_tier_counts": contained_tier_counts,
+        "total_asset_pressure": total_asset_pressure,
+        "max_asset_pressure": max_asset_pressure,
+        "containment_score": containment_score,
+        "coverage_permille": coverage_permille,
+        "residual_pressure": residual_pressure,
         "bundle_checksum": bundle_checksum,
         "plan_checksum": plan_checksum,
     }
