@@ -32,6 +32,9 @@ Referred to the tooling backlog. Wave reference 2415; responder rota entry 6.
 > **Board proposal (2026-02-04 - SR-1902)** Rhea: bundle severities are valid in the range 1..5; bundles outside that range are dropped. *(Superseded — reversed in the 2026-05 review; see the matching decision.)*
 Shift lead logged a routine intake observation for the containment queue. Dashboard tiles lagged during a rule refresh; attributed to cache staleness, not the planner.
 
+### Remediation review 005b - board decision
+> **Board decision (2026-05-21 - SR-2237)** Nadia: per-bundle remediation ledger (final). Every canonical bundle is reported, including bundles that were never contained and bundles that did not join the response wave — the ledger is the audit record for the whole proposal set, not for the wave. Row order is: contained bundles before uncontained ones; then `response_load` descending; then `urgency` descending; then `severity` descending; then `bundle_id` ascending. A bundle outside the response wave reports `response_tier` as the literal string `none` and reports zero for `exposure_overlap`, `exposing_bundle_count` and `response_load`, because those quantities are only defined for contained bundles that were assessed for the wave. The three flags `contained`, `critical_response` and `in_response_wave` are emitted as integers 0 or 1, never as JSON booleans.
+
 ### Remediation review 006 - mail-relay
 Inventory reconciliation ran against this group ahead of the sweep and no further lateral movement was observed on the segment afterwards Post-sweep verification cleared the group on the first pass.
 Filed for the quarterly review. Wave reference 2418; responder rota entry 7.

@@ -3,7 +3,7 @@
 
 Skeleton only. The input format, canonicalization rules, the asset-disjoint
 packing objective (max_contained_severity, which is NOT the total-severity sum
-and NOT a greedy selection), and the exact plan.json keys and checksum
+and NOT a greedy selection), and the exact plan.json (and the per-bundle remediation_ledger.jsonl) keys and checksum
 serialization are all specified in /app/docs/plan_spec.md. Fill in
 `plan_remediation` to compute the plan and record the observables.
 """

@@ -86,6 +86,22 @@ log; this contract fixes only the key set and the serializations below.
   as follows: for each bundle in `id` order, the line `id|severity|a0,a1,...`
   (assets ascending, comma-joined); lines joined by a single `\n`, no trailing
   newline; hash the UTF-8 encoding.
+### `remediation_ledger.jsonl`
+
+A second artifact written beside `plan.json` in the same output directory: one compact
+JSON line per **canonical bundle** (not only the response-wave ones), each carrying
+exactly these fourteen keys in this order — `bundle_id`, `severity`, `severity_tier`,
+`n_assets`, `asset_pressure`, `contained`, `urgency`, `urgency_carry_out`,
+`critical_response`, `exposure_overlap`, `exposing_bundle_count`, `response_load`,
+`in_response_wave`, `response_tier`.
+
+`contained`, `critical_response` and `in_response_wave` are integer `0`/`1` flags, not
+booleans. `response_tier` is one of `immediate`, `urgent`, `routine`, or the literal
+string `none` for a bundle that did not join the wave; a bundle outside the wave reports
+`0` for `exposure_overlap`, `exposing_bundle_count` and `response_load`. Rows are
+serialized with compact separators (no spaces after `,` or `:`) and one row per line. The
+row ordering is governed by the review log, not by bundle id.
+
 * `plan_checksum` — the SHA-256 hex digest of the UTF-8 encoding of
   `asset_count|total_proposed_severity|max_single_bundle_severity|max_contained_severity|contained_asset_count|residual_contained_severity|total_asset_pressure|max_asset_pressure|containment_score|coverage_permille|residual_pressure|PC|CC|CRC|MU|CRI|TEO|RWC|TRL|MRL|RTC|RO|id0,id1,...`
   where `PC` is `proposed_tier_counts` as `critical,major,minor`, `CC` is

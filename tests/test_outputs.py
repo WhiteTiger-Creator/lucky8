@@ -323,3 +323,70 @@ def test_response_load_exposure_half_is_ceilinged(result):
         if max(b["severity"] * 3 + (ca // 2) - (len(assets) // 2), 0) >= 16:
             floored.append(b["id"])
     assert sorted(floored) != result["response_wave_ids"]
+
+
+LEDGER_FIELDS = ("bundle_id","severity","severity_tier","n_assets","asset_pressure","contained",
+                 "urgency","urgency_carry_out","critical_response","exposure_overlap",
+                 "exposing_bundle_count","response_load","in_response_wave","response_tier")
+
+
+def _run_ledger(tmp: Path, input_path: Path = DATA) -> list[dict]:
+    out = tmp / "out"
+    subprocess.run([sys.executable, str(APP), "--input", str(input_path), "--output-dir", str(out)],
+                   check=True, capture_output=True, text=True)
+    path = out / "remediation_ledger.jsonl"
+    assert path.exists(), "remediation_ledger.jsonl was not written"
+    return [json.loads(l) for l in path.read_text().splitlines() if l.strip()]
+
+
+def test_ledger_matches_fixture(tmp_path):
+    """remediation_ledger.jsonl matches the reference fixture row for row."""
+    expected = [json.loads(l) for l in (FIX / "expected_ledger.jsonl").read_text().splitlines() if l.strip()]
+    assert _run_ledger(tmp_path) == expected
+
+
+def test_ledger_generalizes_to_alternate_input(tmp_path):
+    """The ledger reproduces the reference rows for a held-out input."""
+    expected = [json.loads(l) for l in (FIX / "alt_expected_ledger.jsonl").read_text().splitlines() if l.strip()]
+    assert _run_ledger(tmp_path, FIX / "alt_remediation.json") == expected
+
+
+def test_ledger_covers_every_canonical_bundle(tmp_path, result):
+    """One row per canonical bundle -- uncontained and non-wave bundles included."""
+    rows = _run_ledger(tmp_path)
+    assert len(rows) == result["bundle_count"]
+    assert sorted(r["bundle_id"] for r in rows) == sorted(
+        b["id"] for b in _canonical(json.loads(DATA.read_text())["bundles"]))
+    assert {r["bundle_id"] for r in rows} >= set(result["contained_bundle_ids"])
+
+
+def test_ledger_row_shape_and_flag_types(tmp_path):
+    """Every row carries the fourteen contracted keys, with integer 0/1 flags."""
+    for row in _run_ledger(tmp_path):
+        assert tuple(row) == LEDGER_FIELDS
+        for flag in ("contained", "critical_response", "in_response_wave"):
+            assert row[flag] in (0, 1) and isinstance(row[flag], int) and not isinstance(row[flag], bool)
+        assert row["response_tier"] in ("immediate", "urgent", "routine", "none")
+        if row["in_response_wave"] == 0 and row["contained"] == 0:
+            assert row["exposure_overlap"] == 0
+            assert row["exposing_bundle_count"] == 0
+            assert row["response_load"] == 0
+
+
+def test_ledger_row_order_follows_sr_2237(tmp_path):
+    """Rows follow the log's ordering chain, not bundle-id order."""
+    rows = _run_ledger(tmp_path)
+    keyed = [(-r["contained"], -r["response_load"], -r["urgency"], -r["severity"], r["bundle_id"])
+             for r in rows]
+    assert keyed == sorted(keyed)
+    assert [r["bundle_id"] for r in rows] != sorted(r["bundle_id"] for r in rows)
+
+
+def test_ledger_jsonl_is_compact(tmp_path):
+    """Ledger rows use compact separators, one row per line."""
+    out = tmp_path / "c"
+    subprocess.run([sys.executable, str(APP), "--input", str(DATA), "--output-dir", str(out)],
+                   check=True, capture_output=True, text=True)
+    for line in (out / "remediation_ledger.jsonl").read_text().splitlines():
+        if line.strip():
+            assert ", " not in line and '": ' not in line

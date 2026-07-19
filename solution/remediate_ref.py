@@ -124,6 +124,7 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict]) -> dict:
     CARRY_CAP = 90
     prev_carry_out = 0
     prev_assets: set[int] = set()
+    per_bundle: dict[str, dict] = {}
     critical_response_ids: list[str] = []
     max_urgency = 0
     ledger_rows: list[str] = []
@@ -139,6 +140,11 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict]) -> dict:
             critical_response_ids.append(b["id"])
         max_urgency = max(max_urgency, urgency)
         ledger_rows.append(f"{b['id']}|{urgency}|{1 if urgency >= URGENCY_THRESHOLD else 0}|{carry_out}")
+        per_bundle[b["id"]] = {
+            "urgency": urgency,
+            "urgency_carry_out": carry_out,
+            "critical_response": 1 if urgency >= URGENCY_THRESHOLD else 0,
+        }
         prev_carry_out = carry_out
         prev_assets = assets
     critical_response_ids = sorted(critical_response_ids)
@@ -212,6 +218,40 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict]) -> dict:
         ).encode("utf-8")
     ).hexdigest()
 
+    # Per-bundle remediation ledger, emitted as compact JSON lines. One row per
+    # canonical bundle carrying every derived per-bundle value, ordered per SR-2237:
+    # contained bundles first, then response_load descending, then urgency descending,
+    # then severity descending, then id ascending.
+    wave_by_id = {r["id"]: r for r in wave_candidates}
+    admitted_ids = {r["id"] for r in admitted}
+    ledger_records = []
+    for b in bundles:
+        bid = b["id"]
+        assets = set(b["assets"])
+        tier = "critical" if b["severity"] >= 7 else "major" if b["severity"] >= 4 else "minor"
+        wave = wave_by_id.get(bid)
+        ledger_records.append(
+            {
+                "bundle_id": bid,
+                "severity": b["severity"],
+                "severity_tier": tier,
+                "n_assets": len(assets),
+                "asset_pressure": b["severity"] * len(assets),
+                "contained": 1 if bid in contained_set else 0,
+                "urgency": per_bundle[bid]["urgency"],
+                "urgency_carry_out": per_bundle[bid]["urgency_carry_out"],
+                "critical_response": per_bundle[bid]["critical_response"],
+                "exposure_overlap": wave["exposure_overlap"] if wave else 0,
+                "exposing_bundle_count": wave["exposing_bundle_count"] if wave else 0,
+                "response_load": wave["response_load"] if wave else 0,
+                "in_response_wave": 1 if bid in admitted_ids else 0,
+                "response_tier": wave.get("response_tier", "none") if wave else "none",
+            }
+        )
+    ledger_records.sort(
+        key=lambda r: (-r["contained"], -r["response_load"], -r["urgency"], -r["severity"], r["bundle_id"])
+    )
+
     bundle_payload = "\n".join(
         f"{b['id']}|{b['severity']}|{','.join(str(a) for a in b['assets'])}" for b in bundles
     )
@@ -234,6 +274,7 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict]) -> dict:
     plan_checksum = hashlib.sha256(plan_payload.encode("utf-8")).hexdigest()
 
     return {
+        "_ledger_records": ledger_records,
         "asset_count": asset_count,
         "bundle_count": len(bundles),
         "total_proposed_severity": total_proposed_severity,
@@ -277,7 +318,11 @@ def main() -> int:
     result = plan_remediation(data["asset_count"], data["bundles"])
     out = Path(args.output_dir)
     out.mkdir(parents=True, exist_ok=True)
+    records = result.pop("_ledger_records")
     (out / "plan.json").write_text(json.dumps(result, indent=2) + "\n")
+    with (out / "remediation_ledger.jsonl").open("w", encoding="utf-8") as handle:
+        for row in records:
+            handle.write(json.dumps(row, separators=(",", ":")) + "\n")
     return 0
 
 
