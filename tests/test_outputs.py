@@ -390,3 +390,21 @@ def test_ledger_jsonl_is_compact(tmp_path):
     for line in (out / "remediation_ledger.jsonl").read_text().splitlines():
         if line.strip():
             assert ", " not in line and '": ' not in line
+
+
+def test_contained_below_floor_keeps_its_computed_load(tmp_path):
+    """SR-2237: the zero-reporting rule keys off `contained`, not `in_response_wave`.
+
+    A contained bundle that fell below the wave admission floor keeps the response_load
+    that kept it out; only uncontained bundles report zero.
+    """
+    rows = _run_ledger(tmp_path)
+    uncontained = [r for r in rows if r["contained"] == 0]
+    assert uncontained, "fixture must exercise at least one uncontained bundle"
+    for r in uncontained:
+        assert (r["exposure_overlap"], r["exposing_bundle_count"], r["response_load"]) == (0, 0, 0)
+    below = [r for r in rows if r["contained"] == 1 and r["in_response_wave"] == 0]
+    assert below, "fixture must exercise a contained bundle below the wave floor"
+    for r in below:
+        assert r["response_load"] > 0
+        assert r["response_tier"] == "none"

@@ -97,8 +97,11 @@ exactly these fourteen keys in this order — `bundle_id`, `severity`, `severity
 
 `contained`, `critical_response` and `in_response_wave` are integer `0`/`1` flags, not
 booleans. `response_tier` is one of `immediate`, `urgent`, `routine`, or the literal
-string `none` for a bundle that did not join the wave; a bundle outside the wave reports
-`0` for `exposure_overlap`, `exposing_bundle_count` and `response_load`. Rows are
+string `none` for a bundle that did not join the wave. The zero-reporting rule keys off
+`contained`, not off `in_response_wave`: an **uncontained** bundle reports `0` for
+`exposure_overlap`, `exposing_bundle_count` and `response_load`, while a **contained**
+bundle that fell below the wave admission floor keeps its computed values for all
+three and reports `in_response_wave` as `0`. See the review log for the governing rule. Rows are
 serialized with compact separators (no spaces after `,` or `:`) and one row per line. The
 row ordering is governed by the review log, not by bundle id.
 
