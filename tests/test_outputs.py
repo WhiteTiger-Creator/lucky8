@@ -336,18 +336,18 @@ def _run_ledger(tmp: Path, input_path: Path = DATA) -> list[dict]:
                    check=True, capture_output=True, text=True)
     path = out / "remediation_ledger.jsonl"
     assert path.exists(), "remediation_ledger.jsonl was not written"
-    return [json.loads(l) for l in path.read_text().splitlines() if l.strip()]
+    return [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
 
 
 def test_ledger_matches_fixture(tmp_path):
     """remediation_ledger.jsonl matches the reference fixture row for row."""
-    expected = [json.loads(l) for l in (FIX / "expected_ledger.jsonl").read_text().splitlines() if l.strip()]
+    expected = [json.loads(line) for line in (FIX / "expected_ledger.jsonl").read_text().splitlines() if line.strip()]
     assert _run_ledger(tmp_path) == expected
 
 
 def test_ledger_generalizes_to_alternate_input(tmp_path):
     """The ledger reproduces the reference rows for a held-out input."""
-    expected = [json.loads(l) for l in (FIX / "alt_expected_ledger.jsonl").read_text().splitlines() if l.strip()]
+    expected = [json.loads(line) for line in (FIX / "alt_expected_ledger.jsonl").read_text().splitlines() if line.strip()]
     assert _run_ledger(tmp_path, FIX / "alt_remediation.json") == expected
 
 
