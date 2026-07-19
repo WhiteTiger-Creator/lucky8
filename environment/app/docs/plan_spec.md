@@ -136,13 +136,16 @@ row ordering is governed by the review log, not by bundle id.
 One compact JSON line per asset id from `0` to `asset_count - 1` inclusive, each with
 exactly these eight keys in order — `asset_id`, `claiming_bundle_count`,
 `claiming_bundle_ids`, `locked_by`, `is_locked`, `max_claim_severity`,
-`total_claim_pressure`, `contention`. `claiming_bundle_ids` is a sorted array of
+`total_claim_severity`, `contention`. `total_claim_severity` is the sum of the claiming bundles' raw
+`severity` values — it is not a sum of `asset_pressure` and involves no multiplication by asset
+count. `max_claim_severity` is the largest of those raw severities.
+`claiming_bundle_ids` is a sorted array of
 strings, `locked_by` is a bundle id or the literal string `none`, and `is_locked` is an
 integer `0`/`1` flag. Assets no bundle claims are still reported. Row ordering and every
 derived value are governed by the review log.
 
 * `asset_exposure_checksum` — the SHA-256 hex digest of one line per asset row in the
-  emitted order, each `asset_id|claiming_bundle_count|locked_by|is_locked|max_claim_severity|total_claim_pressure|contention`,
+  emitted order, each `asset_id|claiming_bundle_count|locked_by|is_locked|max_claim_severity|total_claim_severity|contention`,
   joined by a single newline with no trailing newline, hashed over UTF-8.
 
 * `plan_checksum` — the SHA-256 hex digest of the UTF-8 encoding of

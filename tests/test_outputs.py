@@ -411,7 +411,7 @@ def test_contained_below_floor_keeps_its_computed_load(tmp_path):
 
 
 ASSET_FIELDS = ("asset_id","claiming_bundle_count","claiming_bundle_ids","locked_by",
-                "is_locked","max_claim_severity","total_claim_pressure","contention")
+                "is_locked","max_claim_severity","total_claim_severity","contention")
 
 
 def _run_assets(tmp: Path, input_path: Path = DATA) -> list[dict]:
@@ -444,7 +444,7 @@ def test_assets_cover_the_whole_estate(tmp_path, result):
         assert r["is_locked"] in (0, 1) and not isinstance(r["is_locked"], bool)
         assert r["contention"] == max(r["claiming_bundle_count"] - 1, 0)
         if r["claiming_bundle_count"] == 0:
-            assert r["locked_by"] == "none" and r["total_claim_pressure"] == 0
+            assert r["locked_by"] == "none" and r["total_claim_severity"] == 0
 
 
 def test_asset_locker_is_unique_and_contained(tmp_path, result):
@@ -461,7 +461,7 @@ def test_asset_locker_is_unique_and_contained(tmp_path, result):
 def test_asset_row_order_follows_sr_2239(tmp_path):
     """Asset rows follow the log's ordering chain, not ascending asset id."""
     rows = _run_assets(tmp_path)
-    keyed = [(-r["contention"], -r["total_claim_pressure"], -r["is_locked"], r["asset_id"]) for r in rows]
+    keyed = [(-r["contention"], -r["total_claim_severity"], -r["is_locked"], r["asset_id"]) for r in rows]
     assert keyed == sorted(keyed)
     assert [r["asset_id"] for r in rows] != sorted(r["asset_id"] for r in rows)
 
@@ -471,5 +471,26 @@ def test_asset_exposure_checksum_consistent(tmp_path, result):
     rows = _run_assets(tmp_path)
     payload = "\n".join(
         f"{r['asset_id']}|{r['claiming_bundle_count']}|{r['locked_by']}|{r['is_locked']}|"
-        f"{r['max_claim_severity']}|{r['total_claim_pressure']}|{r['contention']}" for r in rows)
+        f"{r['max_claim_severity']}|{r['total_claim_severity']}|{r['contention']}" for r in rows)
     assert result["asset_exposure_checksum"] == hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def test_total_claim_severity_is_not_a_sum_of_asset_pressure(tmp_path):
+    """SR-2239: total_claim_severity sums raw severities, never asset_pressure.
+
+    asset_pressure is severity * n_assets, so summing it gives a different number for
+    any asset claimed by a multi-asset bundle. The shipped estate is required to make
+    the two readings disagree, so this misreading cannot pass unnoticed.
+    """
+    rows = _run_assets(tmp_path)
+    bundles = {b["id"]: b for b in _canonical(json.loads(DATA.read_text())["bundles"])}
+    disagreed = 0
+    for r in rows:
+        claims = [bundles[b] for b in r["claiming_bundle_ids"]]
+        correct = sum(b["severity"] for b in claims)
+        wrong = sum(b["severity"] * len(b["assets"]) for b in claims)
+        assert r["total_claim_severity"] == correct
+        assert r["max_claim_severity"] == max((b["severity"] for b in claims), default=0)
+        if correct != wrong:
+            disagreed += 1
+    assert disagreed, "estate must contain an asset where the two readings differ"

@@ -239,17 +239,17 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict]) -> dict:
                 "locked_by": locker,
                 "is_locked": 0 if locker == "none" else 1,
                 "max_claim_severity": max((b["severity"] for b in claims), default=0),
-                "total_claim_pressure": sum(b["severity"] for b in claims),
+                "total_claim_severity": sum(b["severity"] for b in claims),
                 "contention": max(len(claims) - 1, 0),
             }
         )
     asset_records.sort(
-        key=lambda r: (-r["contention"], -r["total_claim_pressure"], -r["is_locked"], r["asset_id"])
+        key=lambda r: (-r["contention"], -r["total_claim_severity"], -r["is_locked"], r["asset_id"])
     )
     asset_exposure_checksum = hashlib.sha256(
         "\n".join(
             f"{r['asset_id']}|{r['claiming_bundle_count']}|{r['locked_by']}|"
-            f"{r['is_locked']}|{r['max_claim_severity']}|{r['total_claim_pressure']}|{r['contention']}"
+            f"{r['is_locked']}|{r['max_claim_severity']}|{r['total_claim_severity']}|{r['contention']}"
             for r in asset_records
         ).encode("utf-8")
     ).hexdigest()
