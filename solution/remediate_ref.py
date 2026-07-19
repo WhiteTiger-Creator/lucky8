@@ -218,6 +218,42 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict]) -> dict:
         ).encode("utf-8")
     ).hexdigest()
 
+    # Per-asset exposure view, governed by SR-2239. This is the asset-centric
+    # counterpart of the bundle ledger: for each asset in the estate it records how
+    # many proposed bundles contend for it, which contained bundle actually locks it
+    # (if any), and the contention pressure that contention represents.
+    asset_claims: dict[int, list[dict]] = {}
+    for b in bundles:
+        for a in b["assets"]:
+            asset_claims.setdefault(int(a), []).append(b)
+    asset_records = []
+    for asset_id in range(asset_count):
+        claims = asset_claims.get(asset_id, [])
+        claim_ids = sorted(b["id"] for b in claims)
+        locker = next((b["id"] for b in claims if b["id"] in contained_set), "none")
+        asset_records.append(
+            {
+                "asset_id": asset_id,
+                "claiming_bundle_count": len(claims),
+                "claiming_bundle_ids": claim_ids,
+                "locked_by": locker,
+                "is_locked": 0 if locker == "none" else 1,
+                "max_claim_severity": max((b["severity"] for b in claims), default=0),
+                "total_claim_pressure": sum(b["severity"] for b in claims),
+                "contention": max(len(claims) - 1, 0),
+            }
+        )
+    asset_records.sort(
+        key=lambda r: (-r["contention"], -r["total_claim_pressure"], -r["is_locked"], r["asset_id"])
+    )
+    asset_exposure_checksum = hashlib.sha256(
+        "\n".join(
+            f"{r['asset_id']}|{r['claiming_bundle_count']}|{r['locked_by']}|"
+            f"{r['is_locked']}|{r['max_claim_severity']}|{r['total_claim_pressure']}|{r['contention']}"
+            for r in asset_records
+        ).encode("utf-8")
+    ).hexdigest()
+
     # Per-bundle remediation ledger, emitted as compact JSON lines. One row per
     # canonical bundle carrying every derived per-bundle value, ordered per SR-2237:
     # contained bundles first, then response_load descending, then urgency descending,
@@ -275,6 +311,7 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict]) -> dict:
 
     return {
         "_ledger_records": ledger_records,
+        "_asset_records": asset_records,
         "asset_count": asset_count,
         "bundle_count": len(bundles),
         "total_proposed_severity": total_proposed_severity,
@@ -296,6 +333,7 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict]) -> dict:
         "critical_response_count": critical_response_count,
         "max_urgency": max_urgency,
         "urgency_ledger_checksum": urgency_ledger_checksum,
+        "asset_exposure_checksum": asset_exposure_checksum,
         "total_exposure_overlap": total_exposure_overlap,
         "response_wave_ids": response_wave_ids,
         "response_wave_count": response_wave_count,
@@ -319,9 +357,13 @@ def main() -> int:
     out = Path(args.output_dir)
     out.mkdir(parents=True, exist_ok=True)
     records = result.pop("_ledger_records")
+    assets = result.pop("_asset_records")
     (out / "plan.json").write_text(json.dumps(result, indent=2) + "\n")
     with (out / "remediation_ledger.jsonl").open("w", encoding="utf-8") as handle:
         for row in records:
+            handle.write(json.dumps(row, separators=(",", ":")) + "\n")
+    with (out / "asset_exposure.jsonl").open("w", encoding="utf-8") as handle:
+        for row in assets:
             handle.write(json.dumps(row, separators=(",", ":")) + "\n")
     return 0
 

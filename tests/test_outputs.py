@@ -79,7 +79,7 @@ def test_result_has_required_keys(result):
                            "max_asset_pressure", "containment_score",
                            "coverage_permille", "residual_pressure",
                            "critical_response_ids", "critical_response_count",
-                           "max_urgency", "urgency_ledger_checksum",
+                           "max_urgency", "urgency_ledger_checksum", "asset_exposure_checksum",
                            "total_exposure_overlap", "response_wave_ids",
                            "response_wave_count", "total_response_load",
                            "max_response_load", "response_tier_counts",
@@ -408,3 +408,68 @@ def test_contained_below_floor_keeps_its_computed_load(tmp_path):
     for r in below:
         assert r["response_load"] > 0
         assert r["response_tier"] == "none"
+
+
+ASSET_FIELDS = ("asset_id","claiming_bundle_count","claiming_bundle_ids","locked_by",
+                "is_locked","max_claim_severity","total_claim_pressure","contention")
+
+
+def _run_assets(tmp: Path, input_path: Path = DATA) -> list[dict]:
+    out = tmp / "out"
+    subprocess.run([sys.executable, str(APP), "--input", str(input_path), "--output-dir", str(out)],
+                   check=True, capture_output=True, text=True)
+    path = out / "asset_exposure.jsonl"
+    assert path.exists(), "asset_exposure.jsonl was not written"
+    return [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+
+
+def test_assets_match_fixture(tmp_path):
+    """asset_exposure.jsonl matches the reference fixture row for row."""
+    expected = [json.loads(line) for line in (FIX / "expected_assets.jsonl").read_text().splitlines() if line.strip()]
+    assert _run_assets(tmp_path) == expected
+
+
+def test_assets_generalize_to_alternate_input(tmp_path):
+    """The asset view reproduces the reference rows for a held-out input."""
+    expected = [json.loads(line) for line in (FIX / "alt_expected_assets.jsonl").read_text().splitlines() if line.strip()]
+    assert _run_assets(tmp_path, FIX / "alt_remediation.json") == expected
+
+
+def test_assets_cover_the_whole_estate(tmp_path, result):
+    """Every asset id 0..asset_count-1 is reported, including unclaimed ones."""
+    rows = _run_assets(tmp_path)
+    assert sorted(r["asset_id"] for r in rows) == list(range(result["asset_count"]))
+    assert all(tuple(r) == ASSET_FIELDS for r in rows)
+    for r in rows:
+        assert r["is_locked"] in (0, 1) and not isinstance(r["is_locked"], bool)
+        assert r["contention"] == max(r["claiming_bundle_count"] - 1, 0)
+        if r["claiming_bundle_count"] == 0:
+            assert r["locked_by"] == "none" and r["total_claim_pressure"] == 0
+
+
+def test_asset_locker_is_unique_and_contained(tmp_path, result):
+    """locked_by names a contained bundle, and containment disjointness makes it unique."""
+    rows = _run_assets(tmp_path)
+    contained = set(result["contained_bundle_ids"])
+    for r in rows:
+        if r["locked_by"] != "none":
+            assert r["locked_by"] in contained
+            assert r["locked_by"] in r["claiming_bundle_ids"]
+            assert sum(1 for b in r["claiming_bundle_ids"] if b in contained) == 1
+
+
+def test_asset_row_order_follows_sr_2239(tmp_path):
+    """Asset rows follow the log's ordering chain, not ascending asset id."""
+    rows = _run_assets(tmp_path)
+    keyed = [(-r["contention"], -r["total_claim_pressure"], -r["is_locked"], r["asset_id"]) for r in rows]
+    assert keyed == sorted(keyed)
+    assert [r["asset_id"] for r in rows] != sorted(r["asset_id"] for r in rows)
+
+
+def test_asset_exposure_checksum_consistent(tmp_path, result):
+    """asset_exposure_checksum hashes the emitted asset rows in order."""
+    rows = _run_assets(tmp_path)
+    payload = "\n".join(
+        f"{r['asset_id']}|{r['claiming_bundle_count']}|{r['locked_by']}|{r['is_locked']}|"
+        f"{r['max_claim_severity']}|{r['total_claim_pressure']}|{r['contention']}" for r in rows)
+    assert result["asset_exposure_checksum"] == hashlib.sha256(payload.encode("utf-8")).hexdigest()

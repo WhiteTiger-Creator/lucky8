@@ -47,6 +47,7 @@
   "critical_response_count": 7,
   "max_urgency": 34,
   "urgency_ledger_checksum": "125189c22a0618ba29b8fc0151f57deb4303c95a067a6fc98b41a3264b41d82d",
+  "asset_exposure_checksum": "8e9b661bb4f70f7c6be3b7055b1eb06740001422b491d95c495e200ea25fc2f1",
   "total_exposure_overlap": 14,
   "response_wave_ids": [
     "rb-01",

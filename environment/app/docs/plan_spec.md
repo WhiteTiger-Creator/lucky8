@@ -1,5 +1,31 @@
 # Sentinel-1 incident containment — output contract
 
+## Required output keys at a glance
+
+Read this section first; the detail for each item follows below.
+
+`plan.json` carries exactly these 32 keys: asset_count, bundle_count,
+total_proposed_severity, max_single_bundle_severity, max_contained_severity,
+contained_bundle_ids, contained_bundle_count, contained_asset_count,
+uncontained_severity, residual_contained_severity, proposed_tier_counts,
+contained_tier_counts, total_asset_pressure, max_asset_pressure, containment_score,
+coverage_permille, residual_pressure, critical_response_ids, critical_response_count,
+max_urgency, urgency_ledger_checksum, asset_exposure_checksum, total_exposure_overlap,
+response_wave_ids, response_wave_count, total_response_load, max_response_load,
+response_tier_counts, response_order, response_wave_checksum, bundle_checksum,
+plan_checksum.
+
+Three files are written to the output directory: `plan.json`,
+`remediation_ledger.jsonl` (one row per canonical bundle) and `asset_exposure.jsonl`
+(one row per asset id in the estate).
+
+Three flags share similar names and must not be conflated. `contained` means the
+bundle is in the containment set. `critical_response` means its urgency reached the
+critical threshold, which is independent of containment. `in_response_wave` means it
+is a contained bundle that also cleared the wave admission floor. The `c` field in the
+urgency-ledger checksum payload is the critical-response flag, not containment.
+
+
 The Sentinel-1 containment planner turns proposed remediation bundles for compromised
 assets into an incident containment plan: the threat severity that can be contained in
 one quarantine pass, the bundle set that achieves it, the exposure left uncontained, the
@@ -104,6 +130,20 @@ bundle that fell below the wave admission floor keeps its computed values for al
 three and reports `in_response_wave` as `0`. See the review log for the governing rule. Rows are
 serialized with compact separators (no spaces after `,` or `:`) and one row per line. The
 row ordering is governed by the review log, not by bundle id.
+
+### `asset_exposure.jsonl`
+
+One compact JSON line per asset id from `0` to `asset_count - 1` inclusive, each with
+exactly these eight keys in order — `asset_id`, `claiming_bundle_count`,
+`claiming_bundle_ids`, `locked_by`, `is_locked`, `max_claim_severity`,
+`total_claim_pressure`, `contention`. `claiming_bundle_ids` is a sorted array of
+strings, `locked_by` is a bundle id or the literal string `none`, and `is_locked` is an
+integer `0`/`1` flag. Assets no bundle claims are still reported. Row ordering and every
+derived value are governed by the review log.
+
+* `asset_exposure_checksum` — the SHA-256 hex digest of one line per asset row in the
+  emitted order, each `asset_id|claiming_bundle_count|locked_by|is_locked|max_claim_severity|total_claim_pressure|contention`,
+  joined by a single newline with no trailing newline, hashed over UTF-8.
 
 * `plan_checksum` — the SHA-256 hex digest of the UTF-8 encoding of
   `asset_count|total_proposed_severity|max_single_bundle_severity|max_contained_severity|contained_asset_count|residual_contained_severity|total_asset_pressure|max_asset_pressure|containment_score|coverage_permille|residual_pressure|PC|CC|CRC|MU|CRI|TEO|RWC|TRL|MRL|RTC|RO|id0,id1,...`
