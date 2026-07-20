@@ -68,6 +68,10 @@ log; this contract fixes only the key set and the serializations below.
 * `asset_count` — copied from the input.
 * `bundle_count` — the number of canonical bundles.
 * `total_proposed_severity` — the sum of all canonical bundle severities.
+* `policy_checksum` — sha256 over the resolved per-band remediation policies, serialized exactly as the review log's policy entry specifies, including the prefix on every line.
+* `total_blackout_overlap` — the summed per-bundle blackout charge from the containment-window attenuation, after the layer-precedence rule.
+* `total_maintenance_overlap` — the summed per-bundle maintenance charge, after the same precedence rule has removed anything already charged as blackout.
+* `containment_window_checksum` — sha256 over the containment windows, serialized as the review log's containment entry specifies.
 * `max_single_bundle_severity` — the largest single canonical bundle severity
   (0 if none).
 * `max_contained_severity` — the containment objective (see the review log).
