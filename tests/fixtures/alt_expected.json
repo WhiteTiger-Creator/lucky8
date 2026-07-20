@@ -1,7 +1,7 @@
 {
   "asset_count": 12,
   "bundle_count": 12,
-  "total_proposed_severity": 75,
+  "total_proposed_severity": 74,
   "max_single_bundle_severity": 8,
   "max_contained_severity": 54,
   "contained_bundle_ids": [
@@ -16,8 +16,8 @@
   ],
   "contained_bundle_count": 8,
   "contained_asset_count": 12,
-  "uncontained_severity": 21,
-  "residual_contained_severity": 21,
+  "uncontained_severity": 20,
+  "residual_contained_severity": 20,
   "proposed_tier_counts": {
     "critical": 4,
     "major": 7,
@@ -28,49 +28,40 @@
     "major": 5,
     "minor": 0
   },
-  "total_asset_pressure": 122,
+  "total_asset_pressure": 120,
   "max_asset_pressure": 16,
   "containment_score": 95,
   "coverage_permille": 1000,
-  "residual_pressure": 42,
+  "residual_pressure": 40,
   "critical_response_ids": [
-    "ra-10",
     "ra-11"
   ],
-  "critical_response_count": 2,
+  "critical_response_count": 1,
   "max_urgency": 30,
-  "urgency_ledger_checksum": "f77921281cb2e407031f32120a6fbfe0e1887a1a39497f73cd3e28d5849423ed",
-  "asset_exposure_checksum": "0f9948315a7a2e75265bb5ce1b0c74c05a7f8d0aaff96faf29722d3ace9eab3f",
-  "total_exposure_overlap": 8,
+  "urgency_ledger_checksum": "df6259715c4f03b7aad38e088efbe1b1a9c1d936ac9e6a30e15cacfa01725f26",
+  "asset_exposure_checksum": "04fd6afe35bc8496d09256a8ec19a514a6ba1be9353d577980dc6bd9c5487f28",
+  "total_exposure_overlap": 4,
   "response_wave_ids": [
     "ra-01",
     "ra-02",
-    "ra-03",
     "ra-05",
-    "ra-06",
-    "ra-07",
-    "ra-08",
-    "ra-09"
+    "ra-08"
   ],
-  "response_wave_count": 8,
-  "total_response_load": 164,
+  "response_wave_count": 4,
+  "total_response_load": 86,
   "max_response_load": 25,
   "response_tier_counts": {
     "immediate": 0,
-    "urgent": 3,
-    "routine": 5
+    "urgent": 2,
+    "routine": 2
   },
   "response_order": [
     "ra-01",
     "ra-02",
-    "ra-07",
     "ra-05",
-    "ra-06",
-    "ra-08",
-    "ra-09",
-    "ra-03"
+    "ra-08"
   ],
-  "response_wave_checksum": "d90a19807a7760ec2714dc710ce53b574fc2f2cb2b90828a0e1d5633be849916",
-  "bundle_checksum": "25cd01bd9bc14e9481446e8f9b3d985279588b079d7fda4b96940ca8a7945617",
-  "plan_checksum": "34acd05256651f760144f27ff81e6fe31f063b6b9d12e068a66db7b7b694e2af"
+  "response_wave_checksum": "674669e603ca7ab200ea6daba3acb158bc0cf5c3122c6c2760e7e5014bc3014f",
+  "bundle_checksum": "24d882f78dbf8f0cfdc20b628210c7a0a00a80b02a6677ac6e087f2647217a40",
+  "plan_checksum": "762dcde9ac33a2b8ee5d1c7c2943301a2eaed2f3168f7b3537a58966766a7277"
 }

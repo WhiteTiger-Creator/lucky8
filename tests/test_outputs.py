@@ -42,7 +42,8 @@ def _canonical(bundle_rows):
         assets = sorted({int(a) for a in row["assets"]})
         if sev < 1 or sev > 9 or not assets:
             continue
-        if bid not in by_id or sev > by_id[bid]["severity"]:
+        # SR-2243: for a repeated id the LOWER severity is kept.
+        if bid not in by_id or sev < by_id[bid]["severity"]:
             by_id[bid] = {"id": bid, "severity": sev, "assets": assets}
     return [by_id[bid] for bid in sorted(by_id)]
 
@@ -255,7 +256,17 @@ def _response_wave_layer(bundles: list[dict], contained_ids: list[str]) -> list[
         if b["id"] not in contained:
             continue
         assets = set(b["assets"])
-        exposure_overlap = sum(len(assets & set(o["assets"])) for o in uncontained)
+        # SR-2241: shared assets are attributed to one owner only.
+        exposure_overlap = 0
+        for o in uncontained:
+            shared = assets & set(o["assets"])
+            if not shared:
+                continue
+            claimants = [c for c in bundles
+                         if c["id"] in contained and set(o["assets"]) & set(c["assets"])]
+            owner = sorted(claimants, key=lambda c: (-c["severity"], c["id"]))[0]
+            if owner["id"] == b["id"]:
+                exposure_overlap += len(shared)
         exposing_bundle_count = sum(1 for o in uncontained if assets & set(o["assets"]))
         response_load = max(
             b["severity"] * 3 + (-(-exposure_overlap // 2)) - (len(assets) // 2), 0
@@ -271,8 +282,17 @@ def _response_wave_layer(bundles: list[dict], contained_ids: list[str]) -> list[
             r["response_tier"] = "urgent"
         else:
             r["response_tier"] = "routine"
-    return sorted(admitted, key=lambda r: (-CLASS_RANK[r["response_tier"]], -r["response_load"],
-                                           -r["severity"], -r["exposing_bundle_count"], r["id"]))
+    ordered = sorted(admitted, key=lambda r: (-CLASS_RANK[r["response_tier"]], -r["response_load"],
+                                              -r["severity"], -r["exposing_bundle_count"], r["id"]))
+    # SR-2245: capacity cap applied AFTER the ordering chain, two per tier.
+    kept = {}
+    capped = []
+    for r in ordered:
+        taken = kept.get(r["response_tier"], 0)
+        if taken < 2:
+            capped.append(r)
+            kept[r["response_tier"]] = taken + 1
+    return capped
 
 
 def test_response_wave_layer_matches_independent_computation(result):
@@ -300,13 +320,18 @@ def test_response_wave_checksum_and_conflict_load_consistent(result):
         for r in ordered
     )
     assert result["response_wave_checksum"] == hashlib.sha256(payload.encode("utf-8")).hexdigest()
-    contained = set(result["contained_bundle_ids"])
-    uncontained = [b for b in bundles if b["id"] not in contained]
-    assert result["total_exposure_overlap"] == sum(
-        len(set(b["assets"]) & set(o["assets"]))
-        for b in bundles if b["id"] in contained
-        for o in uncontained
-    )
+    bundles_all = _canonical(json.loads(DATA.read_text())["bundles"])
+    contained_set = set(result["contained_bundle_ids"])
+    unc = [x for x in bundles_all if x["id"] not in contained_set]
+    expected_exposure = 0
+    for o in unc:
+        claimants = [c for c in bundles_all
+                     if c["id"] in contained_set and set(o["assets"]) & set(c["assets"])]
+        if not claimants:
+            continue
+        owner = sorted(claimants, key=lambda c: (-c["severity"], c["id"]))[0]
+        expected_exposure += len(set(owner["assets"]) & set(o["assets"]))
+    assert result["total_exposure_overlap"] == expected_exposure
 
 
 def test_response_load_exposure_half_is_ceilinged(result):

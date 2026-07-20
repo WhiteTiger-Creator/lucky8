@@ -4,8 +4,8 @@
 {"asset_id":9,"claiming_bundle_count":2,"claiming_bundle_ids":["ra-08","ra-11"],"locked_by":"ra-08","is_locked":1,"max_claim_severity":6,"total_claim_severity":12,"contention":1}
 {"asset_id":10,"claiming_bundle_count":2,"claiming_bundle_ids":["ra-09","ra-10"],"locked_by":"ra-09","is_locked":1,"max_claim_severity":6,"total_claim_severity":12,"contention":1}
 {"asset_id":11,"claiming_bundle_count":2,"claiming_bundle_ids":["ra-09","ra-11"],"locked_by":"ra-09","is_locked":1,"max_claim_severity":6,"total_claim_severity":12,"contention":1}
-{"asset_id":0,"claiming_bundle_count":2,"claiming_bundle_ids":["ra-00","ra-01"],"locked_by":"ra-01","is_locked":1,"max_claim_severity":8,"total_claim_severity":10,"contention":1}
-{"asset_id":1,"claiming_bundle_count":2,"claiming_bundle_ids":["ra-00","ra-02"],"locked_by":"ra-02","is_locked":1,"max_claim_severity":8,"total_claim_severity":10,"contention":1}
+{"asset_id":0,"claiming_bundle_count":2,"claiming_bundle_ids":["ra-00","ra-01"],"locked_by":"ra-01","is_locked":1,"max_claim_severity":8,"total_claim_severity":9,"contention":1}
+{"asset_id":1,"claiming_bundle_count":2,"claiming_bundle_ids":["ra-00","ra-02"],"locked_by":"ra-02","is_locked":1,"max_claim_severity":8,"total_claim_severity":9,"contention":1}
 {"asset_id":6,"claiming_bundle_count":1,"claiming_bundle_ids":["ra-07"],"locked_by":"ra-07","is_locked":1,"max_claim_severity":8,"total_claim_severity":8,"contention":0}
 {"asset_id":7,"claiming_bundle_count":1,"claiming_bundle_ids":["ra-07"],"locked_by":"ra-07","is_locked":1,"max_claim_severity":8,"total_claim_severity":8,"contention":0}
 {"asset_id":2,"claiming_bundle_count":1,"claiming_bundle_ids":["ra-03"],"locked_by":"ra-03","is_locked":1,"max_claim_severity":6,"total_claim_severity":6,"contention":0}

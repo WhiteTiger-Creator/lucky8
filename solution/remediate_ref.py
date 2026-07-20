@@ -34,7 +34,8 @@ def canonical_bundles(bundle_rows: list[dict]) -> list[dict]:
         if sev < SEVERITY_MIN or sev > SEVERITY_MAX or not assets:
             continue
         cur = by_id.get(bid)
-        if cur is None or sev > cur["severity"]:
+        # SR-2243 reverses this: for a repeated id the LOWER severity is kept.
+        if cur is None or sev < cur["severity"]:
             by_id[bid] = {"id": bid, "severity": sev, "assets": assets}
     return [by_id[bid] for bid in sorted(by_id)]
 
@@ -160,6 +161,7 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict]) -> dict:
     # conflict count, a ceil read as a floor, or a wrong contained set moves
     # bundles across the boundary and changes the wave membership, the tier
     # counts, the response order and the wave checksum together.
+    TIER_WAVE_CAP = 2
     RESPONSE_WAVE_FLOOR = 16
     RESPONSE_TIERS = ("immediate", "urgent", "routine")
     CLASS_RANK = {n: len(RESPONSE_TIERS) - i for i, n in enumerate(RESPONSE_TIERS)}
@@ -170,7 +172,20 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict]) -> dict:
         if b["id"] not in contained_set:
             continue
         assets = set(b["assets"])
-        exposure_overlap = sum(len(assets & set(o["assets"])) for o in uncontained_bundles)
+        # SR-2241: an uncontained bundle's shared assets are attributed to ONE
+        # contained bundle -- the highest-severity claimant, ties by smallest id.
+        exposure_overlap = 0
+        for o in uncontained_bundles:
+            shared = assets & set(o["assets"])
+            if not shared:
+                continue
+            claimants = [
+                c for c in bundles
+                if c["id"] in contained_set and set(o["assets"]) & set(c["assets"])
+            ]
+            owner = sorted(claimants, key=lambda c: (-c["severity"], c["id"]))[0]
+            if owner["id"] == b["id"]:
+                exposure_overlap += len(shared)
         exposing_bundle_count = sum(1 for o in uncontained_bundles if assets & set(o["assets"]))
         total_exposure_overlap += exposure_overlap
         response_load = max(b["severity"] * 3 + (-(-exposure_overlap // 2)) - (len(assets) // 2), 0)
@@ -193,9 +208,6 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict]) -> dict:
             r["response_tier"] = "urgent"
         else:
             r["response_tier"] = "routine"
-    response_tier_counts = {n: 0 for n in RESPONSE_TIERS}
-    for r in admitted:
-        response_tier_counts[r["response_tier"]] += 1
     ordered_wave = sorted(
         admitted,
         key=lambda r: (
@@ -206,6 +218,20 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict]) -> dict:
             r["id"],
         ),
     )
+    # SR-2245: responder capacity cap, applied AFTER the ordering chain above.
+    kept_per_tier: dict[str, int] = {}
+    capped_wave = []
+    for r in ordered_wave:
+        taken = kept_per_tier.get(r["response_tier"], 0)
+        if taken < TIER_WAVE_CAP:
+            capped_wave.append(r)
+            kept_per_tier[r["response_tier"]] = taken + 1
+    ordered_wave = capped_wave
+    admitted = [r for r in admitted if r["id"] in {x["id"] for x in ordered_wave}]
+    # Tier counts are taken AFTER the cap, so they describe the wave as dispatched.
+    response_tier_counts = {n: 0 for n in RESPONSE_TIERS}
+    for r in admitted:
+        response_tier_counts[r["response_tier"]] += 1
     response_order = [r["id"] for r in ordered_wave]
     response_wave_ids = sorted(r["id"] for r in admitted)
     response_wave_count = len(admitted)
@@ -281,7 +307,11 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict]) -> dict:
                 "exposing_bundle_count": wave["exposing_bundle_count"] if wave else 0,
                 "response_load": wave["response_load"] if wave else 0,
                 "in_response_wave": 1 if bid in admitted_ids else 0,
-                "response_tier": wave.get("response_tier", "none") if wave else "none",
+                "response_tier": (
+                    wave.get("response_tier", "none")
+                    if wave and bid in admitted_ids
+                    else "none"
+                ),
             }
         )
     ledger_records.sort(

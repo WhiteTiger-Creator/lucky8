@@ -19,6 +19,10 @@ Three files are written to the output directory: `plan.json`,
 `remediation_ledger.jsonl` (one row per canonical bundle) and `asset_exposure.jsonl`
 (one row per asset id in the estate).
 
+`total_exposure_overlap` counts each contended asset once across the whole plan, not once per
+claimant — the attribution rule is in the review log. The response-wave fields describe the wave
+after the capacity cap is applied, not before it.
+
 Three flags share similar names and must not be conflated. `contained` means the
 bundle is in the containment set. `critical_response` means its urgency reached the
 critical threshold, which is independent of containment. `in_response_wave` means it
