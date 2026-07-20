@@ -519,3 +519,38 @@ def test_total_claim_severity_is_not_a_sum_of_asset_pressure(tmp_path):
         if correct != wrong:
             disagreed += 1
     assert disagreed, "estate must contain an asset where the two readings differ"
+
+
+def test_sr_2241_owner_counts_only_its_own_intersection(result):
+    """SR-2241: the owner adds |owner_assets & uncontained_assets|, nothing more.
+
+    Three readings of the attribution rule are possible and two of them coincide
+    numerically, so a bare total does not discriminate between them. This pins the
+    governing one and asserts the alternatives are genuinely different, which is
+    what makes the assertion meaningful rather than tautological.
+    """
+    bundles = _canonical(json.loads(DATA.read_text())["bundles"])
+    contained = set(result["contained_bundle_ids"])
+    con = [b for b in bundles if b["id"] in contained]
+    unc = [b for b in bundles if b["id"] not in contained]
+
+    def owner_of(o):
+        claimants = [c for c in con if set(o["assets"]) & set(c["assets"])]
+        return sorted(claimants, key=lambda c: (-c["severity"], c["id"]))[0] if claimants else None
+
+    governing = 0          # owner counts only its own intersection
+    owner_absorbs_all = 0  # owner absorbs the whole contended set
+    every_claimant = 0     # no ownership filter at all
+    for o in unc:
+        owner = owner_of(o)
+        shared_any = set()
+        for c in con:
+            shared_any |= set(o["assets"]) & set(c["assets"])
+            every_claimant += len(set(o["assets"]) & set(c["assets"]))
+        if owner is not None:
+            governing += len(set(owner["assets"]) & set(o["assets"]))
+            owner_absorbs_all += len(shared_any)
+
+    assert result["total_exposure_overlap"] == governing
+    assert governing != owner_absorbs_all, "readings coincide -- test cannot discriminate"
+    assert governing != every_claimant, "readings coincide -- test cannot discriminate"
