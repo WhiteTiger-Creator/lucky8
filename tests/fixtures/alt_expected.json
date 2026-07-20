@@ -33,14 +33,13 @@
   "containment_score": 95,
   "coverage_permille": 1000,
   "residual_pressure": 40,
-  "critical_response_ids": [
-    "ra-11"
-  ],
-  "critical_response_count": 1,
-  "max_urgency": 30,
-  "urgency_ledger_checksum": "df6259715c4f03b7aad38e088efbe1b1a9c1d936ac9e6a30e15cacfa01725f26",
+  "critical_response_ids": [],
+  "critical_response_count": 0,
+  "max_urgency": 29,
+  "urgency_ledger_checksum": "544173d67d6f401c4d9f59549146f2057554e7b6f2b983348a7d6c60a0f2a994",
   "asset_exposure_checksum": "04fd6afe35bc8496d09256a8ec19a514a6ba1be9353d577980dc6bd9c5487f28",
   "total_exposure_overlap": 4,
+  "policy_checksum": "db113d0226ce9219265e25fed1f188091224c5bd52bf1a5bb46d3b8c35709a1a",
   "response_wave_ids": [
     "ra-01",
     "ra-02",
@@ -63,5 +62,5 @@
   ],
   "response_wave_checksum": "674669e603ca7ab200ea6daba3acb158bc0cf5c3122c6c2760e7e5014bc3014f",
   "bundle_checksum": "24d882f78dbf8f0cfdc20b628210c7a0a00a80b02a6677ac6e087f2647217a40",
-  "plan_checksum": "762dcde9ac33a2b8ee5d1c7c2943301a2eaed2f3168f7b3537a58966766a7277"
+  "plan_checksum": "22fbddd9f724ac38ad04fdf6938c66077b235f47959915b06eaf03425712819b"
 }

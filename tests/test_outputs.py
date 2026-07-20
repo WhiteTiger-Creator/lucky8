@@ -81,7 +81,7 @@ def test_result_has_required_keys(result):
                            "coverage_permille", "residual_pressure",
                            "critical_response_ids", "critical_response_count",
                            "max_urgency", "urgency_ledger_checksum", "asset_exposure_checksum",
-                           "total_exposure_overlap", "response_wave_ids",
+                           "total_exposure_overlap", "policy_checksum", "response_wave_ids",
                            "response_wave_count", "total_response_load",
                            "max_response_load", "response_tier_counts",
                            "response_order", "response_wave_checksum",
@@ -147,11 +147,12 @@ def test_response_urgency_ledger_consistent(result):
         carry_in = max(prev_out - (shared * 7) // 3, 0)
         pressure = b["severity"] * len(assets)
         urgency = pressure + (-(-carry_in // 5))
-        carry_out = min(carry_in + pressure - (len(assets) // 2), 90)
-        if urgency >= 30:
+        pol = _pol(b["severity"])
+        carry_out = min(carry_in + pressure - (len(assets) // 2), pol["carry_cap"])
+        if urgency >= pol["urgency_threshold"]:
             crit.append(b["id"])
         max_u = max(max_u, urgency)
-        rows.append(f"{b['id']}|{urgency}|{1 if urgency >= 30 else 0}|{carry_out}")
+        rows.append(f"{b['id']}|{urgency}|{1 if urgency >= pol['urgency_threshold'] else 0}|{carry_out}")
         prev_out, prev = carry_out, assets
     assert result["critical_response_ids"] == sorted(crit)
     assert result["critical_response_count"] == len(crit)
@@ -274,11 +275,12 @@ def _response_wave_layer(bundles: list[dict], contained_ids: list[str]) -> list[
         rows.append({"id": b["id"], "severity": b["severity"],
                      "exposure_overlap": exposure_overlap,
                      "exposing_bundle_count": exposing_bundle_count, "response_load": response_load})
-    admitted = [r for r in rows if r["response_load"] >= 16]
+    admitted = [r for r in rows if r["response_load"] >= _pol(r["severity"])["wave_floor"]]
     for r in admitted:
-        if r["response_load"] >= 27:
+        rp = _pol(r["severity"])
+        if r["response_load"] >= rp["immediate_min"]:
             r["response_tier"] = "immediate"
-        elif r["response_load"] >= 21 or r["exposure_overlap"] >= 4:
+        elif r["response_load"] >= rp["urgent_min"] or r["exposure_overlap"] >= rp["urgent_overlap_min"]:
             r["response_tier"] = "urgent"
         else:
             r["response_tier"] = "routine"
@@ -345,7 +347,7 @@ def test_response_load_exposure_half_is_ceilinged(result):
             continue
         assets = set(b["assets"])
         ca = sum(len(assets & set(o["assets"])) for o in uncontained)
-        if max(b["severity"] * 3 + (ca // 2) - (len(assets) // 2), 0) >= 16:
+        if max(b["severity"] * 3 + (ca // 2) - (len(assets) // 2), 0) >= _pol(b["severity"])["wave_floor"]:
             floored.append(b["id"])
     assert sorted(floored) != result["response_wave_ids"]
 
@@ -554,3 +556,104 @@ def test_sr_2241_owner_counts_only_its_own_intersection(result):
     assert result["total_exposure_overlap"] == governing
     assert governing != owner_absorbs_all, "readings coincide -- test cannot discriminate"
     assert governing != every_claimant, "readings coincide -- test cannot discriminate"
+
+
+POLICY_PATH = Path("/app/data/remediation_policies.json")
+POLICY_FIELDS = (
+    "wave_floor", "immediate_min", "urgent_min", "urgent_overlap_min",
+    "urgency_threshold", "carry_cap",
+)
+BASELINE_POLICY = {
+    "wave_floor": 16, "immediate_min": 27, "urgent_min": 21,
+    "urgent_overlap_min": 4, "urgency_threshold": 30, "carry_cap": 90,
+}
+
+
+def _resolve_band(band, data):
+    base = dict(BASELINE_POLICY)
+    for k in POLICY_FIELDS:
+        if k in data.get("default", {}):
+            base[k] = int(data["default"][k])
+    raw = data.get("band_overrides", {}).get(band)
+    if not isinstance(raw, dict):
+        return base
+    merged = dict(base)
+    for k in POLICY_FIELDS:
+        if k in raw:
+            merged[k] = int(raw[k])
+    return merged
+
+
+def test_policy_source_path_affects_output(tmp_path: Path):
+    """SR-2248: thresholds come from the policy file, not hardcoded constants."""
+    original = POLICY_PATH.read_text(encoding="utf-8")
+    try:
+        base = _run(tmp_path / "base")
+        bumped = json.loads(original)
+        bumped["default"]["wave_floor"] = 999
+        POLICY_PATH.write_text(json.dumps(bumped), encoding="utf-8")
+        changed = _run(tmp_path / "changed")
+        assert changed["response_wave_count"] < base["response_wave_count"]
+        assert changed["policy_checksum"] != base["policy_checksum"]
+    finally:
+        POLICY_PATH.write_text(original, encoding="utf-8")
+
+
+def test_sparse_band_override_inherits_remaining_fields():
+    """A band override names some fields; every unlisted field is inherited."""
+    data = json.loads(POLICY_PATH.read_text(encoding="utf-8"))
+    sparse = [b for b, v in data["band_overrides"].items() if len(v) < len(POLICY_FIELDS)]
+    assert sparse, "no sparse override -- the inheritance rule is dormant"
+    for band in sparse:
+        resolved = _resolve_band(band, data)
+        assert set(resolved) == set(POLICY_FIELDS)
+        for key in POLICY_FIELDS:
+            if key not in data["band_overrides"][band]:
+                expected = int(data["default"].get(key, BASELINE_POLICY[key]))
+                assert resolved[key] == expected, f"{band}.{key} did not inherit"
+
+
+def test_policy_default_may_omit_fields_and_falls_back_to_baseline():
+    """The file default is itself partial; omitted fields keep the shipped baseline."""
+    data = json.loads(POLICY_PATH.read_text(encoding="utf-8"))
+    omitted = [k for k in POLICY_FIELDS if k not in data.get("default", {})]
+    assert omitted, "file default names every field -- the baseline tier is dormant"
+    for key in omitted:
+        assert _resolve_band("no-such-band", data)[key] == BASELINE_POLICY[key]
+
+
+def test_policy_checksum_consistent(result):
+    """policy_checksum serializes RESOLVED values, default then low, mid, high."""
+    data = json.loads(POLICY_PATH.read_text(encoding="utf-8"))
+    base = _resolve_band("no-such-band", data)
+    lines = ["default|" + "|".join(str(base[k]) for k in POLICY_FIELDS)]
+    for band in ("low", "mid", "high"):
+        resolved = _resolve_band(band, data)
+        lines.append(f"{band}|" + "|".join(str(resolved[k]) for k in POLICY_FIELDS))
+    expected = hashlib.sha256("\n".join(lines).encode("utf-8")).hexdigest()
+    assert result["policy_checksum"] == expected
+
+
+def test_band_uses_canonical_severity_not_raw(result):
+    """SR-2248 bands on the severity that survives SR-2243, not the raw proposal."""
+    raw = json.loads(DATA.read_text())["bundles"]
+    canonical = {b["id"]: b["severity"] for b in _canonical(raw)}
+    by_id = {}
+    for row in raw:
+        by_id.setdefault(row["id"], []).append(int(row["severity"]))
+    contested = [i for i, v in by_id.items() if len(v) > 1 and max(v) != min(v)]
+    assert contested, "no contested duplicate id -- the banding distinction is dormant"
+    for bundle_id in contested:
+        assert canonical[bundle_id] == min(by_id[bundle_id]), (
+            "canonical severity should be the LOWER one per SR-2243"
+        )
+
+
+def _band(severity):
+    """SR-2248 banding on the canonical severity."""
+    return "low" if severity <= 3 else "mid" if severity <= 6 else "high"
+
+
+def _pol(severity):
+    return _resolve_band(_band(severity), json.loads(POLICY_PATH.read_text(encoding="utf-8")))
+

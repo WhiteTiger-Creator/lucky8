@@ -36,6 +36,7 @@
   "coverage_permille": 1000,
   "residual_pressure": 90,
   "critical_response_ids": [
+    "rb-08",
     "rb-09",
     "rb-10",
     "rb-11",
@@ -44,21 +45,22 @@
     "rb-16",
     "rb-17"
   ],
-  "critical_response_count": 7,
+  "critical_response_count": 8,
   "max_urgency": 34,
-  "urgency_ledger_checksum": "bb60bb7de939e7589c4ef71bb4e0100569821576d783246fcbe6ee9a49ae425e",
+  "urgency_ledger_checksum": "3dddf35364e0560705e37478656882686402116d805d39f48aabdd575869723b",
   "asset_exposure_checksum": "a80f75868effe340422181cbe3d58fb9e43ff60643dbe0d97042e863c244628b",
   "total_exposure_overlap": 7,
+  "policy_checksum": "db113d0226ce9219265e25fed1f188091224c5bd52bf1a5bb46d3b8c35709a1a",
   "response_wave_ids": [
     "rb-01",
     "rb-02",
-    "rb-03",
-    "rb-09",
+    "rb-05",
+    "rb-06",
     "rb-14",
     "rb-15"
   ],
   "response_wave_count": 6,
-  "total_response_load": 143,
+  "total_response_load": 134,
   "max_response_load": 28,
   "response_tier_counts": {
     "immediate": 2,
@@ -70,10 +72,10 @@
     "rb-01",
     "rb-14",
     "rb-15",
-    "rb-09",
-    "rb-03"
+    "rb-05",
+    "rb-06"
   ],
-  "response_wave_checksum": "a596caf97e9119f3aa6cc3195e0ef5176b69dfb3d49881264d2ea0965de4d7d6",
+  "response_wave_checksum": "1a39d7de818ae06c193cc9a12689a5c157fdff6fbee9b6c3abd47df9cdfa1709",
   "bundle_checksum": "9c9d9409467b460957151270d4fa1b34c574c5cfc6e38c9f3f592f6794cc9fe8",
-  "plan_checksum": "6bed3b37077875f636807026bf9616e1c489c3ee67d6f4faf0350e8b487e8e92"
+  "plan_checksum": "0b5663b74e40cccac3009dbeebc7ddd0ca606b458920e3e93d3eb51d80b59d93"
 }

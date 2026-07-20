@@ -20,11 +20,75 @@ from pathlib import Path
 
 SEVERITY_MIN = 1
 SEVERITY_MAX = 9
+POLICY_PATH = Path("/app/data/remediation_policies.json")
+POLICY_FIELDS = (
+    "wave_floor", "immediate_min", "urgent_min", "urgent_overlap_min",
+    "urgency_threshold", "carry_cap",
+)
+DEFAULT_POLICY = {
+    "wave_floor": 16, "immediate_min": 27, "urgent_min": 21,
+    "urgent_overlap_min": 4, "urgency_threshold": 30, "carry_cap": 90,
+}
+
+
+def severity_band(severity: int) -> str:
+    """SR-2248: bands are 1-3 low, 4-6 mid, 7-9 high, on the CANONICAL severity."""
+    if severity <= 3:
+        return "low"
+    if severity <= 6:
+        return "mid"
+    return "high"
+
+
+def load_policies(path: Path = POLICY_PATH) -> dict:
+    if not path.exists():
+        return {}
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _normalize_policy(raw: object) -> dict:
+    """Start from the shipped baseline and overlay any field the object supplies."""
+    resolved = dict(DEFAULT_POLICY)
+    if isinstance(raw, dict):
+        for key in POLICY_FIELDS:
+            if key in raw:
+                resolved[key] = int(raw[key])
+    return resolved
+
+
+def policy_for_band(band: str, policy_data: dict) -> dict:
+    """Resolve a band's policy: baseline, then file default, then that band's override.
+
+    A sparse override supplies only the fields it names; every unlisted field is
+    inherited, so an override is never a complete policy on its own.
+    """
+    base = _normalize_policy(policy_data.get("default", {}))
+    overrides = policy_data.get("band_overrides", {})
+    if not isinstance(overrides, dict):
+        return base
+    raw = overrides.get(band)
+    if not isinstance(raw, dict):
+        return base
+    merged = dict(base)
+    for key in POLICY_FIELDS:
+        if key in raw:
+            merged[key] = int(raw[key])
+    return merged
+
+
+def policy_checksum(policy_data: dict) -> str:
+    """Resolved default, then each band in the fixed order low, mid, high."""
+    lines = ["default|" + "|".join(
+        str(_normalize_policy(policy_data.get("default", {}))[k]) for k in POLICY_FIELDS)]
+    for band in ("low", "mid", "high"):
+        resolved = policy_for_band(band, policy_data)
+        lines.append(f"{band}|" + "|".join(str(resolved[k]) for k in POLICY_FIELDS))
+    return hashlib.sha256("\n".join(lines).encode("utf-8")).hexdigest()
 
 
 def canonical_bundles(bundle_rows: list[dict]) -> list[dict]:
     """Normalize bundles: drop severities outside 1..9 or empty asset lists;
-    for a repeated bundle id keep the one with the maximum severity; assets are
+    for a repeated bundle id keep the one with the LOWER severity per SR-2243; assets are
     deduplicated and sorted. Result is sorted by bundle id."""
     by_id: dict[str, dict] = {}
     for row in bundle_rows:
@@ -71,7 +135,8 @@ def _best_packing(bundles: list[dict]) -> tuple[int, list[str]]:
     return best_total, list(best_ids)
 
 
-def plan_remediation(asset_count: int, bundle_rows: list[dict]) -> dict:
+def plan_remediation(asset_count: int, bundle_rows: list[dict],
+                     policy_data: dict | None = None) -> dict:
     bundles = canonical_bundles(bundle_rows)
 
     total_proposed_severity = sum(b["severity"] for b in bundles)
@@ -121,8 +186,9 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict]) -> dict:
     # threshold and changes the set, the count and the ledger checksum. The
     # decay/credit divisors, the threshold and the carry cap are governed by the
     # review log.
-    URGENCY_THRESHOLD = 30
-    CARRY_CAP = 90
+    # SR-2248: the urgency threshold and carry cap are resolved PER BUNDLE from
+    # its severity band's policy, not taken from a single global constant.
+    policy_data = policy_data or {}
     prev_carry_out = 0
     prev_assets: set[int] = set()
     per_bundle: dict[str, dict] = {}
@@ -136,15 +202,16 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict]) -> dict:
         pressure = b["severity"] * len(assets)
         # Carry credit into urgency is rounded UP (ceil) per SR-2219. ceil(x/5)=-(-x//5).
         urgency = pressure + (-(-carry_in // 5))
-        carry_out = min(carry_in + pressure - (len(assets) // 2), CARRY_CAP)
-        if urgency >= URGENCY_THRESHOLD:
+        pol = policy_for_band(severity_band(b["severity"]), policy_data)
+        carry_out = min(carry_in + pressure - (len(assets) // 2), pol["carry_cap"])
+        if urgency >= pol["urgency_threshold"]:
             critical_response_ids.append(b["id"])
         max_urgency = max(max_urgency, urgency)
-        ledger_rows.append(f"{b['id']}|{urgency}|{1 if urgency >= URGENCY_THRESHOLD else 0}|{carry_out}")
+        ledger_rows.append(f"{b['id']}|{urgency}|{1 if urgency >= pol["urgency_threshold"] else 0}|{carry_out}")
         per_bundle[b["id"]] = {
             "urgency": urgency,
             "urgency_carry_out": carry_out,
-            "critical_response": 1 if urgency >= URGENCY_THRESHOLD else 0,
+            "critical_response": 1 if urgency >= pol["urgency_threshold"] else 0,
         }
         prev_carry_out = carry_out
         prev_assets = assets
@@ -162,7 +229,6 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict]) -> dict:
     # bundles across the boundary and changes the wave membership, the tier
     # counts, the response order and the wave checksum together.
     TIER_WAVE_CAP = 2
-    RESPONSE_WAVE_FLOOR = 16
     RESPONSE_TIERS = ("immediate", "urgent", "routine")
     CLASS_RANK = {n: len(RESPONSE_TIERS) - i for i, n in enumerate(RESPONSE_TIERS)}
     uncontained_bundles = [b for b in bundles if b["id"] not in contained_set]
@@ -199,12 +265,16 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict]) -> dict:
                 "response_load": response_load,
             }
         )
-    admitted = [r for r in wave_candidates if r["response_load"] >= RESPONSE_WAVE_FLOOR]
+    admitted = [
+        r for r in wave_candidates
+        if r["response_load"] >= policy_for_band(severity_band(r["severity"]), policy_data)["wave_floor"]
+    ]
     # Class per SR-2233, clauses in order; the first match fixes the class.
     for r in admitted:
-        if r["response_load"] >= 27:
+        rp = policy_for_band(severity_band(r["severity"]), policy_data)
+        if r["response_load"] >= rp["immediate_min"]:
             r["response_tier"] = "immediate"
-        elif r["response_load"] >= 21 or r["exposure_overlap"] >= 4:
+        elif r["response_load"] >= rp["urgent_min"] or r["exposure_overlap"] >= rp["urgent_overlap_min"]:
             r["response_tier"] = "urgent"
         else:
             r["response_tier"] = "routine"
@@ -365,6 +435,7 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict]) -> dict:
         "urgency_ledger_checksum": urgency_ledger_checksum,
         "asset_exposure_checksum": asset_exposure_checksum,
         "total_exposure_overlap": total_exposure_overlap,
+        "policy_checksum": policy_checksum(policy_data),
         "response_wave_ids": response_wave_ids,
         "response_wave_count": response_wave_count,
         "total_response_load": total_response_load,
@@ -383,7 +454,7 @@ def main() -> int:
     parser.add_argument("--output-dir", default="/app/output")
     args = parser.parse_args()
     data = json.loads(Path(args.input).read_text())
-    result = plan_remediation(data["asset_count"], data["bundles"])
+    result = plan_remediation(data["asset_count"], data["bundles"], load_policies())
     out = Path(args.output_dir)
     out.mkdir(parents=True, exist_ok=True)
     records = result.pop("_ledger_records")

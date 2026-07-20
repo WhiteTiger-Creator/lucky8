@@ -11,6 +11,7 @@ uncontained_severity, residual_contained_severity, proposed_tier_counts,
 contained_tier_counts, total_asset_pressure, max_asset_pressure, containment_score,
 coverage_permille, residual_pressure, critical_response_ids, critical_response_count,
 max_urgency, urgency_ledger_checksum, asset_exposure_checksum, total_exposure_overlap,
+policy_checksum,
 response_wave_ids, response_wave_count, total_response_load, max_response_load,
 response_tier_counts, response_order, response_wave_checksum, bundle_checksum,
 plan_checksum.
@@ -54,6 +55,8 @@ Assets are integers `0 .. M-1`. Each bundle has a string `id`, an integer
 `severity`, and a list of the asset ids it locks. How the bundle list is
 canonicalized (validity bounds, duplicate-id handling, asset dedup/sort, and
 ordering) is governed by the review log, not by this contract.
+
+Two ordering facts are stated here only so that they are not missed; the keys, directions and tie-breaks themselves stay in the review log. First, the rows of `asset_exposure.jsonl` are NOT in `asset_id` order: they follow a multi-key sort whose governing entry is in the log, and getting that order wrong changes `asset_exposure_checksum` even when every field value is right. Second, duplicate bundle ids are resolved by a severity precedence rule that the log REVERSED from the obvious reading, so the rule you want is the latest dated decision on duplicate-id handling, not the first one you find.
 
 ## Output
 

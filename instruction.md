@@ -10,4 +10,6 @@ The log records these rules as dated review entries, and more than one entry add
 
 Two output-vocabulary and type facts the verifier matches literally: a response-wave bundle's tier is exactly one of the lowercase strings `immediate`, `urgent`, or `routine`, and `response_tier_counts` always enumerates all three in that order, emitting `0` for a tier with no bundles; `response_order` is a JSON array in the log's response ordering, which is not ascending id order — `response_wave_ids` is the sorted one.
 
+The remediation policies are read from `/app/data/remediation_policies.json` at that fixed absolute path; `--input` selects the bundle file only and never relocates the policy file. The wave and urgency thresholds are not global constants: they are resolved per bundle from that file by the bundle's severity band, through a layered default-then-override inheritance whose tiers, banding and serialization the review log specifies.
+
 Given the bundles in `/app/data/remediation.json`, produce the containment plan at `/app/output/plan.json` with the keys the spec lists, via `/app/remediate.py` reading `--input` (default `/app/data/remediation.json`) and writing under `--output-dir` (default `/app/output`). Every value derives from the input and the governing decisions; nothing is read or imported from `/tests` or `/solution`.
