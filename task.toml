@@ -9,7 +9,7 @@ subcategories = []
 number_of_milestones = 0
 codebase_size = "minimal"
 languages = ["python"]
-tags = ["security", "incident-response", "combinatorial-optimization", "remediation-planning", "cli"]
+tags = ["security", "incident-response", "host-containment", "credential-hygiene", "access-control", "remediation-planning", "combinatorial-optimization"]
 expert_time_estimate_min = 90
 junior_time_estimate_min = 180
 
