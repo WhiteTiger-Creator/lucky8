@@ -39,16 +39,19 @@
   "urgency_ledger_checksum": "544173d67d6f401c4d9f59549146f2057554e7b6f2b983348a7d6c60a0f2a994",
   "asset_exposure_checksum": "04fd6afe35bc8496d09256a8ec19a514a6ba1be9353d577980dc6bd9c5487f28",
   "total_exposure_overlap": 4,
-  "policy_checksum": "db113d0226ce9219265e25fed1f188091224c5bd52bf1a5bb46d3b8c35709a1a",
+  "total_blackout_overlap": 22,
+  "total_maintenance_overlap": 0,
+  "containment_window_checksum": "63f4d60536341977ff1b598505c11007daeb115db905a4509240d7724f9c52e8",
+  "policy_checksum": "b2996f167bcc25433c89be3827fcb8a60fb88469d05f8da6bc4d636b640498eb",
   "response_wave_ids": [
     "ra-01",
     "ra-02",
-    "ra-05",
+    "ra-07",
     "ra-08"
   ],
   "response_wave_count": 4,
-  "total_response_load": 86,
-  "max_response_load": 25,
+  "total_response_load": 83,
+  "max_response_load": 24,
   "response_tier_counts": {
     "immediate": 0,
     "urgent": 2,
@@ -57,10 +60,10 @@
   "response_order": [
     "ra-01",
     "ra-02",
-    "ra-05",
+    "ra-07",
     "ra-08"
   ],
-  "response_wave_checksum": "674669e603ca7ab200ea6daba3acb158bc0cf5c3122c6c2760e7e5014bc3014f",
+  "response_wave_checksum": "fda1ef4b5b527d7160db08cb4f48b737c3a95ec173c525632aba4bf58c919ca6",
   "bundle_checksum": "24d882f78dbf8f0cfdc20b628210c7a0a00a80b02a6677ac6e087f2647217a40",
-  "plan_checksum": "22fbddd9f724ac38ad04fdf6938c66077b235f47959915b06eaf03425712819b"
+  "plan_checksum": "81d3a28e5de0eb0775911fc95a06d853a1636390a8d2b5321ed39798c431af5a"
 }

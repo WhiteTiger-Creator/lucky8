@@ -1,13 +1,13 @@
 {
   "default": {
-    "wave_floor": 15,
+    "wave_floor": 13,
     "immediate_min": 26,
     "urgent_min": 20,
     "urgent_overlap_min": 3
   },
   "band_overrides": {
     "low": {
-      "wave_floor": 12,
+      "wave_floor": 10,
       "urgent_min": 17
     },
     "mid": {
@@ -15,7 +15,7 @@
       "carry_cap": 84
     },
     "high": {
-      "wave_floor": 19,
+      "wave_floor": 16,
       "urgency_threshold": 27,
       "urgent_overlap_min": 5
     }

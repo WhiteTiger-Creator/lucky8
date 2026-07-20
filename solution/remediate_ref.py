@@ -40,6 +40,55 @@ def severity_band(severity: int) -> str:
     return "high"
 
 
+CONTAINMENT_WINDOWS_PATH = Path("/app/data/containment_windows.json")
+CONTAINMENT_LAYERS = ("blackout", "maintenance")
+
+
+def load_containment_windows(path: Path = CONTAINMENT_WINDOWS_PATH) -> list[dict]:
+    if not path.exists():
+        return []
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def windows_for_band(rows: list[dict], layer: str, band: str) -> list[tuple[int, int]]:
+    """SR-2250 scope resolution: a band uses its OWN windows for this layer; only a
+    band with no window of its own in this layer borrows the `all` scope. A band that
+    has its own entry does NOT additionally inherit `all`."""
+    own = [
+        (int(r["lo"]), int(r["hi"]), int(r["charge"])) for r in rows
+        if r.get("layer") == layer and r.get("band") == band and int(r["hi"]) > int(r["lo"])
+    ]
+    if own:
+        return sorted(own)
+    return sorted(
+        (int(r["lo"]), int(r["hi"]), int(r["charge"])) for r in rows
+        if r.get("layer") == layer and r.get("band") == "all" and int(r["hi"]) > int(r["lo"])
+    )
+
+
+def covered_assets(assets: set[int], spans: list[tuple[int, int, int]]) -> dict[int, int]:
+    """Charge per covered asset. An asset inside several spans of the same layer is
+    charged the MAXIMUM of their charges, not their sum (SR-2250)."""
+    charged: dict[int, int] = {}
+    for asset in assets:
+        best = None
+        for lo, hi, charge in spans:
+            if lo <= asset < hi and (best is None or charge > best):
+                best = charge
+        if best is not None:
+            charged[asset] = best
+    return charged
+
+
+def containment_window_checksum(rows: list[dict]) -> str:
+    """Windows serialized layer-major, then band, then lo, then hi."""
+    ordered = sorted(
+        rows, key=lambda r: (str(r.get("layer")), str(r.get("band")), int(r["lo"]), int(r["hi"]), int(r["charge"]))
+    )
+    lines = [f"{r['layer']}|{r['band']}|{r['lo']}|{r['hi']}|{r['charge']}" for r in ordered]
+    return hashlib.sha256("\n".join(lines).encode("utf-8")).hexdigest()
+
+
 def load_policies(path: Path = POLICY_PATH) -> dict:
     if not path.exists():
         return {}
@@ -136,7 +185,8 @@ def _best_packing(bundles: list[dict]) -> tuple[int, list[str]]:
 
 
 def plan_remediation(asset_count: int, bundle_rows: list[dict],
-                     policy_data: dict | None = None) -> dict:
+                     policy_data: dict | None = None,
+                     containment_rows: list[dict] | None = None) -> dict:
     bundles = canonical_bundles(bundle_rows)
 
     total_proposed_severity = sum(b["severity"] for b in bundles)
@@ -189,6 +239,7 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict],
     # SR-2248: the urgency threshold and carry cap are resolved PER BUNDLE from
     # its severity band's policy, not taken from a single global constant.
     policy_data = policy_data or {}
+    containment_rows = containment_rows or []
     prev_carry_out = 0
     prev_assets: set[int] = set()
     per_bundle: dict[str, dict] = {}
@@ -233,6 +284,8 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict],
     CLASS_RANK = {n: len(RESPONSE_TIERS) - i for i, n in enumerate(RESPONSE_TIERS)}
     uncontained_bundles = [b for b in bundles if b["id"] not in contained_set]
     total_exposure_overlap = 0
+    total_blackout_overlap = 0
+    total_maintenance_overlap = 0
     wave_candidates = []
     for b in bundles:
         if b["id"] not in contained_set:
@@ -254,7 +307,28 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict],
                 exposure_overlap += len(shared)
         exposing_bundle_count = sum(1 for o in uncontained_bundles if assets & set(o["assets"]))
         total_exposure_overlap += exposure_overlap
-        response_load = max(b["severity"] * 3 + (-(-exposure_overlap // 2)) - (len(assets) // 2), 0)
+        raw_load = max(b["severity"] * 3 + (-(-exposure_overlap // 2)) - (len(assets) // 2), 0)
+        # SR-2250: containment-window attenuation. Each layer's spans are resolved
+        # for this bundle's severity band (own scope, else the `all` scope), and the
+        # bundle's OWN assets falling inside them are counted. SR-2252: blackout
+        # takes precedence where both layers cover the same asset, so an asset in
+        # both is charged to blackout only. The blackout half is ROUNDED UP and the
+        # maintenance half is FLOORED.
+        band = severity_band(b["severity"])
+        blackout_hit = covered_assets(
+            assets, windows_for_band(containment_rows, "blackout", band)
+        )
+        maintenance_hit = covered_assets(
+            assets, windows_for_band(containment_rows, "maintenance", band)
+        )
+        maintenance_hit = {a: c for a, c in maintenance_hit.items() if a not in blackout_hit}
+        blackout_overlap = sum(blackout_hit.values())
+        maintenance_overlap = sum(maintenance_hit.values())
+        total_blackout_overlap += blackout_overlap
+        total_maintenance_overlap += maintenance_overlap
+        response_load = max(
+            raw_load - (-(-blackout_overlap // 2)) - (maintenance_overlap // 3), 0
+        )
         wave_candidates.append(
             {
                 "id": b["id"],
@@ -263,6 +337,9 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict],
                 "exposure_overlap": exposure_overlap,
                 "exposing_bundle_count": exposing_bundle_count,
                 "response_load": response_load,
+                "raw_load": raw_load,
+                "blackout_overlap": blackout_overlap,
+                "maintenance_overlap": maintenance_overlap,
             }
         )
     admitted = [
@@ -435,6 +512,9 @@ def plan_remediation(asset_count: int, bundle_rows: list[dict],
         "urgency_ledger_checksum": urgency_ledger_checksum,
         "asset_exposure_checksum": asset_exposure_checksum,
         "total_exposure_overlap": total_exposure_overlap,
+        "total_blackout_overlap": total_blackout_overlap,
+        "total_maintenance_overlap": total_maintenance_overlap,
+        "containment_window_checksum": containment_window_checksum(containment_rows),
         "policy_checksum": policy_checksum(policy_data),
         "response_wave_ids": response_wave_ids,
         "response_wave_count": response_wave_count,
@@ -454,7 +534,9 @@ def main() -> int:
     parser.add_argument("--output-dir", default="/app/output")
     args = parser.parse_args()
     data = json.loads(Path(args.input).read_text())
-    result = plan_remediation(data["asset_count"], data["bundles"], load_policies())
+    result = plan_remediation(
+        data["asset_count"], data["bundles"], load_policies(), load_containment_windows()
+    )
     out = Path(args.output_dir)
     out.mkdir(parents=True, exist_ok=True)
     records = result.pop("_ledger_records")

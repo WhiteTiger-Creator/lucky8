@@ -81,7 +81,8 @@ def test_result_has_required_keys(result):
                            "coverage_permille", "residual_pressure",
                            "critical_response_ids", "critical_response_count",
                            "max_urgency", "urgency_ledger_checksum", "asset_exposure_checksum",
-                           "total_exposure_overlap", "policy_checksum", "response_wave_ids",
+                           "total_exposure_overlap", "policy_checksum", "total_blackout_overlap", "total_maintenance_overlap",
+                           "containment_window_checksum", "response_wave_ids",
                            "response_wave_count", "total_response_load",
                            "max_response_load", "response_tier_counts",
                            "response_order", "response_wave_checksum",
@@ -272,9 +273,19 @@ def _response_wave_layer(bundles: list[dict], contained_ids: list[str]) -> list[
         response_load = max(
             b["severity"] * 3 + (-(-exposure_overlap // 2)) - (len(assets) // 2), 0
         )
-        rows.append({"id": b["id"], "severity": b["severity"],
+        rows.append({"id": b["id"], "severity": b["severity"], "assets": sorted(assets),
                      "exposure_overlap": exposure_overlap,
                      "exposing_bundle_count": exposing_bundle_count, "response_load": response_load})
+    windows = json.loads(CONTAINMENT_WINDOWS_PATH.read_text(encoding="utf-8"))
+    for r in rows:
+        band = _band(r["severity"])
+        bl = _charges(set(r["assets"]), _spans(windows, "blackout", band))
+        mt = _charges(set(r["assets"]), _spans(windows, "maintenance", band))
+        blackout = sum(bl.values())
+        maintenance = sum(c for a, c in mt.items() if a not in bl)   # SR-2252
+        r["response_load"] = max(
+            r["response_load"] - (-(-blackout // 2)) - (maintenance // 3), 0
+        )
     admitted = [r for r in rows if r["response_load"] >= _pol(r["severity"])["wave_floor"]]
     for r in admitted:
         rp = _pol(r["severity"])
@@ -591,6 +602,11 @@ def test_policy_source_path_affects_output(tmp_path: Path):
         base = _run(tmp_path / "base")
         bumped = json.loads(original)
         bumped["default"]["wave_floor"] = 999
+        # Bands carrying their own wave_floor do not inherit the default, so raise
+        # theirs too or the bump only reaches the inheriting band.
+        for band in bumped.get("band_overrides", {}).values():
+            if "wave_floor" in band:
+                band["wave_floor"] = 999
         POLICY_PATH.write_text(json.dumps(bumped), encoding="utf-8")
         changed = _run(tmp_path / "changed")
         assert changed["response_wave_count"] < base["response_wave_count"]
@@ -687,3 +703,95 @@ def test_quarantine_credential_locked_down():
     stat = QUARANTINE_CRED.stat()
     assert oct(stat.st_mode)[-3:] == "600", "credential must be mode 0600"
     assert stat.st_uid == 0 and stat.st_gid == 0, "credential must be owned by root:root"
+
+
+CONTAINMENT_WINDOWS_PATH = Path("/app/data/containment_windows.json")
+
+
+def _spans(rows, layer, band):
+    """SR-2250 scope: own-band windows, else the all-scope. Never both."""
+    own = [(int(r["lo"]), int(r["hi"]), int(r["charge"])) for r in rows
+           if r["layer"] == layer and r["band"] == band and int(r["hi"]) > int(r["lo"])]
+    if own:
+        return own
+    return [(int(r["lo"]), int(r["hi"]), int(r["charge"])) for r in rows
+            if r["layer"] == layer and r["band"] == "all" and int(r["hi"]) > int(r["lo"])]
+
+
+def _charges(assets, spans):
+    out = {}
+    for a in assets:
+        hits = [c for lo, hi, c in spans if lo <= a < hi]
+        if hits:
+            out[a] = max(hits)          # SR-2250: maximum, not sum
+    return out
+
+
+def test_containment_window_source_path_affects_output(tmp_path: Path):
+    """SR-2250: the attenuation reads the window file, not hardcoded spans."""
+    original = CONTAINMENT_WINDOWS_PATH.read_text(encoding="utf-8")
+    try:
+        base = _run(tmp_path / "base")
+        CONTAINMENT_WINDOWS_PATH.write_text("[]\n", encoding="utf-8")
+        empty = _run(tmp_path / "empty")
+        assert empty["total_blackout_overlap"] == 0
+        assert empty["total_maintenance_overlap"] == 0
+        assert empty["containment_window_checksum"] != base["containment_window_checksum"]
+        assert empty["response_wave_count"] >= base["response_wave_count"]
+    finally:
+        CONTAINMENT_WINDOWS_PATH.write_text(original, encoding="utf-8")
+
+
+def test_band_with_own_windows_does_not_also_inherit_all_scope():
+    """SR-2250 scope: own-band entries REPLACE the all-scope, they do not add to it."""
+    rows = json.loads(CONTAINMENT_WINDOWS_PATH.read_text(encoding="utf-8"))
+    layered = {(r["layer"], r["band"]) for r in rows}
+    with_own = [(ly, bd) for ly, bd in layered if bd != "all"]
+    assert with_own, "no band-scoped window -- the scope rule is dormant"
+    for layer, band in with_own:
+        spans = _spans(rows, layer, band)
+        all_spans = [(int(r["lo"]), int(r["hi"]), int(r["charge"])) for r in rows
+                     if r["layer"] == layer and r["band"] == "all"]
+        for span in all_spans:
+            assert span not in spans or span in [
+                (int(r["lo"]), int(r["hi"]), int(r["charge"])) for r in rows
+                if r["layer"] == layer and r["band"] == band
+            ], f"{band} inherited an all-scope window despite having its own"
+
+
+def test_sr_2252_blackout_precedence_and_max_charge(result):
+    """SR-2252: an asset charged under blackout is not charged again under maintenance.
+
+    Also pins SR-2250's max-among-covering rule, and asserts the wrong readings
+    (summing charges, or charging both layers) give different totals -- so this
+    cannot pass tautologically and cannot go dormant unnoticed.
+    """
+    rows = json.loads(CONTAINMENT_WINDOWS_PATH.read_text(encoding="utf-8"))
+    bundles = _canonical(json.loads(DATA.read_text())["bundles"])
+    contained = set(result["contained_bundle_ids"])
+
+    governing_b = governing_m = both_layers = summed = 0
+    overlap_seen = multi_cover = 0
+    for b in bundles:
+        if b["id"] not in contained:
+            continue
+        assets, band = set(b["assets"]), _band(b["severity"])
+        bl = _charges(assets, _spans(rows, "blackout", band))
+        mt = _charges(assets, _spans(rows, "maintenance", band))
+        if set(bl) & set(mt):
+            overlap_seen += 1
+        for a in assets:
+            if len([c for lo, hi, c in _spans(rows, "blackout", band) if lo <= a < hi]) > 1:
+                multi_cover += 1
+        governing_b += sum(bl.values())
+        governing_m += sum(c for a, c in mt.items() if a not in bl)
+        both_layers += sum(mt.values())
+        summed += sum(sum(c for lo, hi, c in _spans(rows, "blackout", band) if lo <= a < hi)
+                      for a in assets)
+
+    assert result["total_blackout_overlap"] == governing_b
+    assert result["total_maintenance_overlap"] == governing_m
+    assert overlap_seen, "no asset covered by both layers -- SR-2252 is dormant"
+    assert multi_cover, "no asset covered by two same-layer windows -- max rule is dormant"
+    assert governing_m != both_layers, "precedence makes no difference -- cannot discriminate"
+    assert governing_b != summed, "max-vs-sum makes no difference -- cannot discriminate"
