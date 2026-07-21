@@ -183,7 +183,8 @@
       "tier_counts": "always enumerates core, service, user, guest in that order, emitting 0 for a class with no canonical rows; counts EVERY canonical row including blocked ones",
       "priority_counts": "always enumerates critical, elevated, routine in that order, emitting 0 for an empty tier",
       "subnets": "JSON array of subnet names sorted ascending",
-      "schema_version_value": "flow-quarantine-v2"
+      "schema_version_value": "flow-quarantine-v2",
+      "aggregate_scope": "SCOPE OF THE AGGREGATES. Every session-derived value in summary.json is computed over ALL constructed sessions across all subnets - session_count, total_hold_ms, total_adjusted_hold_ms, total_ledger_hold_ms, total_isolation_overlap_ms, total_inspection_overlap_ms, max_ledger_hold_ms, max_carry_out_ms and longest_session_ms. They are NOT restricted to the sessions that reached the quarantine queue. The responder capacity cap narrows only quarantined.jsonl and the two queue-derived values quarantined_count and priority_counts."
     },
     "subnet_matrix_json": {
       "output_name": "subnet_matrix.json",
@@ -194,7 +195,8 @@
         "total_ledger_hold_ms",
         "max_carry_out_ms",
         "queued_count"
-      ]
+      ],
+      "aggregate_scope": "Per-subnet session_count, total_hold_ms, total_ledger_hold_ms and max_carry_out_ms are computed over every session in that subnet, not only its queued rows. Only queued_count counts that subnet's rows that survived the responder capacity cap."
     },
     "quarantined_jsonl": {
       "output_name": "quarantined.jsonl",
