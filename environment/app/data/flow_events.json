@@ -328,5 +328,365 @@
     "opened_ms": 4210500081000,
     "closed_ms": 4210500081287,
     "blocked": false
+  },
+  {
+    "flow_id": "fx-9001",
+    "src_addr": "10.9.1.7",
+    "trust_tier": "core",
+    "subnet": "alpha",
+    "port": "alpha-x0",
+    "opened_ms": 4210500004658,
+    "closed_ms": 4210500004958,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9002",
+    "src_addr": "10.9.2.14",
+    "trust_tier": "service",
+    "subnet": "alpha",
+    "port": "alpha-x1",
+    "opened_ms": 4210500005118,
+    "closed_ms": 4210500005386,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9003",
+    "src_addr": "10.9.3.21",
+    "trust_tier": "user",
+    "subnet": "alpha",
+    "port": "alpha-x2",
+    "opened_ms": 4210500005536,
+    "closed_ms": 4210500005858,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9004",
+    "src_addr": "10.9.4.28",
+    "trust_tier": "core",
+    "subnet": "alpha",
+    "port": "alpha-x3",
+    "opened_ms": 4210500006023,
+    "closed_ms": 4210500006313,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9005",
+    "src_addr": "10.9.5.35",
+    "trust_tier": "service",
+    "subnet": "alpha",
+    "port": "alpha-x4",
+    "opened_ms": 4210500006468,
+    "closed_ms": 4210500006744,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9006",
+    "src_addr": "10.9.6.42",
+    "trust_tier": "user",
+    "subnet": "alpha",
+    "port": "alpha-x5",
+    "opened_ms": 4210500006914,
+    "closed_ms": 4210500007172,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9007",
+    "src_addr": "10.9.7.49",
+    "trust_tier": "core",
+    "subnet": "bravo",
+    "port": "bravo-x0",
+    "opened_ms": 4210500043081,
+    "closed_ms": 4210500043381,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9008",
+    "src_addr": "10.9.8.56",
+    "trust_tier": "service",
+    "subnet": "bravo",
+    "port": "bravo-x1",
+    "opened_ms": 4210500043541,
+    "closed_ms": 4210500043809,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9009",
+    "src_addr": "10.9.9.63",
+    "trust_tier": "user",
+    "subnet": "bravo",
+    "port": "bravo-x2",
+    "opened_ms": 4210500043959,
+    "closed_ms": 4210500044281,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9010",
+    "src_addr": "10.9.10.70",
+    "trust_tier": "core",
+    "subnet": "bravo",
+    "port": "bravo-x3",
+    "opened_ms": 4210500044446,
+    "closed_ms": 4210500044736,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9011",
+    "src_addr": "10.9.11.77",
+    "trust_tier": "service",
+    "subnet": "bravo",
+    "port": "bravo-x4",
+    "opened_ms": 4210500044891,
+    "closed_ms": 4210500045167,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9012",
+    "src_addr": "10.9.12.84",
+    "trust_tier": "user",
+    "subnet": "bravo",
+    "port": "bravo-x5",
+    "opened_ms": 4210500045337,
+    "closed_ms": 4210500045595,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9013",
+    "src_addr": "10.9.13.91",
+    "trust_tier": "core",
+    "subnet": "charlie",
+    "port": "charlie-x0",
+    "opened_ms": 4210500083586,
+    "closed_ms": 4210500083886,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9014",
+    "src_addr": "10.9.14.98",
+    "trust_tier": "service",
+    "subnet": "charlie",
+    "port": "charlie-x1",
+    "opened_ms": 4210500084046,
+    "closed_ms": 4210500084314,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9015",
+    "src_addr": "10.9.15.105",
+    "trust_tier": "user",
+    "subnet": "charlie",
+    "port": "charlie-x2",
+    "opened_ms": 4210500084464,
+    "closed_ms": 4210500084786,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9016",
+    "src_addr": "10.9.16.112",
+    "trust_tier": "core",
+    "subnet": "charlie",
+    "port": "charlie-x3",
+    "opened_ms": 4210500084951,
+    "closed_ms": 4210500085241,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9017",
+    "src_addr": "10.9.17.119",
+    "trust_tier": "service",
+    "subnet": "charlie",
+    "port": "charlie-x4",
+    "opened_ms": 4210500085396,
+    "closed_ms": 4210500085672,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9018",
+    "src_addr": "10.9.18.126",
+    "trust_tier": "user",
+    "subnet": "charlie",
+    "port": "charlie-x5",
+    "opened_ms": 4210500085842,
+    "closed_ms": 4210500086100,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9019",
+    "src_addr": "10.9.19.133",
+    "trust_tier": "core",
+    "subnet": "delta",
+    "port": "delta-x0",
+    "opened_ms": 4210500121943,
+    "closed_ms": 4210500122243,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9020",
+    "src_addr": "10.9.20.140",
+    "trust_tier": "service",
+    "subnet": "delta",
+    "port": "delta-x1",
+    "opened_ms": 4210500122403,
+    "closed_ms": 4210500122671,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9021",
+    "src_addr": "10.9.21.147",
+    "trust_tier": "user",
+    "subnet": "delta",
+    "port": "delta-x2",
+    "opened_ms": 4210500122821,
+    "closed_ms": 4210500123143,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9022",
+    "src_addr": "10.9.22.154",
+    "trust_tier": "core",
+    "subnet": "delta",
+    "port": "delta-x3",
+    "opened_ms": 4210500123308,
+    "closed_ms": 4210500123598,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9023",
+    "src_addr": "10.9.23.161",
+    "trust_tier": "service",
+    "subnet": "delta",
+    "port": "delta-x4",
+    "opened_ms": 4210500123753,
+    "closed_ms": 4210500124029,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9024",
+    "src_addr": "10.9.24.168",
+    "trust_tier": "user",
+    "subnet": "delta",
+    "port": "delta-x5",
+    "opened_ms": 4210500124199,
+    "closed_ms": 4210500124457,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9025",
+    "src_addr": "10.9.25.175",
+    "trust_tier": "core",
+    "subnet": "echo",
+    "port": "echo-x0",
+    "opened_ms": 4210500163311,
+    "closed_ms": 4210500163611,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9026",
+    "src_addr": "10.9.26.182",
+    "trust_tier": "service",
+    "subnet": "echo",
+    "port": "echo-x1",
+    "opened_ms": 4210500163771,
+    "closed_ms": 4210500164039,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9027",
+    "src_addr": "10.9.27.189",
+    "trust_tier": "user",
+    "subnet": "echo",
+    "port": "echo-x2",
+    "opened_ms": 4210500164189,
+    "closed_ms": 4210500164511,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9028",
+    "src_addr": "10.9.28.196",
+    "trust_tier": "core",
+    "subnet": "echo",
+    "port": "echo-x3",
+    "opened_ms": 4210500164676,
+    "closed_ms": 4210500164966,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9029",
+    "src_addr": "10.9.29.203",
+    "trust_tier": "service",
+    "subnet": "echo",
+    "port": "echo-x4",
+    "opened_ms": 4210500165121,
+    "closed_ms": 4210500165397,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9030",
+    "src_addr": "10.9.30.210",
+    "trust_tier": "user",
+    "subnet": "echo",
+    "port": "echo-x5",
+    "opened_ms": 4210500165567,
+    "closed_ms": 4210500165825,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9031",
+    "src_addr": "10.9.31.217",
+    "trust_tier": "core",
+    "subnet": "foxtrot",
+    "port": "foxtrot-x0",
+    "opened_ms": 4210500202092,
+    "closed_ms": 4210500202392,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9032",
+    "src_addr": "10.9.32.224",
+    "trust_tier": "service",
+    "subnet": "foxtrot",
+    "port": "foxtrot-x1",
+    "opened_ms": 4210500202552,
+    "closed_ms": 4210500202820,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9033",
+    "src_addr": "10.9.33.231",
+    "trust_tier": "user",
+    "subnet": "foxtrot",
+    "port": "foxtrot-x2",
+    "opened_ms": 4210500202970,
+    "closed_ms": 4210500203292,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9034",
+    "src_addr": "10.9.34.238",
+    "trust_tier": "core",
+    "subnet": "foxtrot",
+    "port": "foxtrot-x3",
+    "opened_ms": 4210500203457,
+    "closed_ms": 4210500203747,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9035",
+    "src_addr": "10.9.35.245",
+    "trust_tier": "service",
+    "subnet": "foxtrot",
+    "port": "foxtrot-x4",
+    "opened_ms": 4210500203902,
+    "closed_ms": 4210500204178,
+    "blocked": false
+  },
+  {
+    "flow_id": "fx-9036",
+    "src_addr": "10.9.36.2",
+    "trust_tier": "user",
+    "subnet": "foxtrot",
+    "port": "foxtrot-x5",
+    "opened_ms": 4210500204348,
+    "closed_ms": 4210500204606,
+    "blocked": false
   }
 ]

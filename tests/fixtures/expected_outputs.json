@@ -2,13 +2,13 @@
   "primary": {
     "summary": {
       "schema_version": "flow-quarantine-v2",
-      "raw_flow_count": 33,
-      "unique_flow_ids": 29,
-      "canonical_flow_count": 29,
+      "raw_flow_count": 69,
+      "unique_flow_ids": 65,
+      "canonical_flow_count": 65,
       "tier_counts": {
-        "core": 7,
-        "service": 6,
-        "user": 9,
+        "core": 19,
+        "service": 18,
+        "user": 21,
         "guest": 7
       },
       "subnets": [
@@ -21,70 +21,196 @@
       ],
       "subnet_count": 6,
       "blocked_excluded_count": 2,
-      "session_count": 23,
-      "total_hold_ms": 6449,
-      "total_adjusted_hold_ms": 5830,
-      "total_ledger_hold_ms": 6613,
-      "total_isolation_overlap_ms": 968,
-      "total_inspection_overlap_ms": 838,
-      "max_ledger_hold_ms": 491,
+      "session_count": 53,
+      "total_hold_ms": 17573,
+      "total_adjusted_hold_ms": 15521,
+      "total_ledger_hold_ms": 20692,
+      "total_isolation_overlap_ms": 3388,
+      "total_inspection_overlap_ms": 1829,
+      "max_ledger_hold_ms": 795,
       "max_carry_out_ms": 780,
-      "longest_session_ms": 611,
-      "quarantined_count": 11,
+      "longest_session_ms": 781,
+      "quarantined_count": 12,
       "priority_counts": {
-        "critical": 4,
-        "elevated": 3,
-        "routine": 4
+        "critical": 12,
+        "elevated": 0,
+        "routine": 0
       },
-      "canonical_flow_checksum": "2a503dc1e2a9eb65027256660676324816483b19f9fd242cd8f158acc2de70f1",
-      "flow_policy_checksum": "d4cc90f0c4f9afaa222aaa40fc56c5392b084d57fbf5b041cafa6aa1c679ddea",
-      "quarantine_checksum": "9efe7b2d1f635dff6eb618bd30e8bf7de8f126269ae436fd1bdc2609f09de8a5"
+      "canonical_flow_checksum": "1454a45bc7e1fc7ea6cadecfe9d3d7275338ac8bae0215e5aaf0324ef5620dca",
+      "flow_policy_checksum": "caf1683943b7b936434affcdbe0313205b72de4bccfc02d48338d5e868ad8b6e",
+      "quarantine_checksum": "82251aedac3878e67f12424ed7b103bb4d649071a4552bf9e7921de295a8af48"
     },
     "matrix": {
       "alpha": {
-        "session_count": 5,
-        "total_hold_ms": 1635,
-        "total_ledger_hold_ms": 1856,
+        "session_count": 10,
+        "total_hold_ms": 3489,
+        "total_ledger_hold_ms": 4183,
         "max_carry_out_ms": 780,
         "queued_count": 2
       },
       "bravo": {
-        "session_count": 4,
-        "total_hold_ms": 919,
-        "total_ledger_hold_ms": 844,
-        "max_carry_out_ms": 364,
+        "session_count": 9,
+        "total_hold_ms": 2773,
+        "total_ledger_hold_ms": 3184,
+        "max_carry_out_ms": 780,
         "queued_count": 2
       },
       "charlie": {
-        "session_count": 4,
-        "total_hold_ms": 1453,
-        "total_ledger_hold_ms": 1628,
+        "session_count": 9,
+        "total_hold_ms": 3307,
+        "total_ledger_hold_ms": 3955,
         "max_carry_out_ms": 780,
         "queued_count": 2
       },
       "delta": {
-        "session_count": 3,
-        "total_hold_ms": 635,
-        "total_ledger_hold_ms": 583,
-        "max_carry_out_ms": 313,
-        "queued_count": 1
+        "session_count": 8,
+        "total_hold_ms": 2489,
+        "total_ledger_hold_ms": 2899,
+        "max_carry_out_ms": 780,
+        "queued_count": 2
       },
       "echo": {
-        "session_count": 4,
-        "total_hold_ms": 1094,
-        "total_ledger_hold_ms": 1028,
-        "max_carry_out_ms": 556,
+        "session_count": 9,
+        "total_hold_ms": 2948,
+        "total_ledger_hold_ms": 3485,
+        "max_carry_out_ms": 780,
         "queued_count": 2
       },
       "foxtrot": {
-        "session_count": 3,
-        "total_hold_ms": 713,
-        "total_ledger_hold_ms": 674,
-        "max_carry_out_ms": 345,
+        "session_count": 8,
+        "total_hold_ms": 2567,
+        "total_ledger_hold_ms": 2986,
+        "max_carry_out_ms": 780,
         "queued_count": 2
       }
     },
     "queue": [
+      {
+        "case_id": "alpha:4210500004200-4210500004958",
+        "subnet": "alpha",
+        "start_ms": 4210500004200,
+        "end_ms": 4210500004958,
+        "top_tier": "core",
+        "priority": "critical",
+        "hold_ms": 758,
+        "adjusted_hold_ms": 693,
+        "ledger_hold_ms": 795,
+        "isolation_overlap_ms": 90,
+        "inspection_overlap_ms": 105,
+        "carry_in_ms": 513,
+        "carry_out_ms": 780,
+        "flow_count": 2,
+        "flow_ids": [
+          "fl-028",
+          "fx-9001"
+        ],
+        "hold_digest": "7b59fe71b4a6"
+      },
+      {
+        "case_id": "echo:4210500162900-4210500163611",
+        "subnet": "echo",
+        "start_ms": 4210500162900,
+        "end_ms": 4210500163611,
+        "top_tier": "core",
+        "priority": "critical",
+        "hold_ms": 711,
+        "adjusted_hold_ms": 676,
+        "ledger_hold_ms": 741,
+        "isolation_overlap_ms": 0,
+        "inspection_overlap_ms": 105,
+        "carry_in_ms": 329,
+        "carry_out_ms": 780,
+        "flow_count": 2,
+        "flow_ids": [
+          "fl-018",
+          "fx-9025"
+        ],
+        "hold_digest": "d80be882e7e9"
+      },
+      {
+        "case_id": "charlie:4210500083200-4210500083886",
+        "subnet": "charlie",
+        "start_ms": 4210500083200,
+        "end_ms": 4210500083886,
+        "top_tier": "core",
+        "priority": "critical",
+        "hold_ms": 686,
+        "adjusted_hold_ms": 621,
+        "ledger_hold_ms": 737,
+        "isolation_overlap_ms": 90,
+        "inspection_overlap_ms": 105,
+        "carry_in_ms": 582,
+        "carry_out_ms": 780,
+        "flow_count": 2,
+        "flow_ids": [
+          "fl-011",
+          "fx-9013"
+        ],
+        "hold_digest": "149b84c268a5"
+      },
+      {
+        "case_id": "bravo:4210500042600-4210500043381",
+        "subnet": "bravo",
+        "start_ms": 4210500042600,
+        "end_ms": 4210500043381,
+        "top_tier": "core",
+        "priority": "critical",
+        "hold_ms": 781,
+        "adjusted_hold_ms": 716,
+        "ledger_hold_ms": 719,
+        "isolation_overlap_ms": 90,
+        "inspection_overlap_ms": 105,
+        "carry_in_ms": 17,
+        "carry_out_ms": 745,
+        "flow_count": 2,
+        "flow_ids": [
+          "fl-029",
+          "fx-9007"
+        ],
+        "hold_digest": "ec13975dfa70"
+      },
+      {
+        "case_id": "delta:4210500121600-4210500122243",
+        "subnet": "delta",
+        "start_ms": 4210500121600,
+        "end_ms": 4210500122243,
+        "top_tier": "core",
+        "priority": "critical",
+        "hold_ms": 643,
+        "adjusted_hold_ms": 578,
+        "ledger_hold_ms": 598,
+        "isolation_overlap_ms": 90,
+        "inspection_overlap_ms": 105,
+        "carry_in_ms": 104,
+        "carry_out_ms": 694,
+        "flow_count": 2,
+        "flow_ids": [
+          "fl-014",
+          "fx-9019"
+        ],
+        "hold_digest": "18c787b34077"
+      },
+      {
+        "case_id": "foxtrot:4210500201800-4210500202392",
+        "subnet": "foxtrot",
+        "start_ms": 4210500201800,
+        "end_ms": 4210500202392,
+        "top_tier": "core",
+        "priority": "critical",
+        "hold_ms": 592,
+        "adjusted_hold_ms": 527,
+        "ledger_hold_ms": 560,
+        "isolation_overlap_ms": 90,
+        "inspection_overlap_ms": 105,
+        "carry_in_ms": 167,
+        "carry_out_ms": 706,
+        "flow_count": 2,
+        "flow_ids": [
+          "fl-021",
+          "fx-9031"
+        ],
+        "hold_digest": "3330e985eb36"
+      },
       {
         "case_id": "charlie:4210500080000-4210500080611",
         "subnet": "charlie",
@@ -128,185 +254,84 @@
         "hold_digest": "6f486a01bcf1"
       },
       {
-        "case_id": "alpha:4210500004200-4210500004518",
+        "case_id": "alpha:4210500005536-4210500005858",
         "subnet": "alpha",
-        "start_ms": 4210500004200,
-        "end_ms": 4210500004518,
-        "top_tier": "service",
-        "priority": "critical",
-        "hold_ms": 318,
-        "adjusted_hold_ms": 318,
-        "ledger_hold_ms": 420,
-        "isolation_overlap_ms": 0,
-        "inspection_overlap_ms": 0,
-        "carry_in_ms": 513,
-        "carry_out_ms": 780,
-        "flow_count": 1,
-        "flow_ids": [
-          "fl-028"
-        ],
-        "hold_digest": "c9b60515e3af"
-      },
-      {
-        "case_id": "foxtrot:4210500200000-4210500200373",
-        "subnet": "foxtrot",
-        "start_ms": 4210500200000,
-        "end_ms": 4210500200373,
-        "top_tier": "core",
-        "priority": "critical",
-        "hold_ms": 373,
-        "adjusted_hold_ms": 271,
-        "ledger_hold_ms": 271,
-        "isolation_overlap_ms": 131,
-        "inspection_overlap_ms": 180,
-        "carry_in_ms": 0,
-        "carry_out_ms": 283,
-        "flow_count": 2,
-        "flow_ids": [
-          "fl-019",
-          "fl-024"
-        ],
-        "hold_digest": "6e7035d3cc86"
-      },
-      {
-        "case_id": "charlie:4210500082100-4210500082409",
-        "subnet": "charlie",
-        "start_ms": 4210500082100,
-        "end_ms": 4210500082409,
-        "top_tier": "guest",
-        "priority": "elevated",
-        "hold_ms": 309,
-        "adjusted_hold_ms": 309,
-        "ledger_hold_ms": 407,
-        "isolation_overlap_ms": 0,
-        "inspection_overlap_ms": 0,
-        "carry_in_ms": 494,
-        "carry_out_ms": 780,
-        "flow_count": 1,
-        "flow_ids": [
-          "fl-010"
-        ],
-        "hold_digest": "ee86a48df05a"
-      },
-      {
-        "case_id": "alpha:4210500001900-4210500002231",
-        "subnet": "alpha",
-        "start_ms": 4210500001900,
-        "end_ms": 4210500002231,
-        "top_tier": "guest",
-        "priority": "elevated",
-        "hold_ms": 331,
-        "adjusted_hold_ms": 331,
-        "ledger_hold_ms": 403,
-        "isolation_overlap_ms": 0,
-        "inspection_overlap_ms": 0,
-        "carry_in_ms": 360,
-        "carry_out_ms": 697,
-        "flow_count": 1,
-        "flow_ids": [
-          "fl-003"
-        ],
-        "hold_digest": "ae365d2002ca"
-      },
-      {
-        "case_id": "bravo:4210500042600-4210500042941",
-        "subnet": "bravo",
-        "start_ms": 4210500042600,
-        "end_ms": 4210500042941,
-        "top_tier": "guest",
-        "priority": "elevated",
-        "hold_ms": 341,
-        "adjusted_hold_ms": 341,
-        "ledger_hold_ms": 344,
-        "isolation_overlap_ms": 0,
-        "inspection_overlap_ms": 0,
-        "carry_in_ms": 17,
-        "carry_out_ms": 364,
-        "flow_count": 1,
-        "flow_ids": [
-          "fl-029"
-        ],
-        "hold_digest": "8d70958c1277"
-      },
-      {
-        "case_id": "echo:4210500162900-4210500163171",
-        "subnet": "echo",
-        "start_ms": 4210500162900,
-        "end_ms": 4210500163171,
+        "start_ms": 4210500005536,
+        "end_ms": 4210500005858,
         "top_tier": "user",
-        "priority": "routine",
-        "hold_ms": 271,
-        "adjusted_hold_ms": 221,
-        "ledger_hold_ms": 286,
-        "isolation_overlap_ms": 100,
+        "priority": "critical",
+        "hold_ms": 322,
+        "adjusted_hold_ms": 277,
+        "ledger_hold_ms": 425,
+        "isolation_overlap_ms": 90,
         "inspection_overlap_ms": 0,
-        "carry_in_ms": 329,
-        "carry_out_ms": 556,
+        "carry_in_ms": 742,
+        "carry_out_ms": 780,
         "flow_count": 1,
         "flow_ids": [
-          "fl-018"
+          "fx-9003"
         ],
-        "hold_digest": "304be7c0872f"
+        "hold_digest": "533730a6ee1e"
       },
       {
-        "case_id": "delta:4210500120700-4210500120959",
+        "case_id": "bravo:4210500043959-4210500044281",
+        "subnet": "bravo",
+        "start_ms": 4210500043959,
+        "end_ms": 4210500044281,
+        "top_tier": "user",
+        "priority": "critical",
+        "hold_ms": 322,
+        "adjusted_hold_ms": 277,
+        "ledger_hold_ms": 425,
+        "isolation_overlap_ms": 90,
+        "inspection_overlap_ms": 0,
+        "carry_in_ms": 742,
+        "carry_out_ms": 780,
+        "flow_count": 1,
+        "flow_ids": [
+          "fx-9009"
+        ],
+        "hold_digest": "bd31254febbc"
+      },
+      {
+        "case_id": "delta:4210500122821-4210500123143",
         "subnet": "delta",
-        "start_ms": 4210500120700,
-        "end_ms": 4210500120959,
+        "start_ms": 4210500122821,
+        "end_ms": 4210500123143,
         "top_tier": "user",
-        "priority": "routine",
-        "hold_ms": 259,
-        "adjusted_hold_ms": 259,
-        "ledger_hold_ms": 259,
-        "isolation_overlap_ms": 0,
+        "priority": "critical",
+        "hold_ms": 322,
+        "adjusted_hold_ms": 277,
+        "ledger_hold_ms": 425,
+        "isolation_overlap_ms": 90,
         "inspection_overlap_ms": 0,
-        "carry_in_ms": 0,
-        "carry_out_ms": 265,
+        "carry_in_ms": 742,
+        "carry_out_ms": 780,
         "flow_count": 1,
         "flow_ids": [
-          "fl-013"
+          "fx-9021"
         ],
-        "hold_digest": "2045387195e9"
+        "hold_digest": "5f7e2a537bc2"
       },
       {
-        "case_id": "bravo:4210500040800-4210500040996",
-        "subnet": "bravo",
-        "start_ms": 4210500040800,
-        "end_ms": 4210500040996,
-        "top_tier": "service",
-        "priority": "routine",
-        "hold_ms": 196,
-        "adjusted_hold_ms": 196,
-        "ledger_hold_ms": 196,
-        "isolation_overlap_ms": 0,
-        "inspection_overlap_ms": 0,
-        "carry_in_ms": 0,
-        "carry_out_ms": 202,
-        "flow_count": 1,
-        "flow_ids": [
-          "fl-006"
-        ],
-        "hold_digest": "2e117d788594"
-      },
-      {
-        "case_id": "foxtrot:4210500201800-4210500201952",
+        "case_id": "foxtrot:4210500202970-4210500203292",
         "subnet": "foxtrot",
-        "start_ms": 4210500201800,
-        "end_ms": 4210500201952,
-        "top_tier": "core",
-        "priority": "routine",
-        "hold_ms": 152,
-        "adjusted_hold_ms": 152,
-        "ledger_hold_ms": 185,
-        "isolation_overlap_ms": 0,
+        "start_ms": 4210500202970,
+        "end_ms": 4210500203292,
+        "top_tier": "user",
+        "priority": "critical",
+        "hold_ms": 322,
+        "adjusted_hold_ms": 277,
+        "ledger_hold_ms": 425,
+        "isolation_overlap_ms": 90,
         "inspection_overlap_ms": 0,
-        "carry_in_ms": 167,
-        "carry_out_ms": 325,
+        "carry_in_ms": 742,
+        "carry_out_ms": 780,
         "flow_count": 1,
         "flow_ids": [
-          "fl-021"
+          "fx-9033"
         ],
-        "hold_digest": "e60659beebd3"
+        "hold_digest": "48d2a571e37a"
       }
     ]
   },
@@ -348,7 +373,7 @@
         "routine": 3
       },
       "canonical_flow_checksum": "8972afd09d50e0cfa5b61ed1e91cddc83b875f3c5472be77feafc1fd2f0090ed",
-      "flow_policy_checksum": "d4cc90f0c4f9afaa222aaa40fc56c5392b084d57fbf5b041cafa6aa1c679ddea",
+      "flow_policy_checksum": "caf1683943b7b936434affcdbe0313205b72de4bccfc02d48338d5e868ad8b6e",
       "quarantine_checksum": "bcad0594554447ff0b41af76c44e0a2c68cdcdd6e5b217c619e15de278ac0a6d"
     },
     "matrix": {

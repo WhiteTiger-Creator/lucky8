@@ -50,7 +50,7 @@
       "stage": "canonicalization",
       "dossier_terms": [
         "TQ-3316",
-        "falls back"
+        "FALLS BACK"
       ],
       "pipeline_terms": [
         "trust_tier = str(event.get(\"trust_tier\", \"\"))"
