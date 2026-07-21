@@ -6,7 +6,8 @@
     "path": "/app/flow_audit.py",
     "diagnose": "python3 /app/flow_audit.py diagnose --dossier PATH --report PATH",
     "repair": "python3 /app/flow_audit.py repair --output-dir PATH",
-    "diagnose_is_stateless": "Every explicit diagnose call writes a full report regardless of workflow state or of any earlier repair."
+    "diagnose_is_stateless": "Every explicit diagnose call writes a full report regardless of workflow state or of any earlier repair.",
+    "report_flag_is_output": "`--report PATH` is the OUTPUT path the diagnosis JSON is written to (created if absent); `--dossier PATH` is the review log read as input. Do not treat --report as an input path."
   },
   "known_defects": [
     {
