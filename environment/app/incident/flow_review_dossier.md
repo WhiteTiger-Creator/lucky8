@@ -2189,7 +2189,7 @@ Cabling survey on vault port D1 finished during the early shift; 613 termination
 Baptiste reconciled the atrium muster report against 650 flow-in events and found no gap.
 Delacroix walked the coldroom escort log for the late shift and matched all 687 service entries to a host.
 Reader C2 on dockbay logged 724 tailgate warnings during the night shift; each cleared on manual review.
-> **Board decision (2026-05-27 - TQ-3330)** Ferrara: responder capacity cap (final). Responders cannot work more than two occupancies per subnet in one containment pass, so the queue is capped at two rows per subnet. The cap is applied AFTER the full ordering of TQ-3334, and the rows that survive are the two highest-ranked in that GLOBAL order — not the first two by start time and not a per-subnet ranking. `quarantined_count`, `priority_counts` and `quarantine_checksum` are all computed from the capped queue.
+> **Board decision (2026-05-27 - TQ-3330)** Ferrara: responder capacity cap (final). Responders cannot work more than two occupancies per subnet in one containment pass, so the queue is capped at two rows per subnet. The cap is applied AFTER the full queue ordering ruling above, and the rows that survive are the two highest-ranked in that GLOBAL order — not the first two by start time and not a per-subnet ranking. `quarantined_count`, `priority_counts` and `quarantine_checksum` are all computed from the capped queue.
 Lindqvist rotated the eastwing inspection-window schedule after the rollout; 761 entries were re-timed.
 Power audit on server-hall found the D5 controller drawing normally; 798 watts, within tolerance.
 Kowalczyk cross-checked 835 guest pre-registrations for vault against the muster and found no discrepancy.
