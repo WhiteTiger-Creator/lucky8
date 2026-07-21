@@ -1,0 +1,332 @@
+[
+  {
+    "flow_id": "fl-001",
+    "src_addr": "10.2.2.8",
+    "trust_tier": "user",
+    "subnet": "alpha",
+    "port": "alpha-p2",
+    "opened_ms": 4210500000000,
+    "closed_ms": 4210500000268,
+    "blocked": false
+  },
+  {
+    "flow_id": "fl-002",
+    "src_addr": "10.2.3.15",
+    "trust_tier": "user",
+    "subnet": "alpha",
+    "port": "alpha-p3",
+    "opened_ms": 4210500000900,
+    "closed_ms": 4210500001151,
+    "blocked": false
+  },
+  {
+    "flow_id": "fl-003",
+    "src_addr": "10.2.4.22",
+    "trust_tier": "guest",
+    "subnet": "alpha",
+    "port": "alpha-p4",
+    "opened_ms": 4210500001900,
+    "closed_ms": 4210500002231,
+    "blocked": false
+  },
+  {
+    "flow_id": "fl-004",
+    "src_addr": "10.2.5.29",
+    "trust_tier": "user",
+    "subnet": "alpha",
+    "port": "alpha-p1",
+    "opened_ms": 4210500003000,
+    "closed_ms": 4210500003243,
+    "blocked": false
+  },
+  {
+    "flow_id": "fl-005",
+    "src_addr": "10.2.6.36",
+    "trust_tier": "service",
+    "subnet": "bravo",
+    "port": "bravo-p2",
+    "opened_ms": 4210500040000,
+    "closed_ms": 4210500040214,
+    "blocked": false
+  },
+  {
+    "flow_id": "fl-006",
+    "src_addr": "10.2.7.43",
+    "trust_tier": "service",
+    "subnet": "bravo",
+    "port": "bravo-p3",
+    "opened_ms": 4210500040800,
+    "closed_ms": 4210500040996,
+    "blocked": false
+  },
+  {
+    "flow_id": "fl-007",
+    "src_addr": "10.2.8.50",
+    "trust_tier": "core",
+    "subnet": "bravo",
+    "port": "bravo-p4",
+    "opened_ms": 4210500041700,
+    "closed_ms": 4210500041868,
+    "blocked": false
+  },
+  {
+    "flow_id": "fl-008",
+    "src_addr": "10.2.9.57",
+    "trust_tier": "guest",
+    "subnet": "charlie",
+    "port": "charlie-p1",
+    "opened_ms": 4210500080000,
+    "closed_ms": 4210500080352,
+    "blocked": false
+  },
+  {
+    "flow_id": "fl-009",
+    "src_addr": "10.2.10.64",
+    "trust_tier": "user",
+    "subnet": "charlie",
+    "port": "charlie-p2",
+    "opened_ms": 4210500081000,
+    "closed_ms": 4210500081287,
+    "blocked": false
+  },
+  {
+    "flow_id": "fl-010",
+    "src_addr": "10.2.11.71",
+    "trust_tier": "guest",
+    "subnet": "charlie",
+    "port": "charlie-p3",
+    "opened_ms": 4210500082100,
+    "closed_ms": 4210500082409,
+    "blocked": false
+  },
+  {
+    "flow_id": "fl-011",
+    "src_addr": "10.2.12.78",
+    "trust_tier": "user",
+    "subnet": "charlie",
+    "port": "charlie-p4",
+    "opened_ms": 4210500083200,
+    "closed_ms": 4210500083446,
+    "blocked": false
+  },
+  {
+    "flow_id": "fl-012",
+    "src_addr": "10.2.13.85",
+    "trust_tier": "core",
+    "subnet": "delta",
+    "port": "delta-p1",
+    "opened_ms": 4210500120000,
+    "closed_ms": 4210500120173,
+    "blocked": false
+  },
+  {
+    "flow_id": "fl-013",
+    "src_addr": "10.2.14.92",
+    "trust_tier": "user",
+    "subnet": "delta",
+    "port": "delta-p2",
+    "opened_ms": 4210500120700,
+    "closed_ms": 4210500120959,
+    "blocked": false
+  },
+  {
+    "flow_id": "fl-014",
+    "src_addr": "10.2.15.99",
+    "trust_tier": "service",
+    "subnet": "delta",
+    "port": "delta-p3",
+    "opened_ms": 4210500121600,
+    "closed_ms": 4210500121803,
+    "blocked": false
+  },
+  {
+    "flow_id": "fl-015",
+    "src_addr": "10.2.16.106",
+    "trust_tier": "core",
+    "subnet": "echo",
+    "port": "echo-p4",
+    "opened_ms": 4210500160000,
+    "closed_ms": 4210500160191,
+    "blocked": false
+  },
+  {
+    "flow_id": "fl-016",
+    "src_addr": "10.2.17.113",
+    "trust_tier": "core",
+    "subnet": "echo",
+    "port": "echo-p1",
+    "opened_ms": 4210500160850,
+    "closed_ms": 4210500161008,
+    "blocked": false
+  },
+  {
+    "flow_id": "fl-017",
+    "src_addr": "10.2.18.120",
+    "trust_tier": "service",
+    "subnet": "echo",
+    "port": "echo-p2",
+    "opened_ms": 4210500161800,
+    "closed_ms": 4210500162027,
+    "blocked": false
+  },
+  {
+    "flow_id": "fl-018",
+    "src_addr": "10.2.19.127",
+    "trust_tier": "user",
+    "subnet": "echo",
+    "port": "echo-p3",
+    "opened_ms": 4210500162900,
+    "closed_ms": 4210500163171,
+    "blocked": false
+  },
+  {
+    "flow_id": "fl-019",
+    "src_addr": "10.2.1.134",
+    "trust_tier": "core",
+    "subnet": "foxtrot",
+    "port": "foxtrot-p4",
+    "opened_ms": 4210500200000,
+    "closed_ms": 4210500200164,
+    "blocked": false
+  },
+  {
+    "flow_id": "fl-020",
+    "src_addr": "10.2.2.141",
+    "trust_tier": "service",
+    "subnet": "foxtrot",
+    "port": "foxtrot-p1",
+    "opened_ms": 4210500200900,
+    "closed_ms": 4210500201088,
+    "blocked": false
+  },
+  {
+    "flow_id": "fl-021",
+    "src_addr": "10.2.3.148",
+    "trust_tier": "core",
+    "subnet": "foxtrot",
+    "port": "foxtrot-p2",
+    "opened_ms": 4210500201800,
+    "closed_ms": 4210500201952,
+    "blocked": false
+  },
+  {
+    "flow_id": "fl-022",
+    "src_addr": "10.2.4.155",
+    "trust_tier": "user",
+    "subnet": "alpha",
+    "port": "alpha-p3",
+    "opened_ms": 4210500000352,
+    "closed_ms": 4210500000492,
+    "blocked": false
+  },
+  {
+    "flow_id": "fl-023",
+    "src_addr": "10.2.5.162",
+    "trust_tier": "guest",
+    "subnet": "charlie",
+    "port": "charlie-p4",
+    "opened_ms": 4210500080453,
+    "closed_ms": 4210500080611,
+    "blocked": false
+  },
+  {
+    "flow_id": "fl-024",
+    "src_addr": "10.2.6.169",
+    "trust_tier": "core",
+    "subnet": "foxtrot",
+    "port": "foxtrot-p1",
+    "opened_ms": 4210500200240,
+    "closed_ms": 4210500200373,
+    "blocked": false
+  },
+  {
+    "flow_id": "fl-025",
+    "src_addr": "10.2.7.176",
+    "trust_tier": "service",
+    "subnet": "echo",
+    "port": "echo-p2",
+    "opened_ms": 4210500162125,
+    "closed_ms": 4210500162274,
+    "blocked": false
+  },
+  {
+    "flow_id": "fl-026",
+    "src_addr": "10.2.8.183",
+    "trust_tier": "service",
+    "subnet": "delta",
+    "port": "delta-p3",
+    "opened_ms": 4210500122400,
+    "closed_ms": 4210500122640,
+    "blocked": true
+  },
+  {
+    "flow_id": "fl-027",
+    "src_addr": "10.2.9.190",
+    "trust_tier": "user",
+    "subnet": "charlie",
+    "port": "charlie-p4",
+    "opened_ms": 4210500084300,
+    "closed_ms": 4210500084510,
+    "blocked": "yes"
+  },
+  {
+    "flow_id": "fl-028",
+    "src_addr": "10.2.10.197",
+    "trust_tier": "Service ",
+    "subnet": "alpha",
+    "port": "alpha-p1",
+    "opened_ms": 4210500004200,
+    "closed_ms": 4210500004518,
+    "blocked": false
+  },
+  {
+    "flow_id": "fl-029",
+    "src_addr": "10.2.11.204",
+    "trust_tier": "sandbox",
+    "subnet": "bravo",
+    "port": "bravo-p2",
+    "opened_ms": 4210500042600,
+    "closed_ms": 4210500042941,
+    "blocked": false
+  },
+  {
+    "flow_id": "fl-001",
+    "src_addr": "10.2.2.8",
+    "trust_tier": "guest",
+    "subnet": "alpha",
+    "port": "alpha-p2",
+    "opened_ms": 4210500000000,
+    "closed_ms": 4210500000268,
+    "blocked": false
+  },
+  {
+    "flow_id": "fl-014",
+    "src_addr": "10.2.15.99",
+    "trust_tier": "user",
+    "subnet": "delta",
+    "port": "delta-p3",
+    "opened_ms": 4210500121600,
+    "closed_ms": 4210500121803,
+    "blocked": false
+  },
+  {
+    "flow_id": "fl-020",
+    "src_addr": "10.2.2.141",
+    "trust_tier": "guest",
+    "subnet": "foxtrot",
+    "port": "foxtrot-p1",
+    "opened_ms": 4210500200900,
+    "closed_ms": 4210500201088,
+    "blocked": false
+  },
+  {
+    "flow_id": "fl-009",
+    "src_addr": "10.2.10.64",
+    "trust_tier": "user",
+    "subnet": "charlie",
+    "port": "charlie-p2",
+    "opened_ms": 4210500081000,
+    "closed_ms": 4210500081287,
+    "blocked": false
+  }
+]

@@ -1,0 +1,225 @@
+{
+  "title": "Tideguard Badge-Access Containment Rollup \u2014 Output Contract",
+  "version": "3.0",
+  "semantics_source": "This document fixes FORMAT only: file names, key sets, value vocabulary and checksum serialization. Every rule that decides a VALUE \u2014 normalization, deduplication, session stitching, control-window scope and precedence, the occupancy ledger, admission, priority and ordering \u2014 is settled in /app/incident/flow_review_dossier.md. Where the dossier revisits a point, the latest dated decision governs.",
+  "cli": {
+    "path": "/app/flow_audit.py",
+    "diagnose": "python3 /app/flow_audit.py diagnose --dossier PATH --report PATH",
+    "repair": "python3 /app/flow_audit.py repair --output-dir PATH",
+    "diagnose_is_stateless": "Every explicit diagnose call writes a full report regardless of workflow state or of any earlier repair."
+  },
+  "known_defects": [
+    {
+      "defect_id": "admission_filter",
+      "stage": "containment_admission",
+      "dossier_terms": [
+        "TQ-3332",
+        "admission floor"
+      ],
+      "pipeline_terms": [
+        "if event.get(\"trust_tier\") == \"core\""
+      ],
+      "repair_action": "admit sessions by the per-class admission floor of TQ-3332 instead of a trust_tier equality test"
+    },
+    {
+      "defect_id": "wrong_entry_field",
+      "stage": "canonicalization",
+      "dossier_terms": [
+        "TQ-3314",
+        "opened_ms"
+      ],
+      "pipeline_terms": [
+        "event[\"granted_at\"]"
+      ],
+      "repair_action": "read the entry timestamp from opened_ms as TQ-3314 requires, not from granted_at"
+    },
+    {
+      "defect_id": "queue_ordering",
+      "stage": "queue_ordering",
+      "dossier_terms": [
+        "TQ-3334",
+        "ordered strictly"
+      ],
+      "pipeline_terms": [
+        "quarantined.sort(key=lambda row: row[\"entered_ms\"])"
+      ],
+      "repair_action": "order the containment queue by the TQ-3334 chain, not ascending entry time"
+    },
+    {
+      "defect_id": "tier_normalization",
+      "stage": "canonicalization",
+      "dossier_terms": [
+        "TQ-3316",
+        "falls back"
+      ],
+      "pipeline_terms": [
+        "trust_tier = str(event.get(\"trust_tier\", \"\"))"
+      ],
+      "repair_action": "normalize trust_tier per TQ-3316 and fall back to visitor for any unrecognized value"
+    },
+    {
+      "defect_id": "dedupe_flow",
+      "stage": "deduplication",
+      "dossier_terms": [
+        "TQ-3318",
+        "duplicate"
+      ],
+      "pipeline_terms": [
+        "unique_flow_ids"
+      ],
+      "repair_action": "collapse repeated flow_id rows per TQ-3318 before any aggregate is computed"
+    },
+    {
+      "defect_id": "blocked_filter",
+      "stage": "session_construction",
+      "dossier_terms": [
+        "TQ-3322",
+        "blocked"
+      ],
+      "pipeline_terms": [
+        "\"blocked_excluded_count\": 0"
+      ],
+      "repair_action": "exclude blocked flows from session construction per TQ-3322 while still counting them in tier_counts"
+    }
+  ],
+  "diagnosis_report": {
+    "output_name": "diagnosis.json",
+    "schema_version": "tideguard-diagnosis-v2",
+    "required_keys": [
+      "schema_version",
+      "input_stats",
+      "defect_count",
+      "defects",
+      "diagnosis_checksum"
+    ],
+    "input_stats_keys": [
+      "raw_flow_count",
+      "unique_flow_ids",
+      "duplicate_flow_ids",
+      "blocked_row_count"
+    ],
+    "defect_keys": [
+      "defect_id",
+      "stage",
+      "dossier_quote",
+      "pipeline_evidence",
+      "repair_action"
+    ],
+    "ordering": "defects sorted by defect_id ascending",
+    "evidence_contract": "dossier_quote is a line from the dossier copied VERBATIM, character for character, with surrounding whitespace stripped and nothing else altered; pipeline_evidence is likewise a verbatim stripped line from the FROZEN snapshot at /app/workflow/.export_report.original.",
+    "diagnosis_checksum": "sha256 over one line per defect in defect_id order, 'defect_id|stage|repair_action', joined by newline",
+    "input_stats_types": {
+      "raw_flow_count": "integer",
+      "unique_flow_ids": "integer",
+      "duplicate_flow_ids": "integer count of raw rows whose id repeats, NOT a list of ids",
+      "blocked_row_count": "integer"
+    }
+  },
+  "repair_audit": {
+    "output_name": "repair_audit.json",
+    "schema_version": "tideguard-repair-v2",
+    "required_keys": [
+      "schema_version",
+      "pre_repair_sha256",
+      "pre_repair_byte_count",
+      "post_repair_sha256",
+      "post_repair_byte_count",
+      "defects_repaired",
+      "forbidden_tokens_removed",
+      "artifacts"
+    ],
+    "pre_repair_source": "the FROZEN bytes at /app/workflow/.export_report.original, never the live workflow, so the value is identical whether or not a repair already ran",
+    "artifacts_field": "a JSON array of the output file BASENAMES written to the output directory, sorted ascending, and INCLUDING repair_audit.json itself even though it is written last"
+  },
+  "workflow_repair": {
+    "path": "/app/workflow/export_report.py",
+    "frozen_snapshot": "/app/workflow/.export_report.original",
+    "forbidden_tokens": [
+      "event[\"granted_at\"]",
+      "if event.get(\"trust_tier\") == \"core\"",
+      "quarantined.sort(key=lambda row: row[\"entered_ms\"])",
+      "\"blocked_excluded_count\": 0"
+    ],
+    "generalization_contract": "Graded on behaviour, not source text. The repaired workflow must derive every value from the inputs and the governing decisions, accept an alternate flow stream via --input, and produce identical output on reruns. No particular identifiers or code structure are required."
+  },
+  "outputs": {
+    "summary_json": {
+      "output_name": "summary.json",
+      "required_keys": [
+        "schema_version",
+        "raw_flow_count",
+        "unique_flow_ids",
+        "canonical_flow_count",
+        "tier_counts",
+        "subnets",
+        "subnet_count",
+        "blocked_excluded_count",
+        "session_count",
+        "total_hold_ms",
+        "total_adjusted_hold_ms",
+        "total_ledger_hold_ms",
+        "total_isolation_overlap_ms",
+        "total_inspection_overlap_ms",
+        "max_ledger_hold_ms",
+        "max_carry_out_ms",
+        "longest_session_ms",
+        "quarantined_count",
+        "priority_counts",
+        "canonical_flow_checksum",
+        "flow_policy_checksum",
+        "quarantine_checksum"
+      ],
+      "tier_counts": "always enumerates core, service, staff, visitor in that order, emitting 0 for a class with no canonical rows; counts EVERY canonical row including blocked ones",
+      "priority_counts": "always enumerates critical, high, standard in that order, emitting 0 for an empty tier",
+      "subnets": "JSON array of subnet names sorted ascending",
+      "schema_version_value": "flow-quarantine-v2"
+    },
+    "subnet_matrix_json": {
+      "output_name": "subnet_matrix.json",
+      "shape": "JSON object keyed by subnet name; each value carries exactly the keys below",
+      "required_keys": [
+        "session_count",
+        "total_hold_ms",
+        "total_ledger_hold_ms",
+        "max_carry_out_ms",
+        "queued_count"
+      ]
+    },
+    "quarantined_jsonl": {
+      "output_name": "quarantined.jsonl",
+      "shape": "one compact JSON object per line, separators (',',':'), in the dossier's queue order",
+      "required_keys": [
+        "case_id",
+        "subnet",
+        "start_ms",
+        "end_ms",
+        "top_tier",
+        "priority",
+        "hold_ms",
+        "adjusted_hold_ms",
+        "ledger_hold_ms",
+        "isolation_overlap_ms",
+        "inspection_overlap_ms",
+        "carry_in_ms",
+        "carry_out_ms",
+        "flow_count",
+        "flow_ids",
+        "hold_digest"
+      ],
+      "case_id_format": "{subnet}:{start_ms}-{end_ms}",
+      "flow_ids": "JSON array of flow-id strings sorted ascending",
+      "top_tier": "exactly one of the lowercase strings core, service, staff, visitor",
+      "priority": "exactly one of the lowercase strings critical, high, standard"
+    }
+  },
+  "digest_payloads": {
+    "hold_digest": "first 12 lowercase hex chars of sha256('subnet|start_ms|end_ms|comma_joined_sorted_flow_ids|top_tier|ledger_hold_ms')",
+    "canonical_flow_checksum": "sha256 over one line per canonical row in emitted order, 'flow_id|src_addr|trust_tier|subnet|opened_ms|closed_ms|blocked_as_1_or_0'. Emitted order is the canonical rows sorted by (subnet, opened_ms, flow_id) ascending.",
+    "flow_policy_checksum": "sha256 over one line per control window, 'layer|scope|subnet|start_ms|end_ms', ordered by layer, then scope, then subnet, then start_ms",
+    "quarantine_checksum": "sha256 over one line per queue row in queue order, 'case_id|priority|ledger_hold_ms|hold_digest'"
+  },
+  "guardrails": {
+    "frozen_snapshot": "never modify /app/workflow/.export_report.original",
+    "verifier_trees": "never read or import external grading resources"
+  }
+}

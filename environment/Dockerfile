@@ -8,6 +8,7 @@ RUN apt-get update \
         asciinema \
     && rm -rf /var/lib/apt/lists/*
 
+# Fully resolved verifier lock; --no-deps keeps installation deterministic.
 COPY requirements.lock /tmp/requirements.lock
 RUN python3 -m pip install --no-cache-dir --no-deps \
         -r /tmp/requirements.lock
@@ -15,17 +16,5 @@ RUN python3 -m pip install --no-cache-dir --no-deps \
 WORKDIR /app
 
 COPY app/ /app/
-
-# Compromised host state left behind by the Sentinel-1 intrusion (the task
-# requires the responder to contain it; values are synthetic, not real
-# credentials): a rogue operator key in root's authorized_keys, a passwordless
-# sudoers escalation, and a world-readable quarantine-service credential.
-RUN mkdir -p /root/.ssh && chmod 700 /root/.ssh \
-    && printf 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJx4jTq0d6nUcy0dGkzsBv1qkNPjc3hAcVcbWlkfZ2Qq sentinel-remediation-operator\n' >> /root/.ssh/authorized_keys \
-    && chmod 600 /root/.ssh/authorized_keys \
-    && mkdir -p /etc/sudoers.d \
-    && printf 'svc-quarantine ALL=(ALL) NOPASSWD:ALL\n' > /etc/sudoers.d/sentinel-quarantine \
-    && chmod 0440 /etc/sudoers.d/sentinel-quarantine \
-    && mkdir -p /app/secrets \
-    && printf 'quarantine-synthetic-4f3e2d1c0b9a-DO-NOT-USE\n' > /app/secrets/quarantine.cred \
-    && chmod 0644 /app/secrets/quarantine.cred
+RUN cp /app/workflow/export_report.py /app/workflow/.export_report.original \
+    && chmod a-w /app/workflow/.export_report.original

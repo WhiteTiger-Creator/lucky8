@@ -1,797 +1,387 @@
-"""Verifier for the Sentinel-1 remediation-planning task.
-
-The agent's /app/remediate.py is run against the shipped bundle set and against a
-held-out alternate set. Outputs are checked against exact fixtures and against
-structural invariants (canonical checksum, the asset-disjoint packing objective,
-and the fact that neither the total-severity sum nor a greedy selection is the
-answer).
-"""
+"""Verifier tests for the Tideguard flow-access containment audit task."""
 
 from __future__ import annotations
 
 import hashlib
 import json
-import os
 import subprocess
 import sys
 from pathlib import Path
 
 import pytest
 
-APP = Path("/app/remediate.py")
-DATA = Path("/app/data/remediation.json")
-TEST_DIR = Path(os.environ.get("TEST_DIR", "/tests"))
-FIX = TEST_DIR / "fixtures"
-EXPECTED = json.loads((FIX / "expected_plan.json").read_text())
+AUDIT = Path("/app/flow_audit.py")
+WORKFLOW = Path("/app/workflow/export_report.py")
+FROZEN = Path("/app/workflow/.export_report.original")
+DOSSIER = Path("/app/incident/flow_review_dossier.md")
+SPEC_PATH = Path("/app/docs/report_spec.json")
+EVENTS = Path("/app/data/flow_events.json")
+CONTROLS = Path("/app/data/flow_policies.json")
+FIX = Path("/tests/fixtures")
+ALT_EVENTS = FIX / "alt_flow_events.json"
+
+SPEC = json.loads(SPEC_PATH.read_text())
+EXPECTED = json.loads((FIX / "expected_outputs.json").read_text())
+
+CLASS_ORDER = ["core", "service", "user", "guest"]
+PRIORITY_ORDER = ["critical", "elevated", "routine"]
+CLASS_RANK = {n: len(CLASS_ORDER) - i for i, n in enumerate(CLASS_ORDER)}
 
 
-def _run(tmp: Path, input_path: Path = DATA) -> dict:
-    out = tmp / "out"
-    subprocess.run(
-        [sys.executable, str(APP), "--input", str(input_path), "--output-dir", str(out)],
-        check=True, capture_output=True, text=True,
-    )
-    return json.loads((out / "plan.json").read_text())
-
-
-def _canonical(bundle_rows):
-    by_id = {}
-    for row in bundle_rows:
-        bid = str(row["id"])
-        sev = int(row["severity"])
-        assets = sorted({int(a) for a in row["assets"]})
-        if sev < 1 or sev > 9 or not assets:
-            continue
-        # SR-2243: for a repeated id the LOWER severity is kept.
-        if bid not in by_id or sev < by_id[bid]["severity"]:
-            by_id[bid] = {"id": bid, "severity": sev, "assets": assets}
-    return [by_id[bid] for bid in sorted(by_id)]
-
-
-def _sum_all(bundle_rows):
-    return sum(b["severity"] for b in _canonical(bundle_rows))
-
-
-def _greedy(bundle_rows):
-    used, total = set(), 0
-    for b in sorted(_canonical(bundle_rows), key=lambda b: -b["severity"]):
-        assets = set(b["assets"])
-        if not (assets & used):
-            used |= assets
-            total += b["severity"]
-    return total
-
-
-@pytest.fixture(scope="module")
-def result(tmp_path_factory) -> dict:
-    """Run the agent's planner once on the shipped bundle set."""
-    assert APP.exists(), "remediate.py is missing"
-    return _run(tmp_path_factory.mktemp("primary"))
-
-
-def test_result_has_required_keys(result):
-    """plan.json carries exactly the contracted key set."""
-    assert set(result) == {"asset_count", "bundle_count", "total_proposed_severity",
-                           "max_single_bundle_severity", "max_contained_severity",
-                           "contained_bundle_ids", "contained_bundle_count",
-                           "contained_asset_count", "uncontained_severity",
-                           "residual_contained_severity", "proposed_tier_counts",
-                           "contained_tier_counts", "total_asset_pressure",
-                           "max_asset_pressure", "containment_score",
-                           "coverage_permille", "residual_pressure",
-                           "critical_response_ids", "critical_response_count",
-                           "max_urgency", "urgency_ledger_checksum", "asset_exposure_checksum",
-                           "total_exposure_overlap", "policy_checksum", "total_blackout_overlap", "total_maintenance_overlap",
-                           "containment_window_checksum", "response_wave_ids",
-                           "response_wave_count", "total_response_load",
-                           "max_response_load", "response_tier_counts",
-                           "response_order", "response_wave_checksum",
-                           "bundle_checksum", "plan_checksum"}
-
-
-def test_matches_fixture(result):
-    """The full plan matches the reference fixture exactly."""
-    assert result == EXPECTED
-
-
-def test_generalizes_to_alternate_input(tmp_path):
-    """The planner reproduces the reference output for a held-out bundle set."""
-    alt_expected = json.loads((FIX / "alt_expected.json").read_text())
-    got = _run(tmp_path, input_path=FIX / "alt_remediation.json")
-    assert got == alt_expected
-
-
-def test_bundle_checksum_consistent(result):
-    """bundle_checksum is the SHA-256 of the canonical-bundle serialization."""
-    data = json.loads(DATA.read_text())
-    bundles = _canonical(data["bundles"])
-    payload = "\n".join(
-        f"{b['id']}|{b['severity']}|{','.join(str(a) for a in b['assets'])}" for b in bundles
-    )
-    assert result["bundle_checksum"] == hashlib.sha256(payload.encode()).hexdigest()
-
-
-def test_plan_checksum_consistent(result):
-    """plan_checksum is the SHA-256 of the contracted plan payload."""
-    pc = result["proposed_tier_counts"]
-    cc = result["contained_tier_counts"]
-    sc = result["response_tier_counts"]
-    payload = (
-        f"{result['asset_count']}|{result['total_proposed_severity']}|"
-        f"{result['max_single_bundle_severity']}|{result['max_contained_severity']}|"
-        f"{result['contained_asset_count']}|{result['residual_contained_severity']}|"
-        f"{result['total_asset_pressure']}|{result['max_asset_pressure']}|"
-        f"{result['containment_score']}|{result['coverage_permille']}|"
-        f"{result['residual_pressure']}|"
-        f"{pc['critical']},{pc['major']},{pc['minor']}|"
-        f"{cc['critical']},{cc['major']},{cc['minor']}|"
-        f"{result['critical_response_count']}|{result['max_urgency']}|"
-        f"{','.join(result['critical_response_ids'])}|"
-        f"{result['total_exposure_overlap']}|{result['response_wave_count']}|"
-        f"{result['total_response_load']}|{result['max_response_load']}|"
-        f"{sc['immediate']},{sc['urgent']},{sc['routine']}|"
-        f"{','.join(result['response_order'])}|"
-        f"{','.join(result['contained_bundle_ids'])}"
-    )
-    assert result["plan_checksum"] == hashlib.sha256(payload.encode()).hexdigest()
-
-
-def test_response_urgency_ledger_consistent(result):
-    """The response-urgency ledger reproduces the log-governed carry/threshold rule."""
-    data = json.loads(DATA.read_text())
-    bundles = _canonical(data["bundles"])
-    prev_out, prev = 0, set()
-    crit, max_u, rows = [], 0, []
-    for b in bundles:
-        assets = set(b["assets"])
-        shared = len(assets & prev)
-        carry_in = max(prev_out - (shared * 7) // 3, 0)
-        pressure = b["severity"] * len(assets)
-        urgency = pressure + (-(-carry_in // 5))
-        pol = _pol(b["severity"])
-        carry_out = min(carry_in + pressure - (len(assets) // 2), pol["carry_cap"])
-        if urgency >= pol["urgency_threshold"]:
-            crit.append(b["id"])
-        max_u = max(max_u, urgency)
-        rows.append(f"{b['id']}|{urgency}|{1 if urgency >= pol['urgency_threshold'] else 0}|{carry_out}")
-        prev_out, prev = carry_out, assets
-    assert result["critical_response_ids"] == sorted(crit)
-    assert result["critical_response_count"] == len(crit)
-    assert result["max_urgency"] == max_u
-    assert result["urgency_ledger_checksum"] == hashlib.sha256("\n".join(rows).encode()).hexdigest()
-
-
-def test_scoring_layer_consistent(result):
-    """Tier counts and pressure aggregates follow the log-governed formulas."""
-    data = json.loads(DATA.read_text())
-    bundles = _canonical(data["bundles"])
-    contained = set(result["contained_bundle_ids"])
-    def tier(s):
-        return "critical" if s >= 7 else "major" if s >= 4 else "minor"
-    exp_prop = {"critical": 0, "major": 0, "minor": 0}
-    exp_cont = {"critical": 0, "major": 0, "minor": 0}
-    pressures, score, residual = [], 0, 0
-    for b in bundles:
-        exp_prop[tier(b["severity"])] += 1
-        p = b["severity"] * len(b["assets"])
-        pressures.append(p)
-        if b["id"] in contained:
-            exp_cont[tier(b["severity"])] += 1
-            score += (b["severity"] * 5 + len(b["assets"]) * 2) // 3
-        else:
-            residual += p
-    assert result["proposed_tier_counts"] == exp_prop
-    assert result["contained_tier_counts"] == exp_cont
-    assert result["total_asset_pressure"] == sum(pressures)
-    assert result["max_asset_pressure"] == (max(pressures) if pressures else 0)
-    assert result["containment_score"] == score
-    assert result["residual_pressure"] == residual
-    ac = result["asset_count"]
-    assert result["coverage_permille"] == (result["contained_asset_count"] * 1000 // ac if ac else 0)
-
-
-def test_contained_set_is_valid_optimal_and_disjoint(result):
-    """contained_bundle_ids is a pairwise asset-disjoint set summing to the objective."""
-    data = json.loads(DATA.read_text())
-    by_id = {b["id"]: b for b in _canonical(data["bundles"])}
-    chosen = result["contained_bundle_ids"]
-    assert chosen == sorted(chosen), "contained_bundle_ids must be ascending"
-    assert result["contained_bundle_count"] == len(chosen)
-    used, total, assets_all = set(), 0, set()
-    for bid in chosen:
-        assets = set(by_id[bid]["assets"])
-        assert not (assets & used), "contained set is not asset-disjoint"
-        used |= assets
-        total += by_id[bid]["severity"]
-        assets_all |= assets
-    assert total == result["max_contained_severity"], "contained set severity != objective"
-    assert result["contained_asset_count"] == len(assets_all)
-    assert result["uncontained_severity"] == result["total_proposed_severity"] - result["max_contained_severity"]
-
-
-def test_residual_is_below_contained(result):
-    """The residual packing (over unselected bundles) is a valid, smaller packing."""
-    assert 0 <= result["residual_contained_severity"] <= result["max_contained_severity"]
-
-
-def test_canonicalization_drops_invalid(result):
-    """bundle_count reflects canonicalization (invalid/empty/dup bundles removed)."""
-    data = json.loads(DATA.read_text())
-    assert result["bundle_count"] == len(_canonical(data["bundles"]))
-    assert result["bundle_count"] < len(data["bundles"])
-
-
-def test_contained_is_packing_not_total_sum(result):
-    """max_contained_severity is the packing, strictly below the total-severity sum here."""
-    data = json.loads(DATA.read_text())
-    assert result["max_contained_severity"] <= _sum_all(data["bundles"])
-    assert result["max_contained_severity"] != result["total_proposed_severity"], \
-        "max_contained_severity equals the total sum (wrong objective)"
-
-
-def test_contained_beats_greedy(result):
-    """The exact packing is at least, and here strictly above, a greedy selection."""
-    data = json.loads(DATA.read_text())
-    greedy = _greedy(data["bundles"])
-    assert result["max_contained_severity"] >= greedy
-    assert result["max_contained_severity"] != greedy, \
-        "max_contained_severity equals the greedy selection (not the exact optimum)"
-
-
-def test_source_does_not_reference_verifier_trees():
-    """The planner source does not read or import verifier artifacts."""
-    src = APP.read_text()
-    for token in ("/tests", "/solution", "expected_plan.json", "alt_expected.json"):
-        assert token not in src
-
-
-RESPONSE_TIERS = ("immediate", "urgent", "routine")
-CLASS_RANK = {n: len(RESPONSE_TIERS) - i for i, n in enumerate(RESPONSE_TIERS)}
-
-
-def _response_wave_layer(bundles: list[dict], contained_ids: list[str]) -> list[dict]:
-    """Recompute the response-wave layer per SR-2231/2233/2235, independently."""
-    contained = set(contained_ids)
-    uncontained = [b for b in bundles if b["id"] not in contained]
-    rows = []
-    for b in bundles:
-        if b["id"] not in contained:
-            continue
-        assets = set(b["assets"])
-        # SR-2241: shared assets are attributed to one owner only.
-        exposure_overlap = 0
-        for o in uncontained:
-            shared = assets & set(o["assets"])
-            if not shared:
-                continue
-            claimants = [c for c in bundles
-                         if c["id"] in contained and set(o["assets"]) & set(c["assets"])]
-            owner = sorted(claimants, key=lambda c: (-c["severity"], c["id"]))[0]
-            if owner["id"] == b["id"]:
-                exposure_overlap += len(shared)
-        exposing_bundle_count = sum(1 for o in uncontained if assets & set(o["assets"]))
-        response_load = max(
-            b["severity"] * 3 + (-(-exposure_overlap // 2)) - (len(assets) // 2), 0
-        )
-        rows.append({"id": b["id"], "severity": b["severity"], "assets": sorted(assets),
-                     "exposure_overlap": exposure_overlap,
-                     "exposing_bundle_count": exposing_bundle_count, "response_load": response_load})
-    windows = json.loads(CONTAINMENT_WINDOWS_PATH.read_text(encoding="utf-8"))
-    for r in rows:
-        band = _band(r["severity"])
-        bl = _charges(set(r["assets"]), _spans(windows, "blackout", band))
-        mt = _charges(set(r["assets"]), _spans(windows, "maintenance", band))
-        blackout = sum(bl.values())
-        maintenance = sum(c for a, c in mt.items() if a not in bl)   # SR-2252
-        r["response_load"] = max(
-            r["response_load"] - (-(-blackout // 2)) - (maintenance // 3), 0
-        )
-    admitted = [r for r in rows if r["response_load"] >= _pol(r["severity"])["wave_floor"]]
-    for r in admitted:
-        rp = _pol(r["severity"])
-        if r["response_load"] >= rp["immediate_min"]:
-            r["response_tier"] = "immediate"
-        elif r["response_load"] >= rp["urgent_min"] or r["exposure_overlap"] >= rp["urgent_overlap_min"]:
-            r["response_tier"] = "urgent"
-        else:
-            r["response_tier"] = "routine"
-    ordered = sorted(admitted, key=lambda r: (-CLASS_RANK[r["response_tier"]], -r["response_load"],
-                                              -r["severity"], -r["exposing_bundle_count"], r["id"]))
-    # SR-2245: capacity cap applied AFTER the ordering chain, two per tier.
-    kept = {}
-    capped = []
-    for r in ordered:
-        taken = kept.get(r["response_tier"], 0)
-        if taken < 2:
-            capped.append(r)
-            kept[r["response_tier"]] = taken + 1
-    return capped
-
-
-def test_response_wave_layer_matches_independent_computation(result):
-    """The response-wave layer reproduces the log-governed response_load, admission and ordering."""
-    bundles = _canonical(json.loads(DATA.read_text())["bundles"])
-    ordered = _response_wave_layer(bundles, result["contained_bundle_ids"])
-    assert result["response_order"] == [r["id"] for r in ordered]
-    assert result["response_wave_ids"] == sorted(r["id"] for r in ordered)
-    assert result["response_wave_count"] == len(ordered)
-    assert result["total_response_load"] == sum(r["response_load"] for r in ordered)
-    assert result["max_response_load"] == max((r["response_load"] for r in ordered), default=0)
-    expected_counts = {n: 0 for n in RESPONSE_TIERS}
-    for r in ordered:
-        expected_counts[r["response_tier"]] += 1
-    assert list(result["response_tier_counts"]) == list(RESPONSE_TIERS)
-    assert result["response_tier_counts"] == expected_counts
-
-
-def test_response_wave_checksum_and_conflict_load_consistent(result):
-    """response_wave_checksum hashes the ordered response-wave rows; exposure overlap covers the contained set."""
-    bundles = _canonical(json.loads(DATA.read_text())["bundles"])
-    ordered = _response_wave_layer(bundles, result["contained_bundle_ids"])
-    payload = "\n".join(
-        f"{r['id']}|{r['response_tier']}|{r['response_load']}|{r['exposure_overlap']}"
-        for r in ordered
-    )
-    assert result["response_wave_checksum"] == hashlib.sha256(payload.encode("utf-8")).hexdigest()
-    bundles_all = _canonical(json.loads(DATA.read_text())["bundles"])
-    contained_set = set(result["contained_bundle_ids"])
-    unc = [x for x in bundles_all if x["id"] not in contained_set]
-    expected_exposure = 0
-    for o in unc:
-        claimants = [c for c in bundles_all
-                     if c["id"] in contained_set and set(o["assets"]) & set(c["assets"])]
-        if not claimants:
-            continue
-        owner = sorted(claimants, key=lambda c: (-c["severity"], c["id"]))[0]
-        expected_exposure += len(set(owner["assets"]) & set(o["assets"]))
-    assert result["total_exposure_overlap"] == expected_exposure
-
-
-def test_response_load_exposure_half_is_ceilinged(result):
-    """The conflict half of response_load rounds UP; a floored halving admits a different set."""
-    bundles = _canonical(json.loads(DATA.read_text())["bundles"])
-    contained = set(result["contained_bundle_ids"])
-    uncontained = [b for b in bundles if b["id"] not in contained]
-    floored = []
-    for b in bundles:
-        if b["id"] not in contained:
-            continue
-        assets = set(b["assets"])
-        ca = sum(len(assets & set(o["assets"])) for o in uncontained)
-        if max(b["severity"] * 3 + (ca // 2) - (len(assets) // 2), 0) >= _pol(b["severity"])["wave_floor"]:
-            floored.append(b["id"])
-    assert sorted(floored) != result["response_wave_ids"]
-
-
-LEDGER_FIELDS = ("bundle_id","severity","severity_tier","n_assets","asset_pressure","contained",
-                 "urgency","urgency_carry_out","critical_response","exposure_overlap",
-                 "exposing_bundle_count","response_load","in_response_wave","response_tier")
-
-
-def _run_ledger(tmp: Path, input_path: Path = DATA) -> list[dict]:
-    out = tmp / "out"
-    subprocess.run([sys.executable, str(APP), "--input", str(input_path), "--output-dir", str(out)],
-                   check=True, capture_output=True, text=True)
-    path = out / "remediation_ledger.jsonl"
-    assert path.exists(), "remediation_ledger.jsonl was not written"
+def _jsonl(path: Path):
     return [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
 
 
-def test_ledger_matches_fixture(tmp_path):
-    """remediation_ledger.jsonl matches the reference fixture row for row."""
-    expected = [json.loads(line) for line in (FIX / "expected_ledger.jsonl").read_text().splitlines() if line.strip()]
-    assert _run_ledger(tmp_path) == expected
+def _repair(tmp: Path, input_path: Path | None = None) -> Path:
+    out = tmp / "out"
+    out.mkdir(parents=True, exist_ok=True)
+    cmd = [sys.executable, str(AUDIT), "repair", "--output-dir", str(out)]
+    res = subprocess.run(cmd, capture_output=True, text=True)
+    assert res.returncode == 0, res.stderr
+    if input_path is not None:
+        res = subprocess.run(
+            [sys.executable, str(WORKFLOW), "--input", str(input_path), "--output-dir", str(out)],
+            capture_output=True, text=True)
+        assert res.returncode == 0, res.stderr
+    return out
 
 
-def test_ledger_generalizes_to_alternate_input(tmp_path):
-    """The ledger reproduces the reference rows for a held-out input."""
-    expected = [json.loads(line) for line in (FIX / "alt_expected_ledger.jsonl").read_text().splitlines() if line.strip()]
-    assert _run_ledger(tmp_path, FIX / "alt_remediation.json") == expected
+@pytest.fixture(scope="session")
+def repaired(tmp_path_factory) -> Path:
+    return _repair(tmp_path_factory.mktemp("primary"))
 
 
-def test_ledger_covers_every_canonical_bundle(tmp_path, result):
-    """One row per canonical bundle -- uncontained and non-wave bundles included."""
-    rows = _run_ledger(tmp_path)
-    assert len(rows) == result["bundle_count"]
-    assert sorted(r["bundle_id"] for r in rows) == sorted(
-        b["id"] for b in _canonical(json.loads(DATA.read_text())["bundles"]))
-    assert {r["bundle_id"] for r in rows} >= set(result["contained_bundle_ids"])
+@pytest.fixture(scope="session", autouse=True)
+def _hide_expected_fixture():
+    """Keep the expected-output fixture off disk while candidate code runs."""
+    stash = FIX / "expected_outputs.json.hidden"
+    moved = False
+    try:
+        if (FIX / "expected_outputs.json").exists():
+            (FIX / "expected_outputs.json").rename(stash)
+            moved = True
+    except OSError:
+        moved = False
+    try:
+        yield
+    finally:
+        if moved:
+            stash.rename(FIX / "expected_outputs.json")
 
 
-def test_ledger_row_shape_and_flag_types(tmp_path):
-    """Every row carries the fourteen contracted keys, with integer 0/1 flags."""
-    for row in _run_ledger(tmp_path):
-        assert tuple(row) == LEDGER_FIELDS
-        for flag in ("contained", "critical_response", "in_response_wave"):
-            assert row[flag] in (0, 1) and isinstance(row[flag], int) and not isinstance(row[flag], bool)
-        assert row["response_tier"] in ("immediate", "urgent", "routine", "none")
-        if row["in_response_wave"] == 0 and row["contained"] == 0:
-            assert row["exposure_overlap"] == 0
-            assert row["exposing_bundle_count"] == 0
-            assert row["response_load"] == 0
+# ----------------------------------------------------------------- CLI ------
+def test_cli_exists():
+    assert AUDIT.exists(), "the audit CLI was not created at /app/flow_audit.py"
 
 
-def test_ledger_row_order_follows_sr_2237(tmp_path):
-    """Rows follow the log's ordering chain, not bundle-id order."""
-    rows = _run_ledger(tmp_path)
-    keyed = [(-r["contained"], -r["response_load"], -r["urgency"], -r["severity"], r["bundle_id"])
-             for r in rows]
-    assert keyed == sorted(keyed)
-    assert [r["bundle_id"] for r in rows] != sorted(r["bundle_id"] for r in rows)
+def test_repair_writes_all_five_artifacts(repaired):
+    names = sorted(p.name for p in repaired.iterdir() if p.is_file())
+    assert names == sorted(["quarantined.jsonl", "diagnosis.json", "repair_audit.json",
+                            "summary.json", "subnet_matrix.json"])
 
 
-def test_ledger_jsonl_is_compact(tmp_path):
-    """Ledger rows use compact separators, one row per line."""
-    out = tmp_path / "c"
-    subprocess.run([sys.executable, str(APP), "--input", str(DATA), "--output-dir", str(out)],
-                   check=True, capture_output=True, text=True)
-    for line in (out / "remediation_ledger.jsonl").read_text().splitlines():
+def test_diagnose_is_stateless(tmp_path):
+    """An explicit diagnose call writes a full report with no prior repair."""
+    report = tmp_path / "d.json"
+    res = subprocess.run(
+        [sys.executable, str(AUDIT), "diagnose", "--dossier", str(DOSSIER), "--report", str(report)],
+        capture_output=True, text=True)
+    assert res.returncode == 0, res.stderr
+    body = json.loads(report.read_text())
+    assert body["defect_count"] == len(SPEC["known_defects"])
+    assert [d["defect_id"] for d in body["defects"]] == sorted(
+        d["defect_id"] for d in SPEC["known_defects"])
+
+
+def test_diagnose_after_repair_still_reports_every_defect(repaired, tmp_path):
+    report = tmp_path / "again.json"
+    subprocess.run(
+        [sys.executable, str(AUDIT), "diagnose", "--dossier", str(DOSSIER), "--report", str(report)],
+        capture_output=True, text=True, check=True)
+    body = json.loads(report.read_text())
+    assert body["defect_count"] == len(SPEC["known_defects"])
+
+
+# ------------------------------------------------------------ diagnosis -----
+def test_diagnosis_schema(repaired):
+    body = json.loads((repaired / "diagnosis.json").read_text())
+    assert set(body) == set(SPEC["diagnosis_report"]["required_keys"])
+    assert body["schema_version"] == SPEC["diagnosis_report"]["schema_version"]
+    assert set(body["input_stats"]) == set(SPEC["diagnosis_report"]["input_stats_keys"])
+    for defect in body["defects"]:
+        assert set(defect) == set(SPEC["diagnosis_report"]["defect_keys"])
+
+
+def test_diagnosis_input_stats_match_the_raw_stream(repaired):
+    body = json.loads((repaired / "diagnosis.json").read_text())
+    rows = json.loads(EVENTS.read_text())
+    ids = [str(r.get("flow_id", "")).strip() for r in rows]
+    present = [i for i in ids if i]
+    stats = body["input_stats"]
+    assert stats["raw_flow_count"] == len(rows)
+    assert stats["unique_flow_ids"] == len(set(present))
+    assert stats["duplicate_flow_ids"] == len(present) - len(set(present))
+    assert stats["duplicate_flow_ids"] > 0, "the stream must contain duplicates"
+
+
+def test_dossier_quotes_are_verbatim_dossier_lines(repaired):
+    """Evidence must be copied character for character, not paraphrased."""
+    body = json.loads((repaired / "diagnosis.json").read_text())
+    lines = {line.strip() for line in DOSSIER.read_text().splitlines() if line.strip()}
+    for defect in body["defects"]:
+        assert defect["dossier_quote"] in lines, (
+            f"{defect['defect_id']}: dossier_quote is not a verbatim dossier line")
+
+
+def test_pipeline_evidence_comes_from_the_frozen_snapshot(repaired):
+    body = json.loads((repaired / "diagnosis.json").read_text())
+    lines = {line.strip() for line in FROZEN.read_text().splitlines() if line.strip()}
+    for defect in body["defects"]:
+        assert defect["pipeline_evidence"] in lines, (
+            f"{defect['defect_id']}: pipeline_evidence is not a verbatim frozen-snapshot line")
+
+
+def test_each_defect_cites_the_expected_evidence(repaired):
+    """The quote for a defect must actually contain that defect's search terms."""
+    body = json.loads((repaired / "diagnosis.json").read_text())
+    by_id = {d["defect_id"]: d for d in body["defects"]}
+    for entry in SPEC["known_defects"]:
+        got = by_id[entry["defect_id"]]
+        low = got["dossier_quote"].lower()
+        for term in entry["dossier_terms"]:
+            assert term.lower() in low, f"{entry['defect_id']}: quote misses {term!r}"
+        assert got["stage"] == entry["stage"]
+        assert got["repair_action"] == entry["repair_action"]
+
+
+def test_diagnosis_checksum_consistent(repaired):
+    body = json.loads((repaired / "diagnosis.json").read_text())
+    payload = "\n".join(
+        f"{d['defect_id']}|{d['stage']}|{d['repair_action']}" for d in body["defects"])
+    assert body["diagnosis_checksum"] == hashlib.sha256(payload.encode()).hexdigest()
+
+
+# ----------------------------------------------------------- repair audit ---
+def test_repair_audit_schema(repaired):
+    audit = json.loads((repaired / "repair_audit.json").read_text())
+    assert set(audit) == set(SPEC["repair_audit"]["required_keys"])
+    assert audit["schema_version"] == SPEC["repair_audit"]["schema_version"]
+
+
+def test_pre_repair_hash_is_read_from_the_frozen_snapshot(repaired):
+    audit = json.loads((repaired / "repair_audit.json").read_text())
+    raw = FROZEN.read_bytes()
+    assert audit["pre_repair_sha256"] == hashlib.sha256(raw).hexdigest()
+    assert audit["pre_repair_byte_count"] == len(raw)
+
+
+def test_frozen_snapshot_is_unchanged(repaired):
+    assert FROZEN.read_text() == EXPECTED["frozen_source"]
+
+
+def test_post_repair_hash_matches_the_restored_workflow(repaired):
+    audit = json.loads((repaired / "repair_audit.json").read_text())
+    raw = WORKFLOW.read_bytes()
+    assert audit["post_repair_sha256"] == hashlib.sha256(raw).hexdigest()
+    assert audit["post_repair_byte_count"] == len(raw)
+    assert audit["post_repair_sha256"] != audit["pre_repair_sha256"]
+
+
+def test_forbidden_tokens_are_gone_from_the_restored_workflow(repaired):
+    source = WORKFLOW.read_text()
+    audit = json.loads((repaired / "repair_audit.json").read_text())
+    for token in SPEC["workflow_repair"]["forbidden_tokens"]:
+        assert token not in source, f"defective construct still present: {token}"
+    assert sorted(audit["forbidden_tokens_removed"]) == sorted(
+        SPEC["workflow_repair"]["forbidden_tokens"])
+
+
+def test_audit_lists_every_defect_and_artifact(repaired):
+    audit = json.loads((repaired / "repair_audit.json").read_text())
+    assert sorted(audit["defects_repaired"]) == sorted(
+        d["defect_id"] for d in SPEC["known_defects"])
+    assert set(audit["artifacts"]) >= {
+        "summary.json", "subnet_matrix.json", "quarantined.jsonl",
+        "diagnosis.json", "repair_audit.json"}
+
+
+def test_source_does_not_reference_verifier_trees():
+    source = AUDIT.read_text() + WORKFLOW.read_text()
+    for token in ("/tests", "/solution", "expected_outputs.json"):
+        assert token not in source
+
+
+# --------------------------------------------------------------- outputs ----
+def test_summary_matches_fixture(repaired):
+    assert json.loads((repaired / "summary.json").read_text()) == EXPECTED["primary"]["summary"]
+
+
+def test_subnet_matrix_matches_fixture(repaired):
+    assert json.loads((repaired / "subnet_matrix.json").read_text()) == EXPECTED["primary"]["matrix"]
+
+
+def test_quarantined_queue_matches_fixture(repaired):
+    assert _jsonl(repaired / "quarantined.jsonl") == EXPECTED["primary"]["queue"]
+
+
+def test_summary_schema(repaired):
+    summary = json.loads((repaired / "summary.json").read_text())
+    assert set(summary) == set(SPEC["outputs"]["summary_json"]["required_keys"])
+    assert list(summary["tier_counts"]) == CLASS_ORDER
+    assert list(summary["priority_counts"]) == PRIORITY_ORDER
+    assert summary["subnets"] == sorted(summary["subnets"])
+    for key in ("canonical_flow_checksum", "flow_policy_checksum", "quarantine_checksum"):
+        assert len(summary[key]) == 64
+
+
+def test_subnet_matrix_shape(repaired):
+    matrix = json.loads((repaired / "subnet_matrix.json").read_text())
+    assert isinstance(matrix, dict) and matrix
+    wanted = set(SPEC["outputs"]["subnet_matrix_json"]["required_keys"])
+    for row in matrix.values():
+        assert set(row) == wanted
+
+
+def test_queue_row_shape_and_vocabulary(repaired):
+    rows = _jsonl(repaired / "quarantined.jsonl")
+    wanted = set(SPEC["outputs"]["quarantined_jsonl"]["required_keys"])
+    for row in rows:
+        assert set(row) == wanted
+        assert row["top_tier"] in CLASS_ORDER
+        assert row["priority"] in PRIORITY_ORDER
+        assert row["flow_ids"] == sorted(row["flow_ids"])
+        assert row["case_id"] == f"{row['subnet']}:{row['start_ms']}-{row['end_ms']}"
+
+
+def test_quarantined_jsonl_is_compact(repaired):
+    for line in (repaired / "quarantined.jsonl").read_text().splitlines():
         if line.strip():
             assert ", " not in line and '": ' not in line
 
 
-def test_contained_below_floor_keeps_its_computed_load(tmp_path):
-    """SR-2237: the zero-reporting rule keys off `contained`, not `in_response_wave`.
-
-    A contained bundle that fell below the wave admission floor keeps the response_load
-    that kept it out; only uncontained bundles report zero.
-    """
-    rows = _run_ledger(tmp_path)
-    uncontained = [r for r in rows if r["contained"] == 0]
-    assert uncontained, "fixture must exercise at least one uncontained bundle"
-    for r in uncontained:
-        assert (r["exposure_overlap"], r["exposing_bundle_count"], r["response_load"]) == (0, 0, 0)
-    below = [r for r in rows if r["contained"] == 1 and r["in_response_wave"] == 0]
-    assert below, "fixture must exercise a contained bundle below the wave floor"
-    for r in below:
-        assert r["response_load"] > 0
-        assert r["response_tier"] == "none"
+# ------------------------------------------------------------- behaviour ----
+def test_tier_counts_cover_every_canonical_row_including_blocked(repaired):
+    summary = json.loads((repaired / "summary.json").read_text())
+    assert sum(summary["tier_counts"].values()) == summary["canonical_flow_count"]
+    assert summary["blocked_excluded_count"] > 0, "the stream must contain blocked flows"
 
 
-ASSET_FIELDS = ("asset_id","claiming_bundle_count","claiming_bundle_ids","locked_by",
-                "is_locked","max_claim_severity","total_claim_severity","contention")
+def test_duplicate_flows_are_collapsed_before_aggregates(repaired):
+    summary = json.loads((repaired / "summary.json").read_text())
+    rows = json.loads(EVENTS.read_text())
+    assert summary["raw_flow_count"] == len(rows)
+    assert summary["canonical_flow_count"] < summary["raw_flow_count"]
+    assert summary["canonical_flow_count"] == summary["unique_flow_ids"]
 
 
-def _run_assets(tmp: Path, input_path: Path = DATA) -> list[dict]:
-    out = tmp / "out"
-    subprocess.run([sys.executable, str(APP), "--input", str(input_path), "--output-dir", str(out)],
-                   check=True, capture_output=True, text=True)
-    path = out / "asset_exposure.jsonl"
-    assert path.exists(), "asset_exposure.jsonl was not written"
-    return [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+def test_unknown_trust_tier_falls_back_to_visitor(repaired):
+    """TQ-3316: an unrecognized class becomes visitor, the LOWEST class."""
+    rows = json.loads(EVENTS.read_text())
+    unknown = [r for r in rows
+               if str(r.get("trust_tier", "")).strip().lower() not in CLASS_RANK]
+    assert unknown, "the stream must contain an unrecognized flow class"
+    summary = json.loads((repaired / "summary.json").read_text())
+    assert summary["tier_counts"]["guest"] >= len(unknown)
 
 
-def test_assets_match_fixture(tmp_path):
-    """asset_exposure.jsonl matches the reference fixture row for row."""
-    expected = [json.loads(line) for line in (FIX / "expected_assets.jsonl").read_text().splitlines() if line.strip()]
-    assert _run_assets(tmp_path) == expected
+def test_blocked_flows_open_no_session(repaired):
+    """TQ-3322: blocked rows are excluded from sessions but still counted."""
+    rows = json.loads(EVENTS.read_text())
+    blocked_ids = {
+        str(r["flow_id"]).strip() for r in rows
+        if r.get("blocked") is True
+        or (isinstance(r.get("blocked"), str) and r["blocked"].strip().lower() in {"true", "1", "yes"})
+    }
+    assert blocked_ids
+    for row in _jsonl(repaired / "quarantined.jsonl"):
+        assert not (set(row["flow_ids"]) & blocked_ids)
 
 
-def test_assets_generalize_to_alternate_input(tmp_path):
-    """The asset view reproduces the reference rows for a held-out input."""
-    expected = [json.loads(line) for line in (FIX / "alt_expected_assets.jsonl").read_text().splitlines() if line.strip()]
-    assert _run_assets(tmp_path, FIX / "alt_remediation.json") == expected
+def test_isolation_and_inspection_overlaps_are_reported_unadjusted(repaired):
+    """TQ-3328 changes the subtraction only; both overlaps are reported raw."""
+    summary = json.loads((repaired / "summary.json").read_text())
+    assert summary["total_isolation_overlap_ms"] > 0
+    assert summary["total_inspection_overlap_ms"] > 0
+    assert summary["total_adjusted_hold_ms"] < summary["total_hold_ms"]
 
 
-def test_assets_cover_the_whole_estate(tmp_path, result):
-    """Every asset id 0..asset_count-1 is reported, including unclaimed ones."""
-    rows = _run_assets(tmp_path)
-    assert sorted(r["asset_id"] for r in rows) == list(range(result["asset_count"]))
-    assert all(tuple(r) == ASSET_FIELDS for r in rows)
-    for r in rows:
-        assert r["is_locked"] in (0, 1) and not isinstance(r["is_locked"], bool)
-        assert r["contention"] == max(r["claiming_bundle_count"] - 1, 0)
-        if r["claiming_bundle_count"] == 0:
-            assert r["locked_by"] == "none" and r["total_claim_severity"] == 0
+def test_carry_out_never_exceeds_the_retuned_cap(repaired):
+    """TQ-3324 retuned the carry-out cap; the superseded 2000 ms bound is not it."""
+    summary = json.loads((repaired / "summary.json").read_text())
+    assert summary["max_carry_out_ms"] <= 780
+    assert summary["max_carry_out_ms"] > 0
 
 
-def test_asset_locker_is_unique_and_contained(tmp_path, result):
-    """locked_by names a contained bundle, and containment disjointness makes it unique."""
-    rows = _run_assets(tmp_path)
-    contained = set(result["contained_bundle_ids"])
-    for r in rows:
-        if r["locked_by"] != "none":
-            assert r["locked_by"] in contained
-            assert r["locked_by"] in r["claiming_bundle_ids"]
-            assert sum(1 for b in r["claiming_bundle_ids"] if b in contained) == 1
+def test_queue_follows_the_pac_3334_ordering_chain(repaired):
+    rows = _jsonl(repaired / "quarantined.jsonl")
+    rank = {n: len(PRIORITY_ORDER) - i for i, n in enumerate(PRIORITY_ORDER)}
+    keys = [(-rank[r["priority"]], -r["ledger_hold_ms"], -r["hold_ms"],
+             -r["flow_count"], r["subnet"], r["start_ms"]) for r in rows]
+    assert keys == sorted(keys), "queue is not in the governing order"
+    assert [r["start_ms"] for r in rows] != sorted(r["start_ms"] for r in rows) or len(rows) < 3
 
 
-def test_asset_row_order_follows_sr_2239(tmp_path):
-    """Asset rows follow the log's ordering chain, not ascending asset id."""
-    rows = _run_assets(tmp_path)
-    keyed = [(-r["contention"], -r["total_claim_severity"], -r["is_locked"], r["asset_id"]) for r in rows]
-    assert keyed == sorted(keyed)
-    assert [r["asset_id"] for r in rows] != sorted(r["asset_id"] for r in rows)
+def test_subnet_capacity_cap_applied_after_ordering(repaired):
+    """TQ-3330: at most two rows per subnet, retained by the GLOBAL order."""
+    rows = _jsonl(repaired / "quarantined.jsonl")
+    per_subnet: dict[str, int] = {}
+    for row in rows:
+        per_subnet[row["subnet"]] = per_subnet.get(row["subnet"], 0) + 1
+    assert per_subnet and max(per_subnet.values()) <= 2
+    assert any(v == 2 for v in per_subnet.values()), "the cap never binds"
 
 
-def test_asset_exposure_checksum_consistent(tmp_path, result):
-    """asset_exposure_checksum hashes the emitted asset rows in order."""
-    rows = _run_assets(tmp_path)
+def test_admission_floor_is_per_class(repaired):
+    """TQ-3332: every admitted session clears its own class floor."""
+    floors = {"core": 150, "service": 190, "user": 240, "guest": 300}
+    for row in _jsonl(repaired / "quarantined.jsonl"):
+        assert row["ledger_hold_ms"] >= floors[row["top_tier"]]
+
+
+def test_hold_digest_consistent(repaired):
+    for row in _jsonl(repaired / "quarantined.jsonl"):
+        payload = (f"{row['subnet']}|{row['start_ms']}|{row['end_ms']}"
+                   f"|{','.join(row['flow_ids'])}|{row['top_tier']}|{row['ledger_hold_ms']}")
+        assert row["hold_digest"] == hashlib.sha256(payload.encode()).hexdigest()[:12]
+
+
+def test_quarantine_checksum_consistent(repaired):
+    summary = json.loads((repaired / "summary.json").read_text())
+    rows = _jsonl(repaired / "quarantined.jsonl")
     payload = "\n".join(
-        f"{r['asset_id']}|{r['claiming_bundle_count']}|{r['locked_by']}|{r['is_locked']}|"
-        f"{r['max_claim_severity']}|{r['total_claim_severity']}|{r['contention']}" for r in rows)
-    assert result["asset_exposure_checksum"] == hashlib.sha256(payload.encode("utf-8")).hexdigest()
+        f"{r['case_id']}|{r['priority']}|{r['ledger_hold_ms']}|{r['hold_digest']}" for r in rows)
+    assert summary["quarantine_checksum"] == hashlib.sha256(payload.encode()).hexdigest()
 
 
-def test_total_claim_severity_is_not_a_sum_of_asset_pressure(tmp_path):
-    """SR-2239: total_claim_severity sums raw severities, never asset_pressure.
-
-    asset_pressure is severity * n_assets, so summing it gives a different number for
-    any asset claimed by a multi-asset bundle. The shipped estate is required to make
-    the two readings disagree, so this misreading cannot pass unnoticed.
-    """
-    rows = _run_assets(tmp_path)
-    bundles = {b["id"]: b for b in _canonical(json.loads(DATA.read_text())["bundles"])}
-    disagreed = 0
-    for r in rows:
-        claims = [bundles[b] for b in r["claiming_bundle_ids"]]
-        correct = sum(b["severity"] for b in claims)
-        wrong = sum(b["severity"] * len(b["assets"]) for b in claims)
-        assert r["total_claim_severity"] == correct
-        assert r["max_claim_severity"] == max((b["severity"] for b in claims), default=0)
-        if correct != wrong:
-            disagreed += 1
-    assert disagreed, "estate must contain an asset where the two readings differ"
+def test_flow_policy_checksum_consistent(repaired):
+    summary = json.loads((repaired / "summary.json").read_text())
+    controls = json.loads(CONTROLS.read_text())
+    ordered = sorted(controls, key=lambda r: (
+        str(r["layer"]), str(r["scope"]), str(r["subnet"]).strip().lower(), int(r["start_ms"])))
+    payload = "\n".join(
+        f"{r['layer']}|{r['scope']}|{str(r['subnet']).strip().lower()}|{int(r['start_ms'])}|{int(r['end_ms'])}"
+        for r in ordered)
+    assert summary["flow_policy_checksum"] == hashlib.sha256(payload.encode()).hexdigest()
 
 
-def test_sr_2241_owner_counts_only_its_own_intersection(result):
-    """SR-2241: the owner adds |owner_assets & uncontained_assets|, nothing more.
-
-    Three readings of the attribution rule are possible and two of them coincide
-    numerically, so a bare total does not discriminate between them. This pins the
-    governing one and asserts the alternatives are genuinely different, which is
-    what makes the assertion meaningful rather than tautological.
-    """
-    bundles = _canonical(json.loads(DATA.read_text())["bundles"])
-    contained = set(result["contained_bundle_ids"])
-    con = [b for b in bundles if b["id"] in contained]
-    unc = [b for b in bundles if b["id"] not in contained]
-
-    def owner_of(o):
-        claimants = [c for c in con if set(o["assets"]) & set(c["assets"])]
-        return sorted(claimants, key=lambda c: (-c["severity"], c["id"]))[0] if claimants else None
-
-    governing = 0          # owner counts only its own intersection
-    owner_absorbs_all = 0  # owner absorbs the whole contended set
-    every_claimant = 0     # no ownership filter at all
-    for o in unc:
-        owner = owner_of(o)
-        shared_any = set()
-        for c in con:
-            shared_any |= set(o["assets"]) & set(c["assets"])
-            every_claimant += len(set(o["assets"]) & set(c["assets"]))
-        if owner is not None:
-            governing += len(set(owner["assets"]) & set(o["assets"]))
-            owner_absorbs_all += len(shared_any)
-
-    assert result["total_exposure_overlap"] == governing
-    assert governing != owner_absorbs_all, "readings coincide -- test cannot discriminate"
-    assert governing != every_claimant, "readings coincide -- test cannot discriminate"
+# --------------------------------------------------------- generalization ---
+def test_repair_is_idempotent(tmp_path):
+    first = _repair(tmp_path / "a")
+    second = _repair(tmp_path / "b")
+    for name in ("summary.json", "subnet_matrix.json", "quarantined.jsonl"):
+        assert (first / name).read_text() == (second / name).read_text()
 
 
-POLICY_PATH = Path("/app/data/remediation_policies.json")
-POLICY_FIELDS = (
-    "wave_floor", "immediate_min", "urgent_min", "urgent_overlap_min",
-    "urgency_threshold", "carry_cap",
-)
-BASELINE_POLICY = {
-    "wave_floor": 16, "immediate_min": 27, "urgent_min": 21,
-    "urgent_overlap_min": 4, "urgency_threshold": 30, "carry_cap": 90,
-}
+def test_generalizes_to_alternate_stream(tmp_path):
+    out = _repair(tmp_path / "alt", input_path=ALT_EVENTS)
+    assert json.loads((out / "summary.json").read_text()) == EXPECTED["alternate"]["summary"]
+    assert json.loads((out / "subnet_matrix.json").read_text()) == EXPECTED["alternate"]["matrix"]
+    assert _jsonl(out / "quarantined.jsonl") == EXPECTED["alternate"]["queue"]
 
 
-def _resolve_band(band, data):
-    base = dict(BASELINE_POLICY)
-    for k in POLICY_FIELDS:
-        if k in data.get("default", {}):
-            base[k] = int(data["default"][k])
-    raw = data.get("band_overrides", {}).get(band)
-    if not isinstance(raw, dict):
-        return base
-    merged = dict(base)
-    for k in POLICY_FIELDS:
-        if k in raw:
-            merged[k] = int(raw[k])
-    return merged
-
-
-def test_policy_source_path_affects_output(tmp_path: Path):
-    """SR-2248: thresholds come from the policy file, not hardcoded constants."""
-    original = POLICY_PATH.read_text(encoding="utf-8")
-    try:
-        base = _run(tmp_path / "base")
-        bumped = json.loads(original)
-        bumped["default"]["wave_floor"] = 999
-        # Bands carrying their own wave_floor do not inherit the default, so raise
-        # theirs too or the bump only reaches the inheriting band.
-        for band in bumped.get("band_overrides", {}).values():
-            if "wave_floor" in band:
-                band["wave_floor"] = 999
-        POLICY_PATH.write_text(json.dumps(bumped), encoding="utf-8")
-        changed = _run(tmp_path / "changed")
-        assert changed["response_wave_count"] < base["response_wave_count"]
-        assert changed["policy_checksum"] != base["policy_checksum"]
-    finally:
-        POLICY_PATH.write_text(original, encoding="utf-8")
-
-
-def test_sparse_band_override_inherits_remaining_fields():
-    """A band override names some fields; every unlisted field is inherited."""
-    data = json.loads(POLICY_PATH.read_text(encoding="utf-8"))
-    sparse = [b for b, v in data["band_overrides"].items() if len(v) < len(POLICY_FIELDS)]
-    assert sparse, "no sparse override -- the inheritance rule is dormant"
-    for band in sparse:
-        resolved = _resolve_band(band, data)
-        assert set(resolved) == set(POLICY_FIELDS)
-        for key in POLICY_FIELDS:
-            if key not in data["band_overrides"][band]:
-                expected = int(data["default"].get(key, BASELINE_POLICY[key]))
-                assert resolved[key] == expected, f"{band}.{key} did not inherit"
-
-
-def test_policy_default_may_omit_fields_and_falls_back_to_baseline():
-    """The file default is itself partial; omitted fields keep the shipped baseline."""
-    data = json.loads(POLICY_PATH.read_text(encoding="utf-8"))
-    omitted = [k for k in POLICY_FIELDS if k not in data.get("default", {})]
-    assert omitted, "file default names every field -- the baseline tier is dormant"
-    for key in omitted:
-        assert _resolve_band("no-such-band", data)[key] == BASELINE_POLICY[key]
-
-
-def test_policy_checksum_consistent(result):
-    """policy_checksum serializes RESOLVED values, default then low, mid, high."""
-    data = json.loads(POLICY_PATH.read_text(encoding="utf-8"))
-    base = _resolve_band("no-such-band", data)
-    lines = ["default|" + "|".join(str(base[k]) for k in POLICY_FIELDS)]
-    for band in ("low", "mid", "high"):
-        resolved = _resolve_band(band, data)
-        lines.append(f"{band}|" + "|".join(str(resolved[k]) for k in POLICY_FIELDS))
-    expected = hashlib.sha256("\n".join(lines).encode("utf-8")).hexdigest()
-    assert result["policy_checksum"] == expected
-
-
-def test_band_uses_canonical_severity_not_raw(result):
-    """SR-2248 bands on the severity that survives SR-2243, not the raw proposal."""
-    raw = json.loads(DATA.read_text())["bundles"]
-    canonical = {b["id"]: b["severity"] for b in _canonical(raw)}
-    by_id = {}
-    for row in raw:
-        by_id.setdefault(row["id"], []).append(int(row["severity"]))
-    contested = [i for i, v in by_id.items() if len(v) > 1 and max(v) != min(v)]
-    assert contested, "no contested duplicate id -- the banding distinction is dormant"
-    for bundle_id in contested:
-        assert canonical[bundle_id] == min(by_id[bundle_id]), (
-            "canonical severity should be the LOWER one per SR-2243"
-        )
-
-
-def _band(severity):
-    """SR-2248 banding on the canonical severity."""
-    return "low" if severity <= 3 else "mid" if severity <= 6 else "high"
-
-
-def _pol(severity):
-    return _resolve_band(_band(severity), json.loads(POLICY_PATH.read_text(encoding="utf-8")))
-
-
-
-ROGUE_KEY_MARKER = "sentinel-remediation-operator"
-SUDOERS_ESCALATION = Path("/etc/sudoers.d/sentinel-quarantine")
-QUARANTINE_CRED = Path("/app/secrets/quarantine.cred")
-
-
-def test_rogue_operator_key_revoked():
-    """The intrusion's key is gone; legitimate keys, if any, are left in place."""
-    keys = Path("/root/.ssh/authorized_keys")
-    if keys.exists():
-        text = keys.read_text(encoding="utf-8")
-        assert ROGUE_KEY_MARKER not in text, "rogue operator key still authorized"
-        assert oct(keys.stat().st_mode)[-3:] == "600", "authorized_keys must stay 0600"
-
-
-def test_sudoers_escalation_removed():
-    """The passwordless escalation is removed outright, not weakened or commented."""
-    assert not SUDOERS_ESCALATION.exists(), "passwordless sudoers escalation still present"
-    for path in Path("/etc/sudoers.d").glob("*"):
-        body = path.read_text(encoding="utf-8", errors="ignore")
-        assert "svc-quarantine" not in body, f"escalation reintroduced in {path}"
-
-
-def test_quarantine_credential_locked_down():
-    """The credential is still in use: it must be kept, but restricted to root 0600."""
-    assert QUARANTINE_CRED.exists(), "operations still needs the credential in place"
-    stat = QUARANTINE_CRED.stat()
-    assert oct(stat.st_mode)[-3:] == "600", "credential must be mode 0600"
-    assert stat.st_uid == 0 and stat.st_gid == 0, "credential must be owned by root:root"
-
-
-CONTAINMENT_WINDOWS_PATH = Path("/app/data/containment_windows.json")
-
-
-def _spans(rows, layer, band):
-    """SR-2250 scope: own-band windows, else the all-scope. Never both."""
-    own = [(int(r["lo"]), int(r["hi"]), int(r["charge"])) for r in rows
-           if r["layer"] == layer and r["band"] == band and int(r["hi"]) > int(r["lo"])]
-    if own:
-        return own
-    return [(int(r["lo"]), int(r["hi"]), int(r["charge"])) for r in rows
-            if r["layer"] == layer and r["band"] == "all" and int(r["hi"]) > int(r["lo"])]
-
-
-def _charges(assets, spans):
-    out = {}
-    for a in assets:
-        hits = [c for lo, hi, c in spans if lo <= a < hi]
-        if hits:
-            out[a] = max(hits)          # SR-2250: maximum, not sum
-    return out
-
-
-def test_containment_window_source_path_affects_output(tmp_path: Path):
-    """SR-2250: the attenuation reads the window file, not hardcoded spans."""
-    original = CONTAINMENT_WINDOWS_PATH.read_text(encoding="utf-8")
-    try:
-        base = _run(tmp_path / "base")
-        CONTAINMENT_WINDOWS_PATH.write_text("[]\n", encoding="utf-8")
-        empty = _run(tmp_path / "empty")
-        assert empty["total_blackout_overlap"] == 0
-        assert empty["total_maintenance_overlap"] == 0
-        assert empty["containment_window_checksum"] != base["containment_window_checksum"]
-        assert empty["response_wave_count"] >= base["response_wave_count"]
-    finally:
-        CONTAINMENT_WINDOWS_PATH.write_text(original, encoding="utf-8")
-
-
-def test_band_with_own_windows_does_not_also_inherit_all_scope():
-    """SR-2250 scope: own-band entries REPLACE the all-scope, they do not add to it."""
-    rows = json.loads(CONTAINMENT_WINDOWS_PATH.read_text(encoding="utf-8"))
-    layered = {(r["layer"], r["band"]) for r in rows}
-    with_own = [(ly, bd) for ly, bd in layered if bd != "all"]
-    assert with_own, "no band-scoped window -- the scope rule is dormant"
-    for layer, band in with_own:
-        spans = _spans(rows, layer, band)
-        all_spans = [(int(r["lo"]), int(r["hi"]), int(r["charge"])) for r in rows
-                     if r["layer"] == layer and r["band"] == "all"]
-        for span in all_spans:
-            assert span not in spans or span in [
-                (int(r["lo"]), int(r["hi"]), int(r["charge"])) for r in rows
-                if r["layer"] == layer and r["band"] == band
-            ], f"{band} inherited an all-scope window despite having its own"
-
-
-def test_sr_2252_blackout_precedence_and_max_charge(result):
-    """SR-2252: an asset charged under blackout is not charged again under maintenance.
-
-    Also pins SR-2250's max-among-covering rule, and asserts the wrong readings
-    (summing charges, or charging both layers) give different totals -- so this
-    cannot pass tautologically and cannot go dormant unnoticed.
-    """
-    rows = json.loads(CONTAINMENT_WINDOWS_PATH.read_text(encoding="utf-8"))
-    bundles = _canonical(json.loads(DATA.read_text())["bundles"])
-    contained = set(result["contained_bundle_ids"])
-
-    governing_b = governing_m = both_layers = summed = 0
-    overlap_seen = multi_cover = 0
-    for b in bundles:
-        if b["id"] not in contained:
-            continue
-        assets, band = set(b["assets"]), _band(b["severity"])
-        bl = _charges(assets, _spans(rows, "blackout", band))
-        mt = _charges(assets, _spans(rows, "maintenance", band))
-        if set(bl) & set(mt):
-            overlap_seen += 1
-        for a in assets:
-            if len([c for lo, hi, c in _spans(rows, "blackout", band) if lo <= a < hi]) > 1:
-                multi_cover += 1
-        governing_b += sum(bl.values())
-        governing_m += sum(c for a, c in mt.items() if a not in bl)
-        both_layers += sum(mt.values())
-        summed += sum(sum(c for lo, hi, c in _spans(rows, "blackout", band) if lo <= a < hi)
-                      for a in assets)
-
-    assert result["total_blackout_overlap"] == governing_b
-    assert result["total_maintenance_overlap"] == governing_m
-    assert overlap_seen, "no asset covered by both layers -- SR-2252 is dormant"
-    assert multi_cover, "no asset covered by two same-layer windows -- max rule is dormant"
-    assert governing_m != both_layers, "precedence makes no difference -- cannot discriminate"
-    assert governing_b != summed, "max-vs-sum makes no difference -- cannot discriminate"
+def test_custom_output_dir_is_honoured(tmp_path):
+    out = tmp_path / "elsewhere"
+    subprocess.run([sys.executable, str(AUDIT), "repair", "--output-dir", str(out)],
+                   capture_output=True, text=True, check=True)
+    assert (out / "summary.json").exists()
+    assert (out / "repair_audit.json").exists()

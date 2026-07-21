@@ -1,0 +1,585 @@
+{
+  "primary": {
+    "summary": {
+      "schema_version": "flow-quarantine-v2",
+      "raw_flow_count": 33,
+      "unique_flow_ids": 29,
+      "canonical_flow_count": 29,
+      "tier_counts": {
+        "core": 7,
+        "service": 6,
+        "user": 9,
+        "guest": 7
+      },
+      "subnets": [
+        "alpha",
+        "bravo",
+        "charlie",
+        "delta",
+        "echo",
+        "foxtrot"
+      ],
+      "subnet_count": 6,
+      "blocked_excluded_count": 2,
+      "session_count": 23,
+      "total_hold_ms": 6449,
+      "total_adjusted_hold_ms": 5830,
+      "total_ledger_hold_ms": 6613,
+      "total_isolation_overlap_ms": 968,
+      "total_inspection_overlap_ms": 838,
+      "max_ledger_hold_ms": 491,
+      "max_carry_out_ms": 780,
+      "longest_session_ms": 611,
+      "quarantined_count": 11,
+      "priority_counts": {
+        "critical": 4,
+        "elevated": 3,
+        "routine": 4
+      },
+      "canonical_flow_checksum": "2a503dc1e2a9eb65027256660676324816483b19f9fd242cd8f158acc2de70f1",
+      "flow_policy_checksum": "d4cc90f0c4f9afaa222aaa40fc56c5392b084d57fbf5b041cafa6aa1c679ddea",
+      "quarantine_checksum": "9efe7b2d1f635dff6eb618bd30e8bf7de8f126269ae436fd1bdc2609f09de8a5"
+    },
+    "matrix": {
+      "alpha": {
+        "session_count": 5,
+        "total_hold_ms": 1635,
+        "total_ledger_hold_ms": 1856,
+        "max_carry_out_ms": 780,
+        "queued_count": 2
+      },
+      "bravo": {
+        "session_count": 4,
+        "total_hold_ms": 919,
+        "total_ledger_hold_ms": 844,
+        "max_carry_out_ms": 364,
+        "queued_count": 2
+      },
+      "charlie": {
+        "session_count": 4,
+        "total_hold_ms": 1453,
+        "total_ledger_hold_ms": 1628,
+        "max_carry_out_ms": 780,
+        "queued_count": 2
+      },
+      "delta": {
+        "session_count": 3,
+        "total_hold_ms": 635,
+        "total_ledger_hold_ms": 583,
+        "max_carry_out_ms": 313,
+        "queued_count": 1
+      },
+      "echo": {
+        "session_count": 4,
+        "total_hold_ms": 1094,
+        "total_ledger_hold_ms": 1028,
+        "max_carry_out_ms": 556,
+        "queued_count": 2
+      },
+      "foxtrot": {
+        "session_count": 3,
+        "total_hold_ms": 713,
+        "total_ledger_hold_ms": 674,
+        "max_carry_out_ms": 345,
+        "queued_count": 2
+      }
+    },
+    "queue": [
+      {
+        "case_id": "charlie:4210500080000-4210500080611",
+        "subnet": "charlie",
+        "start_ms": 4210500080000,
+        "end_ms": 4210500080611,
+        "top_tier": "guest",
+        "priority": "critical",
+        "hold_ms": 611,
+        "adjusted_hold_ms": 491,
+        "ledger_hold_ms": 491,
+        "isolation_overlap_ms": 179,
+        "inspection_overlap_ms": 180,
+        "carry_in_ms": 0,
+        "carry_out_ms": 503,
+        "flow_count": 2,
+        "flow_ids": [
+          "fl-008",
+          "fl-023"
+        ],
+        "hold_digest": "4140d6622bc7"
+      },
+      {
+        "case_id": "echo:4210500161800-4210500162274",
+        "subnet": "echo",
+        "start_ms": 4210500161800,
+        "end_ms": 4210500162274,
+        "top_tier": "service",
+        "priority": "critical",
+        "hold_ms": 474,
+        "adjusted_hold_ms": 474,
+        "ledger_hold_ms": 474,
+        "isolation_overlap_ms": 0,
+        "inspection_overlap_ms": 0,
+        "carry_in_ms": 0,
+        "carry_out_ms": 486,
+        "flow_count": 2,
+        "flow_ids": [
+          "fl-017",
+          "fl-025"
+        ],
+        "hold_digest": "6f486a01bcf1"
+      },
+      {
+        "case_id": "alpha:4210500004200-4210500004518",
+        "subnet": "alpha",
+        "start_ms": 4210500004200,
+        "end_ms": 4210500004518,
+        "top_tier": "service",
+        "priority": "critical",
+        "hold_ms": 318,
+        "adjusted_hold_ms": 318,
+        "ledger_hold_ms": 420,
+        "isolation_overlap_ms": 0,
+        "inspection_overlap_ms": 0,
+        "carry_in_ms": 513,
+        "carry_out_ms": 780,
+        "flow_count": 1,
+        "flow_ids": [
+          "fl-028"
+        ],
+        "hold_digest": "c9b60515e3af"
+      },
+      {
+        "case_id": "foxtrot:4210500200000-4210500200373",
+        "subnet": "foxtrot",
+        "start_ms": 4210500200000,
+        "end_ms": 4210500200373,
+        "top_tier": "core",
+        "priority": "critical",
+        "hold_ms": 373,
+        "adjusted_hold_ms": 271,
+        "ledger_hold_ms": 271,
+        "isolation_overlap_ms": 131,
+        "inspection_overlap_ms": 180,
+        "carry_in_ms": 0,
+        "carry_out_ms": 283,
+        "flow_count": 2,
+        "flow_ids": [
+          "fl-019",
+          "fl-024"
+        ],
+        "hold_digest": "6e7035d3cc86"
+      },
+      {
+        "case_id": "charlie:4210500082100-4210500082409",
+        "subnet": "charlie",
+        "start_ms": 4210500082100,
+        "end_ms": 4210500082409,
+        "top_tier": "guest",
+        "priority": "elevated",
+        "hold_ms": 309,
+        "adjusted_hold_ms": 309,
+        "ledger_hold_ms": 407,
+        "isolation_overlap_ms": 0,
+        "inspection_overlap_ms": 0,
+        "carry_in_ms": 494,
+        "carry_out_ms": 780,
+        "flow_count": 1,
+        "flow_ids": [
+          "fl-010"
+        ],
+        "hold_digest": "ee86a48df05a"
+      },
+      {
+        "case_id": "alpha:4210500001900-4210500002231",
+        "subnet": "alpha",
+        "start_ms": 4210500001900,
+        "end_ms": 4210500002231,
+        "top_tier": "guest",
+        "priority": "elevated",
+        "hold_ms": 331,
+        "adjusted_hold_ms": 331,
+        "ledger_hold_ms": 403,
+        "isolation_overlap_ms": 0,
+        "inspection_overlap_ms": 0,
+        "carry_in_ms": 360,
+        "carry_out_ms": 697,
+        "flow_count": 1,
+        "flow_ids": [
+          "fl-003"
+        ],
+        "hold_digest": "ae365d2002ca"
+      },
+      {
+        "case_id": "bravo:4210500042600-4210500042941",
+        "subnet": "bravo",
+        "start_ms": 4210500042600,
+        "end_ms": 4210500042941,
+        "top_tier": "guest",
+        "priority": "elevated",
+        "hold_ms": 341,
+        "adjusted_hold_ms": 341,
+        "ledger_hold_ms": 344,
+        "isolation_overlap_ms": 0,
+        "inspection_overlap_ms": 0,
+        "carry_in_ms": 17,
+        "carry_out_ms": 364,
+        "flow_count": 1,
+        "flow_ids": [
+          "fl-029"
+        ],
+        "hold_digest": "8d70958c1277"
+      },
+      {
+        "case_id": "echo:4210500162900-4210500163171",
+        "subnet": "echo",
+        "start_ms": 4210500162900,
+        "end_ms": 4210500163171,
+        "top_tier": "user",
+        "priority": "routine",
+        "hold_ms": 271,
+        "adjusted_hold_ms": 221,
+        "ledger_hold_ms": 286,
+        "isolation_overlap_ms": 100,
+        "inspection_overlap_ms": 0,
+        "carry_in_ms": 329,
+        "carry_out_ms": 556,
+        "flow_count": 1,
+        "flow_ids": [
+          "fl-018"
+        ],
+        "hold_digest": "304be7c0872f"
+      },
+      {
+        "case_id": "delta:4210500120700-4210500120959",
+        "subnet": "delta",
+        "start_ms": 4210500120700,
+        "end_ms": 4210500120959,
+        "top_tier": "user",
+        "priority": "routine",
+        "hold_ms": 259,
+        "adjusted_hold_ms": 259,
+        "ledger_hold_ms": 259,
+        "isolation_overlap_ms": 0,
+        "inspection_overlap_ms": 0,
+        "carry_in_ms": 0,
+        "carry_out_ms": 265,
+        "flow_count": 1,
+        "flow_ids": [
+          "fl-013"
+        ],
+        "hold_digest": "2045387195e9"
+      },
+      {
+        "case_id": "bravo:4210500040800-4210500040996",
+        "subnet": "bravo",
+        "start_ms": 4210500040800,
+        "end_ms": 4210500040996,
+        "top_tier": "service",
+        "priority": "routine",
+        "hold_ms": 196,
+        "adjusted_hold_ms": 196,
+        "ledger_hold_ms": 196,
+        "isolation_overlap_ms": 0,
+        "inspection_overlap_ms": 0,
+        "carry_in_ms": 0,
+        "carry_out_ms": 202,
+        "flow_count": 1,
+        "flow_ids": [
+          "fl-006"
+        ],
+        "hold_digest": "2e117d788594"
+      },
+      {
+        "case_id": "foxtrot:4210500201800-4210500201952",
+        "subnet": "foxtrot",
+        "start_ms": 4210500201800,
+        "end_ms": 4210500201952,
+        "top_tier": "core",
+        "priority": "routine",
+        "hold_ms": 152,
+        "adjusted_hold_ms": 152,
+        "ledger_hold_ms": 185,
+        "isolation_overlap_ms": 0,
+        "inspection_overlap_ms": 0,
+        "carry_in_ms": 167,
+        "carry_out_ms": 325,
+        "flow_count": 1,
+        "flow_ids": [
+          "fl-021"
+        ],
+        "hold_digest": "e60659beebd3"
+      }
+    ]
+  },
+  "alternate": {
+    "summary": {
+      "schema_version": "flow-quarantine-v2",
+      "raw_flow_count": 23,
+      "unique_flow_ids": 20,
+      "canonical_flow_count": 20,
+      "tier_counts": {
+        "core": 3,
+        "service": 4,
+        "user": 7,
+        "guest": 6
+      },
+      "subnets": [
+        "alpha",
+        "bravo",
+        "charlie",
+        "delta",
+        "echo",
+        "foxtrot"
+      ],
+      "subnet_count": 6,
+      "blocked_excluded_count": 1,
+      "session_count": 16,
+      "total_hold_ms": 4639,
+      "total_adjusted_hold_ms": 4278,
+      "total_ledger_hold_ms": 4466,
+      "total_isolation_overlap_ms": 586,
+      "total_inspection_overlap_ms": 429,
+      "max_ledger_hold_ms": 491,
+      "max_carry_out_ms": 548,
+      "longest_session_ms": 611,
+      "quarantined_count": 9,
+      "priority_counts": {
+        "critical": 2,
+        "elevated": 4,
+        "routine": 3
+      },
+      "canonical_flow_checksum": "8972afd09d50e0cfa5b61ed1e91cddc83b875f3c5472be77feafc1fd2f0090ed",
+      "flow_policy_checksum": "d4cc90f0c4f9afaa222aaa40fc56c5392b084d57fbf5b041cafa6aa1c679ddea",
+      "quarantine_checksum": "bcad0594554447ff0b41af76c44e0a2c68cdcdd6e5b217c619e15de278ac0a6d"
+    },
+    "matrix": {
+      "alpha": {
+        "session_count": 4,
+        "total_hold_ms": 1304,
+        "total_ledger_hold_ms": 1286,
+        "max_carry_out_ms": 548,
+        "queued_count": 2
+      },
+      "bravo": {
+        "session_count": 3,
+        "total_hold_ms": 723,
+        "total_ledger_hold_ms": 658,
+        "max_carry_out_ms": 347,
+        "queued_count": 2
+      },
+      "charlie": {
+        "session_count": 3,
+        "total_hold_ms": 1166,
+        "total_ledger_hold_ms": 1121,
+        "max_carry_out_ms": 503,
+        "queued_count": 2
+      },
+      "delta": {
+        "session_count": 2,
+        "total_hold_ms": 462,
+        "total_ledger_hold_ms": 482,
+        "max_carry_out_ms": 313,
+        "queued_count": 1
+      },
+      "echo": {
+        "session_count": 2,
+        "total_hold_ms": 632,
+        "total_ledger_hold_ms": 632,
+        "max_carry_out_ms": 486,
+        "queued_count": 2
+      },
+      "foxtrot": {
+        "session_count": 2,
+        "total_hold_ms": 352,
+        "total_ledger_hold_ms": 287,
+        "max_carry_out_ms": 194,
+        "queued_count": 0
+      }
+    },
+    "queue": [
+      {
+        "case_id": "charlie:4210500080000-4210500080611",
+        "subnet": "charlie",
+        "start_ms": 4210500080000,
+        "end_ms": 4210500080611,
+        "top_tier": "guest",
+        "priority": "critical",
+        "hold_ms": 611,
+        "adjusted_hold_ms": 491,
+        "ledger_hold_ms": 491,
+        "isolation_overlap_ms": 179,
+        "inspection_overlap_ms": 180,
+        "carry_in_ms": 0,
+        "carry_out_ms": 503,
+        "flow_count": 2,
+        "flow_ids": [
+          "af-008",
+          "af-023"
+        ],
+        "hold_digest": "fcc1c8d296ba"
+      },
+      {
+        "case_id": "echo:4210500161800-4210500162274",
+        "subnet": "echo",
+        "start_ms": 4210500161800,
+        "end_ms": 4210500162274,
+        "top_tier": "service",
+        "priority": "critical",
+        "hold_ms": 474,
+        "adjusted_hold_ms": 474,
+        "ledger_hold_ms": 474,
+        "isolation_overlap_ms": 0,
+        "inspection_overlap_ms": 0,
+        "carry_in_ms": 0,
+        "carry_out_ms": 486,
+        "flow_count": 2,
+        "flow_ids": [
+          "af-017",
+          "af-025"
+        ],
+        "hold_digest": "35757703b18b"
+      },
+      {
+        "case_id": "alpha:4210500000000-4210500000492",
+        "subnet": "alpha",
+        "start_ms": 4210500000000,
+        "end_ms": 4210500000492,
+        "top_tier": "user",
+        "priority": "elevated",
+        "hold_ms": 492,
+        "adjusted_hold_ms": 381,
+        "ledger_hold_ms": 381,
+        "isolation_overlap_ms": 149,
+        "inspection_overlap_ms": 180,
+        "carry_in_ms": 0,
+        "carry_out_ms": 393,
+        "flow_count": 2,
+        "flow_ids": [
+          "af-001",
+          "af-022"
+        ],
+        "hold_digest": "c2b77d9b8a7d"
+      },
+      {
+        "case_id": "bravo:4210500042600-4210500042941",
+        "subnet": "bravo",
+        "start_ms": 4210500042600,
+        "end_ms": 4210500042941,
+        "top_tier": "guest",
+        "priority": "elevated",
+        "hold_ms": 341,
+        "adjusted_hold_ms": 341,
+        "ledger_hold_ms": 341,
+        "isolation_overlap_ms": 0,
+        "inspection_overlap_ms": 0,
+        "carry_in_ms": 0,
+        "carry_out_ms": 347,
+        "flow_count": 1,
+        "flow_ids": [
+          "af-029"
+        ],
+        "hold_digest": "796374bb056d"
+      },
+      {
+        "case_id": "alpha:4210500004200-4210500004518",
+        "subnet": "alpha",
+        "start_ms": 4210500004200,
+        "end_ms": 4210500004518,
+        "top_tier": "service",
+        "priority": "elevated",
+        "hold_ms": 318,
+        "adjusted_hold_ms": 318,
+        "ledger_hold_ms": 336,
+        "isolation_overlap_ms": 0,
+        "inspection_overlap_ms": 0,
+        "carry_in_ms": 94,
+        "carry_out_ms": 418,
+        "flow_count": 1,
+        "flow_ids": [
+          "af-028"
+        ],
+        "hold_digest": "8a0a9030b27b"
+      },
+      {
+        "case_id": "charlie:4210500082100-4210500082409",
+        "subnet": "charlie",
+        "start_ms": 4210500082100,
+        "end_ms": 4210500082409,
+        "top_tier": "guest",
+        "priority": "elevated",
+        "hold_ms": 309,
+        "adjusted_hold_ms": 309,
+        "ledger_hold_ms": 335,
+        "isolation_overlap_ms": 0,
+        "inspection_overlap_ms": 0,
+        "carry_in_ms": 130,
+        "carry_out_ms": 445,
+        "flow_count": 1,
+        "flow_ids": [
+          "af-010"
+        ],
+        "hold_digest": "2748ffd1732b"
+      },
+      {
+        "case_id": "delta:4210500120700-4210500120959",
+        "subnet": "delta",
+        "start_ms": 4210500120700,
+        "end_ms": 4210500120959,
+        "top_tier": "user",
+        "priority": "routine",
+        "hold_ms": 259,
+        "adjusted_hold_ms": 259,
+        "ledger_hold_ms": 259,
+        "isolation_overlap_ms": 0,
+        "inspection_overlap_ms": 0,
+        "carry_in_ms": 0,
+        "carry_out_ms": 265,
+        "flow_count": 1,
+        "flow_ids": [
+          "af-013"
+        ],
+        "hold_digest": "4a889da9fab7"
+      },
+      {
+        "case_id": "bravo:4210500041700-4210500041868",
+        "subnet": "bravo",
+        "start_ms": 4210500041700,
+        "end_ms": 4210500041868,
+        "top_tier": "core",
+        "priority": "routine",
+        "hold_ms": 168,
+        "adjusted_hold_ms": 168,
+        "ledger_hold_ms": 168,
+        "isolation_overlap_ms": 0,
+        "inspection_overlap_ms": 0,
+        "carry_in_ms": 0,
+        "carry_out_ms": 174,
+        "flow_count": 1,
+        "flow_ids": [
+          "af-007"
+        ],
+        "hold_digest": "ab0239fbfe19"
+      },
+      {
+        "case_id": "echo:4210500160850-4210500161008",
+        "subnet": "echo",
+        "start_ms": 4210500160850,
+        "end_ms": 4210500161008,
+        "top_tier": "core",
+        "priority": "routine",
+        "hold_ms": 158,
+        "adjusted_hold_ms": 158,
+        "ledger_hold_ms": 158,
+        "isolation_overlap_ms": 0,
+        "inspection_overlap_ms": 0,
+        "carry_in_ms": 0,
+        "carry_out_ms": 164,
+        "flow_count": 1,
+        "flow_ids": [
+          "af-016"
+        ],
+        "hold_digest": "935e4912a56f"
+      }
+    ]
+  },
+  "frozen_source": "#!/usr/bin/env python3\n\"\"\"Badge-access containment rollup deployed during the Tideguard incident.\n\nThis build is producing an unreliable containment queue. It is the artifact the\nresponse team asked to have investigated and restored.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport argparse\nimport json\nfrom pathlib import Path\n\nSCHEMA_VERSION = \"flow-quarantine-v2\"\nCLASS_ORDER = [\"core\", \"service\", \"user\", \"guest\"]\n\n\ndef load_events(path: Path) -> list[dict]:\n    return json.loads(path.read_text())\n\n\ndef export_report(events: list[dict], output_dir: Path) -> None:\n    output_dir.mkdir(parents=True, exist_ok=True)\n\n    tier_counts = {name: 0 for name in CLASS_ORDER}\n    subnets: set[str] = set()\n    for event in events:\n        trust_tier = str(event.get(\"trust_tier\", \"\"))\n        if trust_tier in tier_counts:\n            tier_counts[trust_tier] += 1\n        subnets.add(str(event.get(\"subnet\", \"\")))\n\n    quarantined = []\n    for event in events:\n        if event.get(\"trust_tier\") == \"core\":\n            quarantined.append(\n                {\n                    \"flow_id\": event[\"flow_id\"],\n                    \"entered_ms\": event[\"granted_at\"] if \"granted_at\" in event else 0,\n                    \"trust_tier\": event[\"trust_tier\"],\n                    \"subnet\": event[\"subnet\"],\n                    \"port\": event[\"port\"],\n                }\n            )\n\n    quarantined.sort(key=lambda row: row[\"entered_ms\"])\n\n    summary = {\n        \"schema_version\": SCHEMA_VERSION,\n        \"raw_flow_count\": len(events),\n        \"unique_flow_ids\": len({str(event[\"flow_id\"]) for event in events}),\n        \"total_flows\": len(events),\n        \"tier_counts\": tier_counts,\n        \"subnets\": sorted(subnets),\n        \"quarantined_count\": len(quarantined),\n        \"blocked_excluded_count\": 0,\n    }\n\n    (output_dir / \"summary.json\").write_text(json.dumps(summary, indent=2) + \"\\n\")\n    (output_dir / \"subnet_matrix.json\").write_text(json.dumps({}, indent=2) + \"\\n\")\n    with (output_dir / \"quarantined.jsonl\").open(\"w\", encoding=\"utf-8\") as handle:\n        for row in quarantined:\n            handle.write(json.dumps(row, separators=(\",\", \":\")) + \"\\n\")\n\n\ndef main() -> None:\n    parser = argparse.ArgumentParser()\n    parser.add_argument(\"--input\", default=\"/app/data/flow_events.json\")\n    parser.add_argument(\"--output-dir\", default=\"/app/output\")\n    args = parser.parse_args()\n\n    events = load_events(Path(args.input))\n    export_report(events, Path(args.output_dir))\n    print(f\"Wrote containment rollup to {args.output_dir}\")\n\n\nif __name__ == \"__main__\":\n    main()\n"
+}

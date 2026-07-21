@@ -5,13 +5,13 @@ author_name = "anonymous"
 author_email = "anonymous"
 difficulty = "hard"
 category = "security"
-subcategories = []
+subcategories = ["long_context"]
 number_of_milestones = 0
 codebase_size = "minimal"
 languages = ["python"]
-tags = ["security", "incident-response", "host-containment", "credential-hygiene", "access-control", "remediation-planning", "combinatorial-optimization"]
-expert_time_estimate_min = 90
-junior_time_estimate_min = 180
+tags = ["security", "physical-access-control", "incident-response", "flow-audit", "cli"]
+expert_time_estimate_min = 180
+junior_time_estimate_min = 360
 
 [verifier]
 timeout_sec = 300.0
@@ -21,6 +21,9 @@ timeout_sec = 1800.0
 
 [environment]
 allow_internet = false
+docker_flags = []
+gpus = 0
+gpu_types = []
 build_timeout_sec = 600.0
 cpus = 2
 memory_mb = 4096

@@ -1,0 +1,114 @@
+[
+  {
+    "layer": "isolation",
+    "scope": "all",
+    "subnet": "alpha",
+    "start_ms": 4210500000041,
+    "end_ms": 4210500000190
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "alpha",
+    "start_ms": 4210500000120,
+    "end_ms": 4210500000300
+  },
+  {
+    "layer": "isolation",
+    "scope": "all",
+    "subnet": "bravo",
+    "start_ms": 4210500040031,
+    "end_ms": 4210500040160
+  },
+  {
+    "layer": "inspection",
+    "scope": "service",
+    "subnet": "bravo",
+    "start_ms": 4210500040080,
+    "end_ms": 4210500040250
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "bravo",
+    "start_ms": 4210500040900,
+    "end_ms": 4210500041100
+  },
+  {
+    "layer": "isolation",
+    "scope": "guest",
+    "subnet": "charlie",
+    "start_ms": 4210500080061,
+    "end_ms": 4210500080240
+  },
+  {
+    "layer": "isolation",
+    "scope": "all",
+    "subnet": "charlie",
+    "start_ms": 4210500082000,
+    "end_ms": 4210500082200
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "charlie",
+    "start_ms": 4210500080150,
+    "end_ms": 4210500080330
+  },
+  {
+    "layer": "isolation",
+    "scope": "all",
+    "subnet": "delta",
+    "start_ms": 4210500120021,
+    "end_ms": 4210500120150
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "delta",
+    "start_ms": 4210500120090,
+    "end_ms": 4210500120260
+  },
+  {
+    "layer": "isolation",
+    "scope": "core",
+    "subnet": "echo",
+    "start_ms": 4210500160025,
+    "end_ms": 4210500160176
+  },
+  {
+    "layer": "isolation",
+    "scope": "all",
+    "subnet": "echo",
+    "start_ms": 4210500163000,
+    "end_ms": 4210500163100
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "echo",
+    "start_ms": 4210500160110,
+    "end_ms": 4210500160290
+  },
+  {
+    "layer": "isolation",
+    "scope": "all",
+    "subnet": "foxtrot",
+    "start_ms": 4210500200035,
+    "end_ms": 4210500200166
+  },
+  {
+    "layer": "inspection",
+    "scope": "core",
+    "subnet": "foxtrot",
+    "start_ms": 4210500200095,
+    "end_ms": 4210500200275
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "foxtrot",
+    "start_ms": 4210500201900,
+    "end_ms": 4210500202000
+  }
+]
