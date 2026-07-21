@@ -55,7 +55,7 @@
       "pipeline_terms": [
         "trust_tier = str(event.get(\"trust_tier\", \"\"))"
       ],
-      "repair_action": "normalize trust_tier per TQ-3316 and fall back to visitor for any unrecognized value"
+      "repair_action": "normalize trust_tier per TQ-3316 and fall back to guest for any unrecognized value"
     },
     {
       "defect_id": "dedupe_flow",
@@ -111,7 +111,7 @@
     "input_stats_types": {
       "raw_flow_count": "integer",
       "unique_flow_ids": "integer",
-      "duplicate_flow_ids": "integer count of raw rows whose id repeats, NOT a list of ids",
+      "duplicate_flow_ids": "integer count of EXCESS duplicate rows = (raw row count) - (distinct flow_id count); NOT a list of ids, and NOT the number of rows that carry a duplicated id",
       "blocked_row_count": "integer"
     }
   },
@@ -129,7 +129,17 @@
       "artifacts"
     ],
     "pre_repair_source": "the FROZEN bytes at /app/workflow/.export_report.original, never the live workflow, so the value is identical whether or not a repair already ran",
-    "artifacts_field": "a JSON array of the output file BASENAMES written to the output directory, sorted ascending, and INCLUDING repair_audit.json itself even though it is written last"
+    "artifacts_field": "a JSON array of the output file BASENAMES written to the output directory, sorted ascending, and INCLUDING repair_audit.json itself even though it is written last",
+    "field_types": {
+      "schema_version": "string",
+      "pre_repair_sha256": "string, 64-char hex sha256",
+      "pre_repair_byte_count": "integer",
+      "post_repair_sha256": "string, 64-char hex sha256",
+      "post_repair_byte_count": "integer",
+      "defects_repaired": "JSON array of the defect id strings that were repaired, sorted ascending",
+      "forbidden_tokens_removed": "JSON array of the forbidden token strings removed from the restored workflow, sorted",
+      "artifacts": "JSON array of output basenames, sorted, including repair_audit.json"
+    }
   },
   "workflow_repair": {
     "path": "/app/workflow/export_report.py",
@@ -169,8 +179,8 @@
         "flow_policy_checksum",
         "quarantine_checksum"
       ],
-      "tier_counts": "always enumerates core, service, staff, visitor in that order, emitting 0 for a class with no canonical rows; counts EVERY canonical row including blocked ones",
-      "priority_counts": "always enumerates critical, high, standard in that order, emitting 0 for an empty tier",
+      "tier_counts": "always enumerates core, service, user, guest in that order, emitting 0 for a class with no canonical rows; counts EVERY canonical row including blocked ones",
+      "priority_counts": "always enumerates critical, elevated, routine in that order, emitting 0 for an empty tier",
       "subnets": "JSON array of subnet names sorted ascending",
       "schema_version_value": "flow-quarantine-v2"
     },
@@ -208,8 +218,8 @@
       ],
       "case_id_format": "{subnet}:{start_ms}-{end_ms}",
       "flow_ids": "JSON array of flow-id strings sorted ascending",
-      "top_tier": "exactly one of the lowercase strings core, service, staff, visitor",
-      "priority": "exactly one of the lowercase strings critical, high, standard"
+      "top_tier": "exactly one of the lowercase strings core, service, user, guest",
+      "priority": "exactly one of the lowercase strings critical, elevated, routine"
     }
   },
   "digest_payloads": {
