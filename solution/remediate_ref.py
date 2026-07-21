@@ -164,21 +164,32 @@ def _best_packing(bundles: list[dict]) -> tuple[int, list[str]]:
     """
     items = [(b["severity"], frozenset(b["assets"]), b["id"]) for b in bundles]
     items.sort(key=lambda it: -it[0])
+    # suffix[i] = sum of severities of items[i:], an upper bound on the value still
+    # reachable from index i (it ignores asset conflicts, so it never underestimates).
+    suffix = [0] * (len(items) + 1)
+    for i in range(len(items) - 1, -1, -1):
+        suffix[i] = suffix[i + 1] + items[i][0]
     best_total = 0
     best_ids: tuple[str, ...] = ()
 
     def rec(index: int, used: frozenset[int], total: int, chosen: list[str]) -> None:
         nonlocal best_total, best_ids
+        # Prune only branches that provably cannot reach the current best value.
+        # A branch with total + suffix[index] == best_total is kept, because it may
+        # still tie the best value with a lexicographically smaller id set.
+        if total + suffix[index] < best_total:
+            return
         if index >= len(items):
             key = tuple(sorted(chosen))
             if total > best_total or (total == best_total and key < best_ids):
                 best_total = total
                 best_ids = key
             return
-        rec(index + 1, used, total, chosen)
+        # Explore the take-branch first so a high value is found early and prunes more.
         severity, assets, bid = items[index]
         if not (assets & used):
             rec(index + 1, used | assets, total + severity, chosen + [bid])
+        rec(index + 1, used, total, chosen)
 
     rec(0, frozenset(), 0, [])
     return best_total, list(best_ids)

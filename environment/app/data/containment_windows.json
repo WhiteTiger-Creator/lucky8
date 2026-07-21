@@ -3,56 +3,63 @@
     "layer": "blackout",
     "band": "all",
     "lo": 0,
-    "hi": 6,
-    "charge": 2
-  },
-  {
-    "layer": "blackout",
-    "band": "high",
-    "lo": 0,
     "hi": 4,
-    "charge": 2
+    "charge": 3
   },
   {
     "layer": "blackout",
     "band": "high",
     "lo": 2,
-    "hi": 11,
+    "hi": 10,
     "charge": 5
   },
   {
     "layer": "blackout",
-    "band": "low",
-    "lo": 9,
-    "hi": 14,
-    "charge": 3
+    "band": "high",
+    "lo": 0,
+    "hi": 3,
+    "charge": 2
+  },
+  {
+    "layer": "blackout",
+    "band": "mid",
+    "lo": 11,
+    "hi": 17,
+    "charge": 4
   },
   {
     "layer": "maintenance",
     "band": "all",
     "lo": 3,
-    "hi": 9,
-    "charge": 3
+    "hi": 12,
+    "charge": 4
   },
   {
     "layer": "maintenance",
     "band": "high",
     "lo": 0,
-    "hi": 10,
+    "hi": 11,
     "charge": 3
   },
   {
     "layer": "maintenance",
     "band": "high",
     "lo": 5,
-    "hi": 16,
+    "hi": 20,
     "charge": 5
   },
   {
     "layer": "maintenance",
     "band": "mid",
-    "lo": 1,
-    "hi": 7,
+    "lo": 13,
+    "hi": 22,
     "charge": 4
+  },
+  {
+    "layer": "maintenance",
+    "band": "low",
+    "lo": 7,
+    "hi": 20,
+    "charge": 3
   }
 ]

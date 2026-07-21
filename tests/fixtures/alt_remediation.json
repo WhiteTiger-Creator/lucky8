@@ -1,68 +1,38 @@
 {
-  "asset_count": 12,
+  "asset_count": 22,
   "bundles": [
     {
-      "id": "ra-00",
-      "severity": 2,
-      "assets": [
-        0,
-        1
-      ]
-    },
-    {
-      "id": "ra-01",
-      "severity": 8,
+      "id": "ab-01",
+      "severity": 7,
       "assets": [
         0
       ]
     },
     {
-      "id": "ra-02",
+      "id": "ab-02",
       "severity": 8,
       "assets": [
         1
       ]
     },
     {
-      "id": "ra-03",
+      "id": "ab-04",
       "severity": 6,
       "assets": [
-        2,
-        3
-      ]
-    },
-    {
-      "id": "ra-04",
-      "severity": 7,
-      "assets": [
-        4,
-        5
-      ]
-    },
-    {
-      "id": "ra-05",
-      "severity": 6,
-      "assets": [
+        3,
         4
       ]
     },
     {
-      "id": "ra-06",
+      "id": "ab-05",
       "severity": 6,
       "assets": [
-        5
+        5,
+        6
       ]
     },
     {
-      "id": "ra-07",
-      "severity": 8,
-      "assets": [
-        6,
-        7
-      ]
-    },
-    {
-      "id": "ra-08",
+      "id": "ab-07",
       "severity": 6,
       "assets": [
         8,
@@ -70,47 +40,127 @@
       ]
     },
     {
-      "id": "ra-09",
+      "id": "ab-08",
       "severity": 6,
       "assets": [
-        10,
-        11
-      ]
-    },
-    {
-      "id": "ra-10",
-      "severity": 6,
-      "assets": [
-        8,
+        9,
         10
       ]
     },
     {
-      "id": "ra-11",
-      "severity": 6,
+      "id": "ab-10",
+      "severity": 4,
       "assets": [
-        9,
-        11
+        11,
+        12
       ]
     },
     {
-      "id": "ra-bad",
-      "severity": 0,
+      "id": "ab-11",
+      "severity": 4,
       "assets": [
-        0
+        13,
+        14
       ]
     },
     {
-      "id": "ra-bad2",
-      "severity": 9,
-      "assets": []
+      "id": "ab-13",
+      "severity": 4,
+      "assets": [
+        16,
+        17
+      ]
     },
     {
-      "id": "ra-00",
+      "id": "ab-14",
+      "severity": 7,
+      "assets": [
+        12,
+        18
+      ]
+    },
+    {
+      "id": "ab-16",
+      "severity": 2,
+      "assets": [
+        20
+      ]
+    },
+    {
+      "id": "ab-17",
+      "severity": 3,
+      "assets": [
+        20,
+        21
+      ]
+    },
+    {
+      "id": "ab-19",
+      "severity": 7,
+      "assets": [
+        10,
+        13
+      ]
+    },
+    {
+      "id": "ab-20",
+      "severity": 5,
+      "assets": [
+        2,
+        16
+      ]
+    },
+    {
+      "id": "ab-22",
       "severity": 1,
       "assets": [
-        0,
-        1
+        15
+      ]
+    },
+    {
+      "id": "ab-23",
+      "severity": 2,
+      "assets": [
+        17,
+        19
+      ]
+    },
+    {
+      "id": "ab-07",
+      "severity": 2,
+      "assets": [
+        8,
+        9
+      ]
+    },
+    {
+      "id": "ab-14",
+      "severity": 5,
+      "assets": [
+        12,
+        18
+      ]
+    },
+    {
+      "id": "ab-25",
+      "severity": 12,
+      "assets": [
+        8
+      ]
+    },
+    {
+      "id": "ab-07",
+      "severity": 3,
+      "assets": [
+        8,
+        9
+      ]
+    },
+    {
+      "id": "ab-90",
+      "severity": 0,
+      "assets": [
+        3
       ]
     }
   ]

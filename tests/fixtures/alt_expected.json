@@ -1,69 +1,74 @@
 {
-  "asset_count": 12,
-  "bundle_count": 12,
-  "total_proposed_severity": 74,
+  "asset_count": 22,
+  "bundle_count": 16,
+  "total_proposed_severity": 72,
   "max_single_bundle_severity": 8,
-  "max_contained_severity": 54,
+  "max_contained_severity": 53,
   "contained_bundle_ids": [
-    "ra-01",
-    "ra-02",
-    "ra-03",
-    "ra-05",
-    "ra-06",
-    "ra-07",
-    "ra-08",
-    "ra-09"
+    "ab-01",
+    "ab-02",
+    "ab-04",
+    "ab-05",
+    "ab-08",
+    "ab-11",
+    "ab-14",
+    "ab-17",
+    "ab-20",
+    "ab-22",
+    "ab-23"
   ],
-  "contained_bundle_count": 8,
-  "contained_asset_count": 12,
-  "uncontained_severity": 20,
-  "residual_contained_severity": 20,
+  "contained_bundle_count": 11,
+  "contained_asset_count": 19,
+  "uncontained_severity": 19,
+  "residual_contained_severity": 19,
   "proposed_tier_counts": {
-    "critical": 4,
-    "major": 7,
-    "minor": 1
+    "critical": 3,
+    "major": 8,
+    "minor": 5
   },
   "contained_tier_counts": {
-    "critical": 3,
-    "major": 5,
-    "minor": 0
+    "critical": 2,
+    "major": 6,
+    "minor": 3
   },
-  "total_asset_pressure": 120,
-  "max_asset_pressure": 16,
-  "containment_score": 95,
-  "coverage_permille": 1000,
-  "residual_pressure": 40,
-  "critical_response_ids": [],
-  "critical_response_count": 0,
-  "max_urgency": 29,
-  "urgency_ledger_checksum": "544173d67d6f401c4d9f59549146f2057554e7b6f2b983348a7d6c60a0f2a994",
-  "asset_exposure_checksum": "04fd6afe35bc8496d09256a8ec19a514a6ba1be9353d577980dc6bd9c5487f28",
-  "total_exposure_overlap": 4,
-  "total_blackout_overlap": 22,
-  "total_maintenance_overlap": 0,
-  "containment_window_checksum": "63f4d60536341977ff1b598505c11007daeb115db905a4509240d7724f9c52e8",
+  "total_asset_pressure": 126,
+  "max_asset_pressure": 14,
+  "containment_score": 97,
+  "coverage_permille": 863,
+  "residual_pressure": 36,
+  "critical_response_ids": [
+    "ab-19"
+  ],
+  "critical_response_count": 1,
+  "max_urgency": 31,
+  "urgency_ledger_checksum": "ee3ae0ab25b14bff16298122ddf810a7e526a123e091f800debe5908373297ce",
+  "asset_exposure_checksum": "c45e1bb26a46ebfd7d822d38046455fd7287c46b87a91dca80ad56f6a32582d0",
+  "total_exposure_overlap": 5,
+  "total_blackout_overlap": 20,
+  "total_maintenance_overlap": 13,
+  "containment_window_checksum": "8ba4e113707920cc87caaaa040dc19df46e991bc56a3f49b02137d6ae172a7a7",
   "policy_checksum": "b2996f167bcc25433c89be3827fcb8a60fb88469d05f8da6bc4d636b640498eb",
   "response_wave_ids": [
-    "ra-01",
-    "ra-02",
-    "ra-07",
-    "ra-08"
+    "ab-01",
+    "ab-02",
+    "ab-04",
+    "ab-08"
   ],
   "response_wave_count": 4,
-  "total_response_load": 83,
-  "max_response_load": 24,
+  "total_response_load": 78,
+  "max_response_load": 23,
   "response_tier_counts": {
     "immediate": 0,
     "urgent": 2,
     "routine": 2
   },
   "response_order": [
-    "ra-01",
-    "ra-02",
-    "ra-07",
-    "ra-08"
+    "ab-02",
+    "ab-01",
+    "ab-08",
+    "ab-04"
   ],
-  "response_wave_checksum": "fda1ef4b5b527d7160db08cb4f48b737c3a95ec173c525632aba4bf58c919ca6",
-  "bundle_checksum": "24d882f78dbf8f0cfdc20b628210c7a0a00a80b02a6677ac6e087f2647217a40",
-  "plan_checksum": "81d3a28e5de0eb0775911fc95a06d853a1636390a8d2b5321ed39798c431af5a"
+  "response_wave_checksum": "ab5ad60abd5d9280305537dd13656a78f576f36768d09fad0ddc589cb7708fe2",
+  "bundle_checksum": "a00637486e18405c1033d00ac72f2c830136de6d898d08cea4cd42c9666389a9",
+  "plan_checksum": "7ebb0f2414bc508bfe522c9571cd3265db556705e99cdd7678b9d5a3e100db87"
 }
