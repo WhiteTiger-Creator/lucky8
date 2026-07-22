@@ -114,7 +114,19 @@
       "unique_flow_ids": "integer",
       "duplicate_flow_ids": "integer count of EXCESS duplicate rows = (raw row count) - (distinct flow_id count); NOT a list of ids, and NOT the number of rows that carry a duplicated id",
       "blocked_row_count": "integer"
-    }
+    },
+    "input_stats_keys_annotated": [
+      "raw_flow_count: integer",
+      "unique_flow_ids: integer",
+      "duplicate_flow_ids: integer - EXCESS duplicate rows = (raw rows) - (distinct flow_ids). NOT a list, NOT the count of rows carrying a duplicated id.",
+      "blocked_row_count: integer"
+    ],
+    "defect_keys_annotated": [
+      "defect_id: string",
+      "dossier_quote: string - ONE verbatim line copied from the dossier, whitespace-stripped. Not a list, not a paraphrase.",
+      "pipeline_evidence: string - ONE verbatim stripped line from the FROZEN snapshot /app/workflow/.export_report.original. Not a list, not a dict.",
+      "repair_action: string"
+    ]
   },
   "repair_audit": {
     "output_name": "repair_audit.json",
@@ -239,7 +251,14 @@
     "hold_digest": "first 12 lowercase hex chars of sha256('subnet|start_ms|end_ms|comma_joined_sorted_flow_ids|top_tier|ledger_hold_ms')",
     "canonical_flow_checksum": "sha256 over one line per canonical row in emitted order, 'flow_id|src_addr|trust_tier|subnet|opened_ms|closed_ms|blocked_as_1_or_0'. Emitted order is the canonical rows sorted by (subnet, opened_ms, flow_id) ascending.",
     "flow_policy_checksum": "sha256 over one line per control window, 'layer|scope|subnet|start_ms|end_ms', ordered by layer, then scope, then subnet, then start_ms",
-    "quarantine_checksum": "sha256 over one line per queue row in queue order, 'case_id|priority|ledger_hold_ms|hold_digest'"
+    "quarantine_checksum": "sha256 over one line per queue row in queue order, 'case_id|priority|ledger_hold_ms|hold_digest'",
+    "serialization_contract": {
+      "text_encoding": "UTF-8",
+      "field_delimiter": "|",
+      "row_delimiter": "one LF character (\\n) BETWEEN rows",
+      "trailing_delimiter": "none: do NOT append a newline or pipe after the final row. The payload is exactly '\\n'.join(rows) and does not end in a newline.",
+      "empty_input": "when there are no rows the payload is the empty string, and the digest is sha256 of the empty string"
+    }
   },
   "guardrails": {
     "frozen_snapshot": "never modify /app/workflow/.export_report.original",

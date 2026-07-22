@@ -24,10 +24,10 @@
       "session_count": 53,
       "total_hold_ms": 17573,
       "total_adjusted_hold_ms": 15032,
-      "total_ledger_hold_ms": 20202,
+      "total_ledger_hold_ms": 20237,
       "total_isolation_overlap_ms": 3388,
       "total_inspection_overlap_ms": 3261,
-      "max_ledger_hold_ms": 795,
+      "max_ledger_hold_ms": 796,
       "max_carry_out_ms": 780,
       "longest_session_ms": 781,
       "quarantined_count": 12,
@@ -38,48 +38,48 @@
       },
       "canonical_flow_checksum": "1454a45bc7e1fc7ea6cadecfe9d3d7275338ac8bae0215e5aaf0324ef5620dca",
       "flow_policy_checksum": "3fc2af1d0647acade0642103e45173588d2eddcf0c7199a6b06a878bc04b6dfb",
-      "quarantine_checksum": "0b6d3ac82881d339069b057b1b84629e2e5fdb7615cc196527d3ff7312b3e813"
+      "quarantine_checksum": "982df2cf327eb814bdf1ed2930b0541f67ca20b5257632d4d469b80af4336a6d"
     },
     "matrix": {
       "alpha": {
         "session_count": 10,
         "total_hold_ms": 3489,
-        "total_ledger_hold_ms": 4099,
+        "total_ledger_hold_ms": 4106,
         "max_carry_out_ms": 780,
         "queued_count": 2
       },
       "bravo": {
         "session_count": 9,
         "total_hold_ms": 2773,
-        "total_ledger_hold_ms": 3137,
+        "total_ledger_hold_ms": 3143,
         "max_carry_out_ms": 780,
         "queued_count": 2
       },
       "charlie": {
         "session_count": 9,
         "total_hold_ms": 3307,
-        "total_ledger_hold_ms": 3873,
+        "total_ledger_hold_ms": 3879,
         "max_carry_out_ms": 780,
         "queued_count": 2
       },
       "delta": {
         "session_count": 8,
         "total_hold_ms": 2489,
-        "total_ledger_hold_ms": 2802,
+        "total_ledger_hold_ms": 2808,
         "max_carry_out_ms": 780,
         "queued_count": 2
       },
       "echo": {
         "session_count": 9,
         "total_hold_ms": 2948,
-        "total_ledger_hold_ms": 3403,
+        "total_ledger_hold_ms": 3408,
         "max_carry_out_ms": 780,
         "queued_count": 2
       },
       "foxtrot": {
         "session_count": 8,
         "total_hold_ms": 2567,
-        "total_ledger_hold_ms": 2888,
+        "total_ledger_hold_ms": 2893,
         "max_carry_out_ms": 780,
         "queued_count": 2
       }
@@ -94,7 +94,7 @@
         "priority": "critical",
         "hold_ms": 758,
         "adjusted_hold_ms": 693,
-        "ledger_hold_ms": 795,
+        "ledger_hold_ms": 796,
         "isolation_overlap_ms": 90,
         "inspection_overlap_ms": 105,
         "carry_in_ms": 512,
@@ -104,7 +104,7 @@
           "fl-028",
           "fx-9001"
         ],
-        "hold_digest": "7b59fe71b4a6"
+        "hold_digest": "e4c85d1299f1"
       },
       {
         "case_id": "echo:4210500162900-4210500163611",
@@ -115,7 +115,7 @@
         "priority": "critical",
         "hold_ms": 711,
         "adjusted_hold_ms": 676,
-        "ledger_hold_ms": 741,
+        "ledger_hold_ms": 742,
         "isolation_overlap_ms": 0,
         "inspection_overlap_ms": 105,
         "carry_in_ms": 329,
@@ -125,7 +125,7 @@
           "fl-018",
           "fx-9025"
         ],
-        "hold_digest": "d80be882e7e9"
+        "hold_digest": "222d1346a2a2"
       },
       {
         "case_id": "charlie:4210500083200-4210500083886",
@@ -136,7 +136,7 @@
         "priority": "critical",
         "hold_ms": 686,
         "adjusted_hold_ms": 621,
-        "ledger_hold_ms": 737,
+        "ledger_hold_ms": 738,
         "isolation_overlap_ms": 90,
         "inspection_overlap_ms": 105,
         "carry_in_ms": 582,
@@ -146,7 +146,7 @@
           "fl-011",
           "fx-9013"
         ],
-        "hold_digest": "149b84c268a5"
+        "hold_digest": "c9b75867411e"
       },
       {
         "case_id": "bravo:4210500042600-4210500043381",
@@ -157,7 +157,7 @@
         "priority": "critical",
         "hold_ms": 781,
         "adjusted_hold_ms": 716,
-        "ledger_hold_ms": 719,
+        "ledger_hold_ms": 720,
         "isolation_overlap_ms": 90,
         "inspection_overlap_ms": 105,
         "carry_in_ms": 17,
@@ -167,7 +167,7 @@
           "fl-029",
           "fx-9007"
         ],
-        "hold_digest": "ec13975dfa70"
+        "hold_digest": "015033736428"
       },
       {
         "case_id": "delta:4210500121600-4210500122243",
@@ -178,7 +178,7 @@
         "priority": "critical",
         "hold_ms": 643,
         "adjusted_hold_ms": 578,
-        "ledger_hold_ms": 598,
+        "ledger_hold_ms": 599,
         "isolation_overlap_ms": 90,
         "inspection_overlap_ms": 105,
         "carry_in_ms": 104,
@@ -188,7 +188,7 @@
           "fl-014",
           "fx-9019"
         ],
-        "hold_digest": "18c787b34077"
+        "hold_digest": "a3c22bd2ae64"
       },
       {
         "case_id": "foxtrot:4210500201800-4210500202392",
@@ -199,7 +199,7 @@
         "priority": "critical",
         "hold_ms": 592,
         "adjusted_hold_ms": 527,
-        "ledger_hold_ms": 560,
+        "ledger_hold_ms": 561,
         "isolation_overlap_ms": 90,
         "inspection_overlap_ms": 105,
         "carry_in_ms": 166,
@@ -209,7 +209,7 @@
           "fl-021",
           "fx-9031"
         ],
-        "hold_digest": "3330e985eb36"
+        "hold_digest": "6edb91d654b8"
       },
       {
         "case_id": "charlie:4210500080000-4210500080611",
@@ -262,7 +262,7 @@
         "priority": "critical",
         "hold_ms": 290,
         "adjusted_hold_ms": 245,
-        "ledger_hold_ms": 392,
+        "ledger_hold_ms": 393,
         "isolation_overlap_ms": 90,
         "inspection_overlap_ms": 0,
         "carry_in_ms": 738,
@@ -271,7 +271,7 @@
         "flow_ids": [
           "fx-9004"
         ],
-        "hold_digest": "73b25a154bae"
+        "hold_digest": "30744ce985e7"
       },
       {
         "case_id": "bravo:4210500044446-4210500044736",
@@ -282,7 +282,7 @@
         "priority": "critical",
         "hold_ms": 290,
         "adjusted_hold_ms": 245,
-        "ledger_hold_ms": 392,
+        "ledger_hold_ms": 393,
         "isolation_overlap_ms": 90,
         "inspection_overlap_ms": 0,
         "carry_in_ms": 738,
@@ -291,7 +291,7 @@
         "flow_ids": [
           "fx-9010"
         ],
-        "hold_digest": "b1fc56ef337e"
+        "hold_digest": "a9ba3013f554"
       },
       {
         "case_id": "delta:4210500123308-4210500123598",
@@ -302,7 +302,7 @@
         "priority": "critical",
         "hold_ms": 290,
         "adjusted_hold_ms": 245,
-        "ledger_hold_ms": 392,
+        "ledger_hold_ms": 393,
         "isolation_overlap_ms": 90,
         "inspection_overlap_ms": 0,
         "carry_in_ms": 738,
@@ -311,7 +311,7 @@
         "flow_ids": [
           "fx-9022"
         ],
-        "hold_digest": "9c1e749cdf8c"
+        "hold_digest": "36041c0b17ea"
       },
       {
         "case_id": "foxtrot:4210500203457-4210500203747",
@@ -322,7 +322,7 @@
         "priority": "critical",
         "hold_ms": 290,
         "adjusted_hold_ms": 245,
-        "ledger_hold_ms": 392,
+        "ledger_hold_ms": 393,
         "isolation_overlap_ms": 90,
         "inspection_overlap_ms": 0,
         "carry_in_ms": 738,
@@ -331,7 +331,7 @@
         "flow_ids": [
           "fx-9034"
         ],
-        "hold_digest": "0c5eb2c010cf"
+        "hold_digest": "5e8055b798ff"
       }
     ]
   },
@@ -360,7 +360,7 @@
       "session_count": 16,
       "total_hold_ms": 4639,
       "total_adjusted_hold_ms": 4277,
-      "total_ledger_hold_ms": 4464,
+      "total_ledger_hold_ms": 4468,
       "total_isolation_overlap_ms": 586,
       "total_inspection_overlap_ms": 429,
       "max_ledger_hold_ms": 491,
@@ -374,13 +374,13 @@
       },
       "canonical_flow_checksum": "8972afd09d50e0cfa5b61ed1e91cddc83b875f3c5472be77feafc1fd2f0090ed",
       "flow_policy_checksum": "3fc2af1d0647acade0642103e45173588d2eddcf0c7199a6b06a878bc04b6dfb",
-      "quarantine_checksum": "bbf7bee51ae5b7a2272ef0c11f07acc99bb0e937e0c59f0440914c8914a8ab8d"
+      "quarantine_checksum": "e72f107ea72e96934ce27c37bcc1aa602369b7e15d8087c46521973b6b466b16"
     },
     "matrix": {
       "alpha": {
         "session_count": 4,
         "total_hold_ms": 1304,
-        "total_ledger_hold_ms": 1284,
+        "total_ledger_hold_ms": 1286,
         "max_carry_out_ms": 547,
         "queued_count": 2
       },
@@ -394,14 +394,14 @@
       "charlie": {
         "session_count": 3,
         "total_hold_ms": 1166,
-        "total_ledger_hold_ms": 1121,
+        "total_ledger_hold_ms": 1122,
         "max_carry_out_ms": 503,
         "queued_count": 2
       },
       "delta": {
         "session_count": 2,
         "total_hold_ms": 462,
-        "total_ledger_hold_ms": 482,
+        "total_ledger_hold_ms": 483,
         "max_carry_out_ms": 313,
         "queued_count": 1
       },
@@ -513,7 +513,7 @@
         "priority": "elevated",
         "hold_ms": 318,
         "adjusted_hold_ms": 318,
-        "ledger_hold_ms": 336,
+        "ledger_hold_ms": 337,
         "isolation_overlap_ms": 0,
         "inspection_overlap_ms": 0,
         "carry_in_ms": 93,
@@ -522,7 +522,7 @@
         "flow_ids": [
           "af-028"
         ],
-        "hold_digest": "8a0a9030b27b"
+        "hold_digest": "0d2f6ec8056c"
       },
       {
         "case_id": "charlie:4210500082100-4210500082409",

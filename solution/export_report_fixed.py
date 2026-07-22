@@ -199,7 +199,7 @@ def build_sessions(canonical: list[dict], policies: list[dict]) -> dict[str, lis
             )
             idle_gap = 0 if prev_end is None else max(session["start_ms"] - prev_end, 0)
             carry_in = max(prev_carry_out - (-(-idle_gap // 4)), 0)
-            ledger_hold = adjusted_hold + (carry_in // 5)
+            ledger_hold = adjusted_hold + (-(-carry_in // 5))
             carry_out = min(
                 carry_in + adjusted_hold + len(session["flow_ids"]) * 6, CARRY_CAP_MS
             )
