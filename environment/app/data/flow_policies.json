@@ -530,5 +530,257 @@
     "subnet": "foxtrot",
     "start_ms": 4210500203982,
     "end_ms": 4210500204087
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "alpha",
+    "start_ms": 4210500004906,
+    "end_ms": 4210500004953
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "alpha",
+    "start_ms": 4210500005320,
+    "end_ms": 4210500005381
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "alpha",
+    "start_ms": 4210500005782,
+    "end_ms": 4210500005853
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "alpha",
+    "start_ms": 4210500006217,
+    "end_ms": 4210500006308
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "alpha",
+    "start_ms": 4210500006692,
+    "end_ms": 4210500006739
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "alpha",
+    "start_ms": 4210500007106,
+    "end_ms": 4210500007167
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "bravo",
+    "start_ms": 4210500043305,
+    "end_ms": 4210500043376
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "bravo",
+    "start_ms": 4210500043713,
+    "end_ms": 4210500043804
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "bravo",
+    "start_ms": 4210500044229,
+    "end_ms": 4210500044276
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "bravo",
+    "start_ms": 4210500044670,
+    "end_ms": 4210500044731
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "bravo",
+    "start_ms": 4210500045091,
+    "end_ms": 4210500045162
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "bravo",
+    "start_ms": 4210500045499,
+    "end_ms": 4210500045590
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "charlie",
+    "start_ms": 4210500083834,
+    "end_ms": 4210500083881
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "charlie",
+    "start_ms": 4210500084248,
+    "end_ms": 4210500084309
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "charlie",
+    "start_ms": 4210500084710,
+    "end_ms": 4210500084781
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "charlie",
+    "start_ms": 4210500085145,
+    "end_ms": 4210500085236
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "charlie",
+    "start_ms": 4210500085620,
+    "end_ms": 4210500085667
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "charlie",
+    "start_ms": 4210500086034,
+    "end_ms": 4210500086095
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "delta",
+    "start_ms": 4210500122167,
+    "end_ms": 4210500122238
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "delta",
+    "start_ms": 4210500122575,
+    "end_ms": 4210500122666
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "delta",
+    "start_ms": 4210500123091,
+    "end_ms": 4210500123138
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "delta",
+    "start_ms": 4210500123532,
+    "end_ms": 4210500123593
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "delta",
+    "start_ms": 4210500123953,
+    "end_ms": 4210500124024
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "delta",
+    "start_ms": 4210500124361,
+    "end_ms": 4210500124452
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "echo",
+    "start_ms": 4210500163559,
+    "end_ms": 4210500163606
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "echo",
+    "start_ms": 4210500163973,
+    "end_ms": 4210500164034
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "echo",
+    "start_ms": 4210500164435,
+    "end_ms": 4210500164506
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "echo",
+    "start_ms": 4210500164870,
+    "end_ms": 4210500164961
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "echo",
+    "start_ms": 4210500165345,
+    "end_ms": 4210500165392
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "echo",
+    "start_ms": 4210500165759,
+    "end_ms": 4210500165820
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "foxtrot",
+    "start_ms": 4210500202316,
+    "end_ms": 4210500202387
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "foxtrot",
+    "start_ms": 4210500202724,
+    "end_ms": 4210500202815
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "foxtrot",
+    "start_ms": 4210500203240,
+    "end_ms": 4210500203287
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "foxtrot",
+    "start_ms": 4210500203681,
+    "end_ms": 4210500203742
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "foxtrot",
+    "start_ms": 4210500204102,
+    "end_ms": 4210500204173
+  },
+  {
+    "layer": "inspection",
+    "scope": "all",
+    "subnet": "foxtrot",
+    "start_ms": 4210500204510,
+    "end_ms": 4210500204601
   }
 ]

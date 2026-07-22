@@ -23,10 +23,10 @@
       "blocked_excluded_count": 2,
       "session_count": 53,
       "total_hold_ms": 17573,
-      "total_adjusted_hold_ms": 15521,
-      "total_ledger_hold_ms": 20692,
+      "total_adjusted_hold_ms": 15032,
+      "total_ledger_hold_ms": 20202,
       "total_isolation_overlap_ms": 3388,
-      "total_inspection_overlap_ms": 1829,
+      "total_inspection_overlap_ms": 3261,
       "max_ledger_hold_ms": 795,
       "max_carry_out_ms": 780,
       "longest_session_ms": 781,
@@ -37,49 +37,49 @@
         "routine": 0
       },
       "canonical_flow_checksum": "1454a45bc7e1fc7ea6cadecfe9d3d7275338ac8bae0215e5aaf0324ef5620dca",
-      "flow_policy_checksum": "caf1683943b7b936434affcdbe0313205b72de4bccfc02d48338d5e868ad8b6e",
-      "quarantine_checksum": "82251aedac3878e67f12424ed7b103bb4d649071a4552bf9e7921de295a8af48"
+      "flow_policy_checksum": "3fc2af1d0647acade0642103e45173588d2eddcf0c7199a6b06a878bc04b6dfb",
+      "quarantine_checksum": "0b6d3ac82881d339069b057b1b84629e2e5fdb7615cc196527d3ff7312b3e813"
     },
     "matrix": {
       "alpha": {
         "session_count": 10,
         "total_hold_ms": 3489,
-        "total_ledger_hold_ms": 4183,
+        "total_ledger_hold_ms": 4099,
         "max_carry_out_ms": 780,
         "queued_count": 2
       },
       "bravo": {
         "session_count": 9,
         "total_hold_ms": 2773,
-        "total_ledger_hold_ms": 3184,
+        "total_ledger_hold_ms": 3137,
         "max_carry_out_ms": 780,
         "queued_count": 2
       },
       "charlie": {
         "session_count": 9,
         "total_hold_ms": 3307,
-        "total_ledger_hold_ms": 3955,
+        "total_ledger_hold_ms": 3873,
         "max_carry_out_ms": 780,
         "queued_count": 2
       },
       "delta": {
         "session_count": 8,
         "total_hold_ms": 2489,
-        "total_ledger_hold_ms": 2899,
+        "total_ledger_hold_ms": 2802,
         "max_carry_out_ms": 780,
         "queued_count": 2
       },
       "echo": {
         "session_count": 9,
         "total_hold_ms": 2948,
-        "total_ledger_hold_ms": 3485,
+        "total_ledger_hold_ms": 3403,
         "max_carry_out_ms": 780,
         "queued_count": 2
       },
       "foxtrot": {
         "session_count": 8,
         "total_hold_ms": 2567,
-        "total_ledger_hold_ms": 2986,
+        "total_ledger_hold_ms": 2888,
         "max_carry_out_ms": 780,
         "queued_count": 2
       }
@@ -97,7 +97,7 @@
         "ledger_hold_ms": 795,
         "isolation_overlap_ms": 90,
         "inspection_overlap_ms": 105,
-        "carry_in_ms": 513,
+        "carry_in_ms": 512,
         "carry_out_ms": 780,
         "flow_count": 2,
         "flow_ids": [
@@ -202,8 +202,8 @@
         "ledger_hold_ms": 560,
         "isolation_overlap_ms": 90,
         "inspection_overlap_ms": 105,
-        "carry_in_ms": 167,
-        "carry_out_ms": 706,
+        "carry_in_ms": 166,
+        "carry_out_ms": 705,
         "flow_count": 2,
         "flow_ids": [
           "fl-021",
@@ -254,84 +254,84 @@
         "hold_digest": "6f486a01bcf1"
       },
       {
-        "case_id": "alpha:4210500005536-4210500005858",
+        "case_id": "alpha:4210500006023-4210500006313",
         "subnet": "alpha",
-        "start_ms": 4210500005536,
-        "end_ms": 4210500005858,
-        "top_tier": "user",
+        "start_ms": 4210500006023,
+        "end_ms": 4210500006313,
+        "top_tier": "core",
         "priority": "critical",
-        "hold_ms": 322,
-        "adjusted_hold_ms": 277,
-        "ledger_hold_ms": 425,
+        "hold_ms": 290,
+        "adjusted_hold_ms": 245,
+        "ledger_hold_ms": 392,
         "isolation_overlap_ms": 90,
         "inspection_overlap_ms": 0,
-        "carry_in_ms": 742,
+        "carry_in_ms": 738,
         "carry_out_ms": 780,
         "flow_count": 1,
         "flow_ids": [
-          "fx-9003"
+          "fx-9004"
         ],
-        "hold_digest": "533730a6ee1e"
+        "hold_digest": "73b25a154bae"
       },
       {
-        "case_id": "bravo:4210500043959-4210500044281",
+        "case_id": "bravo:4210500044446-4210500044736",
         "subnet": "bravo",
-        "start_ms": 4210500043959,
-        "end_ms": 4210500044281,
-        "top_tier": "user",
+        "start_ms": 4210500044446,
+        "end_ms": 4210500044736,
+        "top_tier": "core",
         "priority": "critical",
-        "hold_ms": 322,
-        "adjusted_hold_ms": 277,
-        "ledger_hold_ms": 425,
+        "hold_ms": 290,
+        "adjusted_hold_ms": 245,
+        "ledger_hold_ms": 392,
         "isolation_overlap_ms": 90,
         "inspection_overlap_ms": 0,
-        "carry_in_ms": 742,
+        "carry_in_ms": 738,
         "carry_out_ms": 780,
         "flow_count": 1,
         "flow_ids": [
-          "fx-9009"
+          "fx-9010"
         ],
-        "hold_digest": "bd31254febbc"
+        "hold_digest": "b1fc56ef337e"
       },
       {
-        "case_id": "delta:4210500122821-4210500123143",
+        "case_id": "delta:4210500123308-4210500123598",
         "subnet": "delta",
-        "start_ms": 4210500122821,
-        "end_ms": 4210500123143,
-        "top_tier": "user",
+        "start_ms": 4210500123308,
+        "end_ms": 4210500123598,
+        "top_tier": "core",
         "priority": "critical",
-        "hold_ms": 322,
-        "adjusted_hold_ms": 277,
-        "ledger_hold_ms": 425,
+        "hold_ms": 290,
+        "adjusted_hold_ms": 245,
+        "ledger_hold_ms": 392,
         "isolation_overlap_ms": 90,
         "inspection_overlap_ms": 0,
-        "carry_in_ms": 742,
+        "carry_in_ms": 738,
         "carry_out_ms": 780,
         "flow_count": 1,
         "flow_ids": [
-          "fx-9021"
+          "fx-9022"
         ],
-        "hold_digest": "5f7e2a537bc2"
+        "hold_digest": "9c1e749cdf8c"
       },
       {
-        "case_id": "foxtrot:4210500202970-4210500203292",
+        "case_id": "foxtrot:4210500203457-4210500203747",
         "subnet": "foxtrot",
-        "start_ms": 4210500202970,
-        "end_ms": 4210500203292,
-        "top_tier": "user",
+        "start_ms": 4210500203457,
+        "end_ms": 4210500203747,
+        "top_tier": "core",
         "priority": "critical",
-        "hold_ms": 322,
-        "adjusted_hold_ms": 277,
-        "ledger_hold_ms": 425,
+        "hold_ms": 290,
+        "adjusted_hold_ms": 245,
+        "ledger_hold_ms": 392,
         "isolation_overlap_ms": 90,
         "inspection_overlap_ms": 0,
-        "carry_in_ms": 742,
+        "carry_in_ms": 738,
         "carry_out_ms": 780,
         "flow_count": 1,
         "flow_ids": [
-          "fx-9033"
+          "fx-9034"
         ],
-        "hold_digest": "48d2a571e37a"
+        "hold_digest": "0c5eb2c010cf"
       }
     ]
   },
@@ -359,12 +359,12 @@
       "blocked_excluded_count": 1,
       "session_count": 16,
       "total_hold_ms": 4639,
-      "total_adjusted_hold_ms": 4278,
-      "total_ledger_hold_ms": 4466,
+      "total_adjusted_hold_ms": 4277,
+      "total_ledger_hold_ms": 4464,
       "total_isolation_overlap_ms": 586,
       "total_inspection_overlap_ms": 429,
       "max_ledger_hold_ms": 491,
-      "max_carry_out_ms": 548,
+      "max_carry_out_ms": 547,
       "longest_session_ms": 611,
       "quarantined_count": 9,
       "priority_counts": {
@@ -373,15 +373,15 @@
         "routine": 3
       },
       "canonical_flow_checksum": "8972afd09d50e0cfa5b61ed1e91cddc83b875f3c5472be77feafc1fd2f0090ed",
-      "flow_policy_checksum": "caf1683943b7b936434affcdbe0313205b72de4bccfc02d48338d5e868ad8b6e",
-      "quarantine_checksum": "bcad0594554447ff0b41af76c44e0a2c68cdcdd6e5b217c619e15de278ac0a6d"
+      "flow_policy_checksum": "3fc2af1d0647acade0642103e45173588d2eddcf0c7199a6b06a878bc04b6dfb",
+      "quarantine_checksum": "bbf7bee51ae5b7a2272ef0c11f07acc99bb0e937e0c59f0440914c8914a8ab8d"
     },
     "matrix": {
       "alpha": {
         "session_count": 4,
         "total_hold_ms": 1304,
-        "total_ledger_hold_ms": 1286,
-        "max_carry_out_ms": 548,
+        "total_ledger_hold_ms": 1284,
+        "max_carry_out_ms": 547,
         "queued_count": 2
       },
       "bravo": {
@@ -471,18 +471,18 @@
         "top_tier": "user",
         "priority": "elevated",
         "hold_ms": 492,
-        "adjusted_hold_ms": 381,
-        "ledger_hold_ms": 381,
+        "adjusted_hold_ms": 380,
+        "ledger_hold_ms": 380,
         "isolation_overlap_ms": 149,
         "inspection_overlap_ms": 180,
         "carry_in_ms": 0,
-        "carry_out_ms": 393,
+        "carry_out_ms": 392,
         "flow_count": 2,
         "flow_ids": [
           "af-001",
           "af-022"
         ],
-        "hold_digest": "c2b77d9b8a7d"
+        "hold_digest": "3b61690bd118"
       },
       {
         "case_id": "bravo:4210500042600-4210500042941",
@@ -516,8 +516,8 @@
         "ledger_hold_ms": 336,
         "isolation_overlap_ms": 0,
         "inspection_overlap_ms": 0,
-        "carry_in_ms": 94,
-        "carry_out_ms": 418,
+        "carry_in_ms": 93,
+        "carry_out_ms": 417,
         "flow_count": 1,
         "flow_ids": [
           "af-028"

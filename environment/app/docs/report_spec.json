@@ -140,7 +140,17 @@
       "defects_repaired": "JSON array of the defect id strings that were repaired, sorted ascending",
       "forbidden_tokens_removed": "JSON array of the forbidden token strings removed from the restored workflow, sorted",
       "artifacts": "JSON array of output basenames, sorted, including repair_audit.json"
-    }
+    },
+    "required_keys_annotated": [
+      "schema_version: string",
+      "pre_repair_sha256: string (64-char lowercase hex)",
+      "pre_repair_byte_count: integer",
+      "post_repair_sha256: string (64-char lowercase hex)",
+      "post_repair_byte_count: integer",
+      "defects_repaired: string[] - the defect id strings that were repaired, sorted ascending. NOT a count.",
+      "forbidden_tokens_removed: string[] - the spec's workflow_repair.forbidden_tokens that were removed, sorted. NOT a count.",
+      "artifacts: string[] - artifact file names written, sorted"
+    ]
   },
   "workflow_repair": {
     "path": "/app/workflow/export_report.py",

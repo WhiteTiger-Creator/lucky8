@@ -195,7 +195,7 @@ def build_sessions(canonical: list[dict], policies: list[dict]) -> dict[str, lis
                     shared += max(0, min(le, me) - max(ls, ms))
             inspection_used = max(inspection_overlap - shared, 0)
             adjusted_hold = max(
-                hold - (-(-isolation_overlap // 2)) - (inspection_used // 3), 0
+                hold - (-(-isolation_overlap // 2)) - (-(-inspection_used // 3)), 0
             )
             idle_gap = 0 if prev_end is None else max(session["start_ms"] - prev_end, 0)
             carry_in = max(prev_carry_out - (-(-idle_gap // 4)), 0)
