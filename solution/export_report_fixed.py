@@ -121,6 +121,29 @@ def _overlap(a_start: int, a_end: int, spans: list[tuple[int, int]]) -> list[tup
     return out
 
 
+ISOLATION_PROBE_LOOKBACK_MS = 180
+INSPECTION_PROBE_LOOKBACK_MS = 240
+
+
+def scope_spans(rows: list[dict], subnet: str, layer: str, scope: str) -> list[tuple[int, int]]:
+    """Compacted spans recorded for one EXACT scope, with no `all` fallback.
+
+    The probe families read each scope on its own, unlike policies_for which
+    resolves a class to a single effective span set.
+    """
+    return _compact([
+        (_norm_ms(r["start_ms"]), _norm_ms(r["end_ms"])) for r in rows
+        if r.get("layer") == layer and _norm_subnet(r.get("subnet")) == subnet
+        and str(r.get("scope")) == scope and _norm_ms(r["end_ms"]) > _norm_ms(r["start_ms"])
+    ])
+
+
+def probe_overlap_ms(end_ms: int, spans: list[tuple[int, int]], lookback_ms: int) -> int:
+    """Control coverage inside the half-open probe range [end_ms - lookback, end_ms + 1)."""
+    lo, hi = end_ms - lookback_ms, end_ms + 1
+    return sum(max(0, min(hi, e) - max(lo, s)) for s, e in spans)
+
+
 def policies_for(rows: list[dict], subnet: str, layer: str, trust_tier: str) -> list[tuple[int, int]]:
     """TQ-3326 scope: a class uses its OWN windows for this layer; only a class with
     no window of its own falls back to the `all` scope. Own entries do not also
@@ -197,6 +220,30 @@ def build_sessions(canonical: list[dict], policies: list[dict]) -> dict[str, lis
             adjusted_hold = max(
                 hold - (-(-isolation_overlap // 2)) - (-(-inspection_used // 3)), 0
             )
+            iso_all_probe = probe_overlap_ms(
+                session["end_ms"], scope_spans(policies, subnet, "isolation", "all"),
+                ISOLATION_PROBE_LOOKBACK_MS)
+            iso_tier_probe = probe_overlap_ms(
+                session["end_ms"], scope_spans(policies, subnet, "isolation", session["top_tier"]),
+                ISOLATION_PROBE_LOOKBACK_MS)
+            ins_all_probe = probe_overlap_ms(
+                session["end_ms"], scope_spans(policies, subnet, "inspection", "all"),
+                INSPECTION_PROBE_LOOKBACK_MS)
+            ins_tier_probe = probe_overlap_ms(
+                session["end_ms"], scope_spans(policies, subnet, "inspection", session["top_tier"]),
+                INSPECTION_PROBE_LOOKBACK_MS)
+            # TQ-3342 / TQ-3344: the two probe families round in OPPOSITE directions.
+            # Isolation floors its all half and ceilings its class half; inspection
+            # does the reverse. Neither direction may be inferred from the other.
+            isolation_pressure_score = (
+                (iso_all_probe // 26) + (-(-iso_tier_probe // 18)) + len(lock_spans)
+            )
+            inspection_pressure_score = (
+                (-(-ins_all_probe // 34)) + (ins_tier_probe // 22) + len(maint_spans)
+            )
+            containment_index = (
+                isolation_pressure_score + inspection_pressure_score + (adjusted_hold // 40)
+            )
             idle_gap = 0 if prev_end is None else max(session["start_ms"] - prev_end, 0)
             carry_in = max(prev_carry_out - (-(-idle_gap // 4)), 0)
             ledger_hold = adjusted_hold + (-(-carry_in // 5))
@@ -211,6 +258,9 @@ def build_sessions(canonical: list[dict], policies: list[dict]) -> dict[str, lis
                 "adjusted_hold_ms": adjusted_hold,
                 "idle_gap_ms": idle_gap, "carry_in_ms": carry_in,
                 "carry_out_ms": carry_out, "ledger_hold_ms": ledger_hold,
+                "isolation_pressure_score": isolation_pressure_score,
+                "inspection_pressure_score": inspection_pressure_score,
+                "containment_index": containment_index,
                 "flow_count": len(session["flow_ids"]),
                 "flow_ids": sorted(session["flow_ids"]),
                 "top_tier": session["top_tier"],
@@ -231,13 +281,13 @@ def build_queue(sessions: dict[str, list[dict]]) -> list[dict]:
                 row["top_tier"] == "core" and row["isolation_overlap_ms"] > 0
             ):
                 priority = "critical"
-            elif row["ledger_hold_ms"] >= 300 or row["flow_count"] >= 3:
+            elif row["ledger_hold_ms"] >= 300 or row["containment_index"] >= 12 or row["flow_count"] >= 3:
                 priority = "elevated"
             else:
                 priority = "routine"
             payload = (
                 f"{subnet}|{row['start_ms']}|{row['end_ms']}|{','.join(row['flow_ids'])}"
-                f"|{row['top_tier']}|{row['ledger_hold_ms']}"
+                f"|{row['top_tier']}|{row['ledger_hold_ms']}|{row['containment_index']}"
             )
             queue.append({
                 "case_id": f"{subnet}:{row['start_ms']}-{row['end_ms']}",
@@ -248,6 +298,9 @@ def build_queue(sessions: dict[str, list[dict]]) -> list[dict]:
                 "isolation_overlap_ms": row["isolation_overlap_ms"],
                 "inspection_overlap_ms": row["inspection_overlap_ms"],
                 "carry_in_ms": row["carry_in_ms"], "carry_out_ms": row["carry_out_ms"],
+                "isolation_pressure_score": row["isolation_pressure_score"],
+                "inspection_pressure_score": row["inspection_pressure_score"],
+                "containment_index": row["containment_index"],
                 "flow_count": row["flow_count"], "flow_ids": row["flow_ids"],
                 "hold_digest": hashlib.sha256(payload.encode("utf-8")).hexdigest()[:12],
             })
@@ -319,6 +372,9 @@ def export_report(events: list[dict], output_dir: Path, policies: list[dict]) ->
         "total_inspection_overlap_ms": sum(r["inspection_overlap_ms"] for r in all_rows),
         "max_ledger_hold_ms": max((r["ledger_hold_ms"] for r in all_rows), default=0),
         "max_carry_out_ms": max((r["carry_out_ms"] for r in all_rows), default=0),
+        "max_isolation_pressure_score": max((r["isolation_pressure_score"] for r in all_rows), default=0),
+        "max_inspection_pressure_score": max((r["inspection_pressure_score"] for r in all_rows), default=0),
+        "max_containment_index": max((r["containment_index"] for r in all_rows), default=0),
         "longest_session_ms": max((r["hold_ms"] for r in all_rows), default=0),
         "quarantined_count": len(queue),
         "priority_counts": {

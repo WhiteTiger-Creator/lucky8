@@ -33,6 +33,23 @@ Each of the six defects in `report_spec.json` under `known_defects` is reported 
 
 Defects are emitted sorted by `defect_id` ascending.
 
+## Diagnosis report
+
+`diagnosis.json` is specified by the **`diagnosis_report`** section of `report_spec.json` (that is
+the exact top-level key — there is no `diagnosis` key). It carries all five keys of
+`diagnosis_report.required_keys`:
+
+* `schema_version` — the literal string fixed by the spec.
+* `input_stats` — an object with `raw_flow_count`, `unique_flow_ids`, `duplicate_flow_ids` and
+  `blocked_row_count`, all integers describing the RAW input stream.
+* `defect_count` — the integer number of defects reported.
+* `defects` — the defect objects, sorted by `defect_id` ascending, each carrying `defect_id`,
+  `stage`, `dossier_quote`, `pipeline_evidence` and `repair_action`. `dossier_quote` and
+  `pipeline_evidence` are each a **single verbatim string**, never a list.
+* `diagnosis_checksum` — the digest over the contracted per-defect payload.
+
+Exact types are given in the spec's `input_stats_keys_annotated` and `defect_keys_annotated`.
+
 ## Repair audit
 
 `repair_audit.json` carries all eight keys of `repair_audit.required_keys` — a file with only

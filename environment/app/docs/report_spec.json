@@ -196,6 +196,9 @@
         "total_inspection_overlap_ms",
         "max_ledger_hold_ms",
         "max_carry_out_ms",
+        "max_containment_index",
+        "max_inspection_pressure_score",
+        "max_isolation_pressure_score",
         "longest_session_ms",
         "quarantined_count",
         "priority_counts",
@@ -238,6 +241,9 @@
         "inspection_overlap_ms",
         "carry_in_ms",
         "carry_out_ms",
+        "containment_index",
+        "inspection_pressure_score",
+        "isolation_pressure_score",
         "flow_count",
         "flow_ids",
         "hold_digest"
@@ -249,7 +255,7 @@
     }
   },
   "digest_payloads": {
-    "hold_digest": "first 12 lowercase hex chars of sha256('subnet|start_ms|end_ms|comma_joined_sorted_flow_ids|top_tier|ledger_hold_ms')",
+    "hold_digest": "first 12 lowercase hex chars of sha256('subnet|start_ms|end_ms|comma_joined_sorted_flow_ids|top_tier|ledger_hold_ms|containment_index')",
     "canonical_flow_checksum": "sha256 over one line per canonical row in emitted order, 'flow_id|src_addr|trust_tier|subnet|opened_ms|closed_ms|blocked_as_1_or_0'. Emitted order is the canonical rows sorted by (subnet, opened_ms, flow_id) ascending.",
     "flow_policy_checksum": "sha256 over one line per control window, 'layer|scope|subnet|start_ms|end_ms', ordered by layer, then scope, then subnet, then start_ms",
     "quarantine_checksum": "sha256 over one line per queue row in queue order, 'case_id|priority|ledger_hold_ms|hold_digest'",

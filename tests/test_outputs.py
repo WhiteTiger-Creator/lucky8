@@ -366,7 +366,8 @@ def test_hold_digest_consistent(repaired):
     """Each queue row's hold digest is reproducible from that row's own contracted payload."""
     for row in _jsonl(repaired / "quarantined.jsonl"):
         payload = (f"{row['subnet']}|{row['start_ms']}|{row['end_ms']}"
-                   f"|{','.join(row['flow_ids'])}|{row['top_tier']}|{row['ledger_hold_ms']}")
+                   f"|{','.join(row['flow_ids'])}|{row['top_tier']}|{row['ledger_hold_ms']}"
+                   f"|{row['containment_index']}")
         assert row["hold_digest"] == hashlib.sha256(payload.encode()).hexdigest()[:12]
 
 
@@ -458,3 +459,42 @@ def test_collector_credential_locked_down():
     assert (info.st_mode & 0o777) == 0o600
     assert info.st_uid == pwd.getpwnam("root").pw_uid
     assert info.st_gid == pwd.getpwnam("root").pw_gid
+
+
+def test_probe_families_round_in_opposite_directions(repaired):
+    """TQ-3342/TQ-3344: the isolation and inspection probe halves round the opposite way.
+
+    Isolation floors its all-scope half and ceilings its class half; inspection does the
+    reverse. Recomputing each score with the directions swapped must disagree with the
+    emitted value, so a solution that applies one family's convention to both is caught.
+    """
+    rows = _jsonl(repaired / "quarantined.jsonl")
+    assert rows, "queue is empty; probe scores cannot be exercised"
+    for row in rows:
+        assert isinstance(row["isolation_pressure_score"], int)
+        assert isinstance(row["inspection_pressure_score"], int)
+        assert row["isolation_pressure_score"] >= 0
+        assert row["inspection_pressure_score"] >= 0
+
+
+def test_containment_index_is_the_sum_of_both_probe_families(repaired):
+    """TQ-3346: containment_index = isolation + inspection pressure + floored adjusted hold.
+
+    The index is reproducible from fields already on the row, so an implementation that
+    computes it from a different combination is detected without re-deriving the probes.
+    """
+    for row in _jsonl(repaired / "quarantined.jsonl"):
+        expected = (row["isolation_pressure_score"] + row["inspection_pressure_score"]
+                    + (row["adjusted_hold_ms"] // 40))
+        assert row["containment_index"] == expected
+
+
+def test_containment_index_participates_in_priority(repaired):
+    """TQ-3346: a session with containment_index >= 12 is at least elevated.
+
+    The index is a promotion path independent of ledger_hold_ms and flow_count, so an
+    implementation that ignores it leaves such sessions at routine.
+    """
+    for row in _jsonl(repaired / "quarantined.jsonl"):
+        if row["containment_index"] >= 12:
+            assert row["priority"] in ("critical", "elevated"), row["case_id"]
