@@ -123,6 +123,7 @@
     ],
     "defect_keys_annotated": [
       "defect_id: string",
+      "stage: string - the pipeline stage the defect belongs to, exactly as listed for that defect in known_defects",
       "dossier_quote: string - ONE verbatim line copied from the dossier, whitespace-stripped. Not a list, not a paraphrase.",
       "pipeline_evidence: string - ONE verbatim stripped line from the FROZEN snapshot /app/workflow/.export_report.original. Not a list, not a dict.",
       "repair_action: string"
@@ -263,5 +264,8 @@
   "guardrails": {
     "frozen_snapshot": "never modify /app/workflow/.export_report.original",
     "verifier_trees": "never read or import external grading resources"
+  },
+  "inputs": {
+    "control_policies_path": "The isolation/inspection control windows are ALWAYS read from the fixed absolute path /app/data/flow_policies.json. --input reparameterizes only the flow-telemetry stream; the policies path is never derived from the input path and never becomes relative to the input or output directory."
   }
 }
