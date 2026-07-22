@@ -1,5 +1,5 @@
 
-# Tideguard Badge-Access Review Dossier
+# Tideguard Network-Flow Quarantine Review Dossier
 
 Working record of the access-control review board. The containment rollup deployed during the Tideguard incident is producing an unreliable responder queue; how the rollup is *meant* to behave was settled here incrementally, not in any single summary. February triage proposals were partly reversed during the March working sessions and several March positions were revised again in the May close-out, so trace each rule to its final dated decision. `/app/docs/report_spec.json` is the output contract only: it fixes file names, key sets and checksum serialization, not how any value is derived.
 
@@ -9,7 +9,7 @@ Door controller B6 on eastwing was re-seated during the late shift; reader firmw
 Sato reviewed 54 camera frames against the server-hall flow log for the night shift and found no unattributed entries.
 Escort refresher for the vault service cohort closed with 91 attendees; facilities holds the roster.
 Okonkwo confirmed the atrium anti-passback timer stayed at the 128-second vendor default across the incident window.
-Badge stock at the coldroom desk reconciled after the relief shift: 165 blanks issued, none unaccounted.
+Collector spool capacity at the coldroom desk reconciled after the relief shift: 165 blanks issued, none unaccounted.
 Osei closed the dockbay follow-up on port C2 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile H2 on eastwing recalibrated in 239 minutes during the night shift with no operator intervention.
 Ferrara measured 276 ms of clock drift on the server-hall guest kiosk, inside the tolerance the board set.
@@ -38,7 +38,7 @@ Door-forced alarm on A1 at dockbay fired 190 times, every one traced to faciliti
 Delacroix confirmed the eastwing camera-to-flow overlay stayed aligned across 227 sampled events.
 Escort-desk staffing for server-hall held at 264 through the night shift; no queue built at the reader.
 Lindqvist archived 301 reader event logs from vault port F9; retention only, no bearing on the rollup.
-Badge-encoder calibration for atrium completed after 338 test cards on the early shift.
+Sensor tap calibration for atrium completed after 338 test cards on the early shift.
 Kowalczyk noted 375 seconds of NTP skew on the coldroom controller, corrected before the relief shift ended.
 Loading-dock override at dockbay port E2 was used 412 times for deliveries, each with a signed slip.
 Haugen tallied 449 after-hours flows for eastwing on the night shift; all matched authorized on-call user.
@@ -47,7 +47,7 @@ Door controller D1 on vault was re-seated during the early shift; reader firmwar
 Ferrara reviewed 560 camera frames against the atrium flow log for the relief shift and found no unattributed entries.
 Escort refresher for the coldroom service cohort closed with 597 attendees; facilities holds the roster.
 Menendez confirmed the dockbay anti-passback timer stayed at the 634-second vendor default across the incident window.
-Badge stock at the eastwing desk reconciled after the swing shift: 671 blanks issued, none unaccounted.
+Collector spool capacity at the eastwing desk reconciled after the swing shift: 671 blanks issued, none unaccounted.
 Nakamura closed the server-hall follow-up on port D5 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile B1 on vault recalibrated in 745 minutes during the relief shift with no operator intervention.
 Baptiste measured 782 ms of clock drift on the atrium guest kiosk, inside the tolerance the board set.
@@ -77,7 +77,7 @@ Door-forced alarm on B3 at server-hall fired 696 times, every one traced to faci
 Haugen confirmed the vault camera-to-flow overlay stayed aligned across 733 sampled events.
 Escort-desk staffing for atrium held at 770 through the relief shift; no queue built at the reader.
 Thorsen archived 807 reader event logs from coldroom port A2; retention only, no bearing on the rollup.
-Badge-encoder calibration for dockbay completed after 844 test cards on the night shift.
+Sensor tap calibration for dockbay completed after 844 test cards on the night shift.
 Villanueva noted 881 seconds of NTP skew on the eastwing controller, corrected before the swing shift ended.
 Loading-dock override at server-hall port G4 was used 18 times for deliveries, each with a signed slip.
 Moreau tallied 55 after-hours flows for vault on the relief shift; all matched authorized on-call user.
@@ -86,7 +86,7 @@ Door controller E7 on coldroom was re-seated during the night shift; reader firm
 Baptiste reviewed 166 camera frames against the dockbay flow log for the swing shift and found no unattributed entries.
 Escort refresher for the eastwing service cohort closed with 203 attendees; facilities holds the roster.
 Abadi confirmed the server-hall anti-passback timer stayed at the 240-second vendor default across the incident window.
-Badge stock at the vault desk reconciled after the late shift: 277 blanks issued, none unaccounted.
+Collector spool capacity at the vault desk reconciled after the late shift: 277 blanks issued, none unaccounted.
 Sato closed the atrium follow-up on port F3 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile C4 on coldroom recalibrated in 351 minutes during the swing shift with no operator intervention.
 Okonkwo measured 388 ms of clock drift on the dockbay guest kiosk, inside the tolerance the board set.
@@ -115,7 +115,7 @@ Door-forced alarm on C7 at atrium fired 302 times, every one traced to facilitie
 Moreau confirmed the coldroom camera-to-flow overlay stayed aligned across 339 sampled events.
 Escort-desk staffing for dockbay held at 376 through the swing shift; no queue built at the reader.
 Rautio archived 413 reader event logs from eastwing port B6; retention only, no bearing on the rollup.
-Badge-encoder calibration for server-hall completed after 450 test cards on the relief shift.
+Sensor tap calibration for server-hall completed after 450 test cards on the relief shift.
 Delacroix noted 487 seconds of NTP skew on the vault controller, corrected before the late shift ended.
 Loading-dock override at atrium port A5 was used 524 times for deliveries, each with a signed slip.
 Lindqvist tallied 561 after-hours flows for coldroom on the swing shift; all matched authorized on-call user.
@@ -127,7 +127,7 @@ Door controller H2 on eastwing was re-seated during the relief shift; reader fir
 Okonkwo reviewed 672 camera frames against the server-hall flow log for the late shift and found no unattributed entries.
 Escort refresher for the vault service cohort closed with 709 attendees; facilities holds the roster.
 Osei confirmed the atrium anti-passback timer stayed at the 746-second vendor default across the incident window.
-Badge stock at the coldroom desk reconciled after the early shift: 783 blanks issued, none unaccounted.
+Collector spool capacity at the coldroom desk reconciled after the early shift: 783 blanks issued, none unaccounted.
 Ferrara closed the dockbay follow-up on port A1 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile D8 on eastwing recalibrated in 857 minutes during the late shift with no operator intervention.
 Menendez measured 894 ms of clock drift on the server-hall guest kiosk, inside the tolerance the board set.
@@ -156,7 +156,7 @@ Door-forced alarm on E2 at dockbay fired 808 times, every one traced to faciliti
 Lindqvist confirmed the eastwing camera-to-flow overlay stayed aligned across 845 sampled events.
 Escort-desk staffing for server-hall held at 882 through the late shift; no queue built at the reader.
 Kowalczyk archived 19 reader event logs from vault port D1; retention only, no bearing on the rollup.
-Badge-encoder calibration for atrium completed after 56 test cards on the swing shift.
+Sensor tap calibration for atrium completed after 56 test cards on the swing shift.
 Haugen noted 93 seconds of NTP skew on the coldroom controller, corrected before the early shift ended.
 Loading-dock override at dockbay port C2 was used 130 times for deliveries, each with a signed slip.
 Thorsen tallied 167 after-hours flows for eastwing on the late shift; all matched authorized on-call user.
@@ -165,7 +165,7 @@ Door controller B1 on vault was re-seated during the swing shift; reader firmwar
 Menendez reviewed 278 camera frames against the atrium flow log for the early shift and found no unattributed entries.
 Escort refresher for the coldroom service cohort closed with 315 attendees; facilities holds the roster.
 Nakamura confirmed the dockbay anti-passback timer stayed at the 352-second vendor default across the incident window.
-Badge stock at the eastwing desk reconciled after the night shift: 389 blanks issued, none unaccounted.
+Collector spool capacity at the eastwing desk reconciled after the night shift: 389 blanks issued, none unaccounted.
 Baptiste closed the server-hall follow-up on port B3 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile F9 on vault recalibrated in 463 minutes during the early shift with no operator intervention.
 Abadi measured 500 ms of clock drift on the atrium guest kiosk, inside the tolerance the board set.
@@ -195,7 +195,7 @@ Door-forced alarm on G4 at server-hall fired 414 times, every one traced to faci
 Thorsen confirmed the vault camera-to-flow overlay stayed aligned across 451 sampled events.
 Escort-desk staffing for atrium held at 488 through the early shift; no queue built at the reader.
 Villanueva archived 525 reader event logs from coldroom port E7; retention only, no bearing on the rollup.
-Badge-encoder calibration for dockbay completed after 562 test cards on the late shift.
+Sensor tap calibration for dockbay completed after 562 test cards on the late shift.
 Moreau noted 599 seconds of NTP skew on the eastwing controller, corrected before the night shift ended.
 Loading-dock override at server-hall port D5 was used 636 times for deliveries, each with a signed slip.
 Rautio tallied 673 after-hours flows for vault on the early shift; all matched authorized on-call user.
@@ -204,7 +204,7 @@ Door controller C4 on coldroom was re-seated during the late shift; reader firmw
 Abadi reviewed 784 camera frames against the dockbay flow log for the night shift and found no unattributed entries.
 Escort refresher for the eastwing service cohort closed with 821 attendees; facilities holds the roster.
 Sato confirmed the server-hall anti-passback timer stayed at the 858-second vendor default across the incident window.
-Badge stock at the vault desk reconciled after the relief shift: 895 blanks issued, none unaccounted.
+Collector spool capacity at the vault desk reconciled after the relief shift: 895 blanks issued, none unaccounted.
 Okonkwo closed the atrium follow-up on port C7 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile A2 on coldroom recalibrated in 69 minutes during the night shift with no operator intervention.
 Osei measured 106 ms of clock drift on the dockbay guest kiosk, inside the tolerance the board set.
@@ -233,7 +233,7 @@ Door-forced alarm on A5 at atrium fired 20 times, every one traced to facilities
 Rautio confirmed the coldroom camera-to-flow overlay stayed aligned across 57 sampled events.
 Escort-desk staffing for dockbay held at 94 through the night shift; no queue built at the reader.
 Delacroix archived 131 reader event logs from eastwing port H2; retention only, no bearing on the rollup.
-Badge-encoder calibration for server-hall completed after 168 test cards on the early shift.
+Sensor tap calibration for server-hall completed after 168 test cards on the early shift.
 Lindqvist noted 205 seconds of NTP skew on the vault controller, corrected before the relief shift ended.
 Loading-dock override at atrium port F3 was used 242 times for deliveries, each with a signed slip.
 Kowalczyk tallied 279 after-hours flows for coldroom on the night shift; all matched authorized on-call user.
@@ -245,7 +245,7 @@ Door controller D8 on eastwing was re-seated during the early shift; reader firm
 Osei reviewed 390 camera frames against the server-hall flow log for the relief shift and found no unattributed entries.
 Escort refresher for the vault service cohort closed with 427 attendees; facilities holds the roster.
 Ferrara confirmed the atrium anti-passback timer stayed at the 464-second vendor default across the incident window.
-Badge stock at the coldroom desk reconciled after the swing shift: 501 blanks issued, none unaccounted.
+Collector spool capacity at the coldroom desk reconciled after the swing shift: 501 blanks issued, none unaccounted.
 Menendez closed the dockbay follow-up on port E2 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile B6 on eastwing recalibrated in 575 minutes during the relief shift with no operator intervention.
 Nakamura measured 612 ms of clock drift on the server-hall guest kiosk, inside the tolerance the board set.
@@ -274,7 +274,7 @@ Door-forced alarm on C2 at dockbay fired 526 times, every one traced to faciliti
 Kowalczyk confirmed the eastwing camera-to-flow overlay stayed aligned across 563 sampled events.
 Escort-desk staffing for server-hall held at 600 through the relief shift; no queue built at the reader.
 Haugen archived 637 reader event logs from vault port B1; retention only, no bearing on the rollup.
-Badge-encoder calibration for atrium completed after 674 test cards on the night shift.
+Sensor tap calibration for atrium completed after 674 test cards on the night shift.
 Thorsen noted 711 seconds of NTP skew on the coldroom controller, corrected before the swing shift ended.
 Loading-dock override at dockbay port A1 was used 748 times for deliveries, each with a signed slip.
 Villanueva tallied 785 after-hours flows for eastwing on the relief shift; all matched authorized on-call user.
@@ -283,7 +283,7 @@ Door controller F9 on vault was re-seated during the night shift; reader firmwar
 Nakamura reviewed 896 camera frames against the atrium flow log for the swing shift and found no unattributed entries.
 Escort refresher for the coldroom service cohort closed with 33 attendees; facilities holds the roster.
 Baptiste confirmed the dockbay anti-passback timer stayed at the 70-second vendor default across the incident window.
-Badge stock at the eastwing desk reconciled after the late shift: 107 blanks issued, none unaccounted.
+Collector spool capacity at the eastwing desk reconciled after the late shift: 107 blanks issued, none unaccounted.
 Abadi closed the server-hall follow-up on port G4 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile D1 on vault recalibrated in 181 minutes during the swing shift with no operator intervention.
 Sato measured 218 ms of clock drift on the atrium guest kiosk, inside the tolerance the board set.
@@ -313,7 +313,7 @@ Door-forced alarm on D5 at server-hall fired 132 times, every one traced to faci
 Villanueva confirmed the vault camera-to-flow overlay stayed aligned across 169 sampled events.
 Escort-desk staffing for atrium held at 206 through the swing shift; no queue built at the reader.
 Moreau archived 243 reader event logs from coldroom port C4; retention only, no bearing on the rollup.
-Badge-encoder calibration for dockbay completed after 280 test cards on the relief shift.
+Sensor tap calibration for dockbay completed after 280 test cards on the relief shift.
 Rautio noted 317 seconds of NTP skew on the eastwing controller, corrected before the late shift ended.
 Loading-dock override at server-hall port B3 was used 354 times for deliveries, each with a signed slip.
 Delacroix tallied 391 after-hours flows for vault on the swing shift; all matched authorized on-call user.
@@ -322,7 +322,7 @@ Door controller A2 on coldroom was re-seated during the relief shift; reader fir
 Sato reviewed 502 camera frames against the dockbay flow log for the late shift and found no unattributed entries.
 Escort refresher for the eastwing service cohort closed with 539 attendees; facilities holds the roster.
 Okonkwo confirmed the server-hall anti-passback timer stayed at the 576-second vendor default across the incident window.
-Badge stock at the vault desk reconciled after the early shift: 613 blanks issued, none unaccounted.
+Collector spool capacity at the vault desk reconciled after the early shift: 613 blanks issued, none unaccounted.
 Osei closed the atrium follow-up on port A5 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile E7 on coldroom recalibrated in 687 minutes during the late shift with no operator intervention.
 Ferrara measured 724 ms of clock drift on the dockbay guest kiosk, inside the tolerance the board set.
@@ -351,7 +351,7 @@ Door-forced alarm on F3 at atrium fired 638 times, every one traced to facilitie
 Delacroix confirmed the coldroom camera-to-flow overlay stayed aligned across 675 sampled events.
 Escort-desk staffing for dockbay held at 712 through the late shift; no queue built at the reader.
 Lindqvist archived 749 reader event logs from eastwing port D8; retention only, no bearing on the rollup.
-Badge-encoder calibration for server-hall completed after 786 test cards on the swing shift.
+Sensor tap calibration for server-hall completed after 786 test cards on the swing shift.
 Kowalczyk noted 823 seconds of NTP skew on the vault controller, corrected before the early shift ended.
 Loading-dock override at atrium port C7 was used 860 times for deliveries, each with a signed slip.
 Haugen tallied 897 after-hours flows for coldroom on the late shift; all matched authorized on-call user.
@@ -363,7 +363,7 @@ Door controller B6 on eastwing was re-seated during the swing shift; reader firm
 Ferrara reviewed 108 camera frames against the server-hall flow log for the early shift and found no unattributed entries.
 Escort refresher for the vault service cohort closed with 145 attendees; facilities holds the roster.
 Menendez confirmed the atrium anti-passback timer stayed at the 182-second vendor default across the incident window.
-Badge stock at the coldroom desk reconciled after the night shift: 219 blanks issued, none unaccounted.
+Collector spool capacity at the coldroom desk reconciled after the night shift: 219 blanks issued, none unaccounted.
 Nakamura closed the dockbay follow-up on port C2 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile H2 on eastwing recalibrated in 293 minutes during the early shift with no operator intervention.
 Baptiste measured 330 ms of clock drift on the server-hall guest kiosk, inside the tolerance the board set.
@@ -392,7 +392,7 @@ Door-forced alarm on A1 at dockbay fired 244 times, every one traced to faciliti
 Haugen confirmed the eastwing camera-to-flow overlay stayed aligned across 281 sampled events.
 Escort-desk staffing for server-hall held at 318 through the early shift; no queue built at the reader.
 Thorsen archived 355 reader event logs from vault port F9; retention only, no bearing on the rollup.
-Badge-encoder calibration for atrium completed after 392 test cards on the late shift.
+Sensor tap calibration for atrium completed after 392 test cards on the late shift.
 Villanueva noted 429 seconds of NTP skew on the coldroom controller, corrected before the night shift ended.
 Loading-dock override at dockbay port E2 was used 466 times for deliveries, each with a signed slip.
 Moreau tallied 503 after-hours flows for eastwing on the early shift; all matched authorized on-call user.
@@ -401,7 +401,7 @@ Door controller D1 on vault was re-seated during the late shift; reader firmware
 Baptiste reviewed 614 camera frames against the atrium flow log for the night shift and found no unattributed entries.
 Escort refresher for the coldroom service cohort closed with 651 attendees; facilities holds the roster.
 Abadi confirmed the dockbay anti-passback timer stayed at the 688-second vendor default across the incident window.
-Badge stock at the eastwing desk reconciled after the relief shift: 725 blanks issued, none unaccounted.
+Collector spool capacity at the eastwing desk reconciled after the relief shift: 725 blanks issued, none unaccounted.
 Sato closed the server-hall follow-up on port D5 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile B1 on vault recalibrated in 799 minutes during the night shift with no operator intervention.
 Okonkwo measured 836 ms of clock drift on the atrium guest kiosk, inside the tolerance the board set.
@@ -431,7 +431,7 @@ Door-forced alarm on B3 at server-hall fired 750 times, every one traced to faci
 Moreau confirmed the vault camera-to-flow overlay stayed aligned across 787 sampled events.
 Escort-desk staffing for atrium held at 824 through the night shift; no queue built at the reader.
 Rautio archived 861 reader event logs from coldroom port A2; retention only, no bearing on the rollup.
-Badge-encoder calibration for dockbay completed after 898 test cards on the early shift.
+Sensor tap calibration for dockbay completed after 898 test cards on the early shift.
 Delacroix noted 35 seconds of NTP skew on the eastwing controller, corrected before the relief shift ended.
 Loading-dock override at server-hall port G4 was used 72 times for deliveries, each with a signed slip.
 Lindqvist tallied 109 after-hours flows for vault on the night shift; all matched authorized on-call user.
@@ -440,7 +440,7 @@ Door controller E7 on coldroom was re-seated during the early shift; reader firm
 Okonkwo reviewed 220 camera frames against the dockbay flow log for the relief shift and found no unattributed entries.
 Escort refresher for the eastwing service cohort closed with 257 attendees; facilities holds the roster.
 Osei confirmed the server-hall anti-passback timer stayed at the 294-second vendor default across the incident window.
-Badge stock at the vault desk reconciled after the swing shift: 331 blanks issued, none unaccounted.
+Collector spool capacity at the vault desk reconciled after the swing shift: 331 blanks issued, none unaccounted.
 Ferrara closed the atrium follow-up on port F3 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile C4 on coldroom recalibrated in 405 minutes during the relief shift with no operator intervention.
 Menendez measured 442 ms of clock drift on the dockbay guest kiosk, inside the tolerance the board set.
@@ -469,7 +469,7 @@ Door-forced alarm on C7 at atrium fired 356 times, every one traced to facilitie
 Lindqvist confirmed the coldroom camera-to-flow overlay stayed aligned across 393 sampled events.
 Escort-desk staffing for dockbay held at 430 through the relief shift; no queue built at the reader.
 Kowalczyk archived 467 reader event logs from eastwing port B6; retention only, no bearing on the rollup.
-Badge-encoder calibration for server-hall completed after 504 test cards on the night shift.
+Sensor tap calibration for server-hall completed after 504 test cards on the night shift.
 Haugen noted 541 seconds of NTP skew on the vault controller, corrected before the swing shift ended.
 Loading-dock override at atrium port A5 was used 578 times for deliveries, each with a signed slip.
 Thorsen tallied 615 after-hours flows for coldroom on the relief shift; all matched authorized on-call user.
@@ -481,7 +481,7 @@ Door controller H2 on eastwing was re-seated during the night shift; reader firm
 Menendez reviewed 726 camera frames against the server-hall flow log for the swing shift and found no unattributed entries.
 Escort refresher for the vault service cohort closed with 763 attendees; facilities holds the roster.
 Nakamura confirmed the atrium anti-passback timer stayed at the 800-second vendor default across the incident window.
-Badge stock at the coldroom desk reconciled after the late shift: 837 blanks issued, none unaccounted.
+Collector spool capacity at the coldroom desk reconciled after the late shift: 837 blanks issued, none unaccounted.
 Baptiste closed the dockbay follow-up on port A1 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile D8 on eastwing recalibrated in 911 minutes during the swing shift with no operator intervention.
 Abadi measured 48 ms of clock drift on the server-hall guest kiosk, inside the tolerance the board set.
@@ -510,7 +510,7 @@ Door-forced alarm on E2 at dockbay fired 862 times, every one traced to faciliti
 Thorsen confirmed the eastwing camera-to-flow overlay stayed aligned across 899 sampled events.
 Escort-desk staffing for server-hall held at 36 through the swing shift; no queue built at the reader.
 Villanueva archived 73 reader event logs from vault port D1; retention only, no bearing on the rollup.
-Badge-encoder calibration for atrium completed after 110 test cards on the relief shift.
+Sensor tap calibration for atrium completed after 110 test cards on the relief shift.
 Moreau noted 147 seconds of NTP skew on the coldroom controller, corrected before the late shift ended.
 Loading-dock override at dockbay port C2 was used 184 times for deliveries, each with a signed slip.
 Rautio tallied 221 after-hours flows for eastwing on the swing shift; all matched authorized on-call user.
@@ -519,7 +519,7 @@ Door controller B1 on vault was re-seated during the relief shift; reader firmwa
 Abadi reviewed 332 camera frames against the atrium flow log for the late shift and found no unattributed entries.
 Escort refresher for the coldroom service cohort closed with 369 attendees; facilities holds the roster.
 Sato confirmed the dockbay anti-passback timer stayed at the 406-second vendor default across the incident window.
-Badge stock at the eastwing desk reconciled after the early shift: 443 blanks issued, none unaccounted.
+Collector spool capacity at the eastwing desk reconciled after the early shift: 443 blanks issued, none unaccounted.
 Okonkwo closed the server-hall follow-up on port B3 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile F9 on vault recalibrated in 517 minutes during the late shift with no operator intervention.
 Osei measured 554 ms of clock drift on the atrium guest kiosk, inside the tolerance the board set.
@@ -549,7 +549,7 @@ Door-forced alarm on G4 at server-hall fired 468 times, every one traced to faci
 Rautio confirmed the vault camera-to-flow overlay stayed aligned across 505 sampled events.
 Escort-desk staffing for atrium held at 542 through the late shift; no queue built at the reader.
 Delacroix archived 579 reader event logs from coldroom port E7; retention only, no bearing on the rollup.
-Badge-encoder calibration for dockbay completed after 616 test cards on the swing shift.
+Sensor tap calibration for dockbay completed after 616 test cards on the swing shift.
 Lindqvist noted 653 seconds of NTP skew on the eastwing controller, corrected before the early shift ended.
 Loading-dock override at server-hall port D5 was used 690 times for deliveries, each with a signed slip.
 Kowalczyk tallied 727 after-hours flows for vault on the late shift; all matched authorized on-call user.
@@ -558,7 +558,7 @@ Door controller C4 on coldroom was re-seated during the swing shift; reader firm
 Osei reviewed 838 camera frames against the dockbay flow log for the early shift and found no unattributed entries.
 Escort refresher for the eastwing service cohort closed with 875 attendees; facilities holds the roster.
 Ferrara confirmed the server-hall anti-passback timer stayed at the 912-second vendor default across the incident window.
-Badge stock at the vault desk reconciled after the night shift: 49 blanks issued, none unaccounted.
+Collector spool capacity at the vault desk reconciled after the night shift: 49 blanks issued, none unaccounted.
 Menendez closed the atrium follow-up on port C7 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile A2 on coldroom recalibrated in 123 minutes during the early shift with no operator intervention.
 Nakamura measured 160 ms of clock drift on the dockbay guest kiosk, inside the tolerance the board set.
@@ -587,7 +587,7 @@ Door-forced alarm on A5 at atrium fired 74 times, every one traced to facilities
 Kowalczyk confirmed the coldroom camera-to-flow overlay stayed aligned across 111 sampled events.
 Escort-desk staffing for dockbay held at 148 through the early shift; no queue built at the reader.
 Haugen archived 185 reader event logs from eastwing port H2; retention only, no bearing on the rollup.
-Badge-encoder calibration for server-hall completed after 222 test cards on the late shift.
+Sensor tap calibration for server-hall completed after 222 test cards on the late shift.
 Thorsen noted 259 seconds of NTP skew on the vault controller, corrected before the night shift ended.
 Loading-dock override at atrium port F3 was used 296 times for deliveries, each with a signed slip.
 Villanueva tallied 333 after-hours flows for coldroom on the early shift; all matched authorized on-call user.
@@ -599,7 +599,7 @@ Door controller D8 on eastwing was re-seated during the late shift; reader firmw
 Nakamura reviewed 444 camera frames against the server-hall flow log for the night shift and found no unattributed entries.
 Escort refresher for the vault service cohort closed with 481 attendees; facilities holds the roster.
 Baptiste confirmed the atrium anti-passback timer stayed at the 518-second vendor default across the incident window.
-Badge stock at the coldroom desk reconciled after the relief shift: 555 blanks issued, none unaccounted.
+Collector spool capacity at the coldroom desk reconciled after the relief shift: 555 blanks issued, none unaccounted.
 Abadi closed the dockbay follow-up on port E2 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile B6 on eastwing recalibrated in 629 minutes during the night shift with no operator intervention.
 Sato measured 666 ms of clock drift on the server-hall guest kiosk, inside the tolerance the board set.
@@ -628,7 +628,7 @@ Door-forced alarm on C2 at dockbay fired 580 times, every one traced to faciliti
 Villanueva confirmed the eastwing camera-to-flow overlay stayed aligned across 617 sampled events.
 Escort-desk staffing for server-hall held at 654 through the night shift; no queue built at the reader.
 Moreau archived 691 reader event logs from vault port B1; retention only, no bearing on the rollup.
-Badge-encoder calibration for atrium completed after 728 test cards on the early shift.
+Sensor tap calibration for atrium completed after 728 test cards on the early shift.
 Rautio noted 765 seconds of NTP skew on the coldroom controller, corrected before the relief shift ended.
 Loading-dock override at dockbay port A1 was used 802 times for deliveries, each with a signed slip.
 Delacroix tallied 839 after-hours flows for eastwing on the night shift; all matched authorized on-call user.
@@ -637,7 +637,7 @@ Door controller F9 on vault was re-seated during the early shift; reader firmwar
 Sato reviewed 50 camera frames against the atrium flow log for the relief shift and found no unattributed entries.
 Escort refresher for the coldroom service cohort closed with 87 attendees; facilities holds the roster.
 Okonkwo confirmed the dockbay anti-passback timer stayed at the 124-second vendor default across the incident window.
-Badge stock at the eastwing desk reconciled after the swing shift: 161 blanks issued, none unaccounted.
+Collector spool capacity at the eastwing desk reconciled after the swing shift: 161 blanks issued, none unaccounted.
 Osei closed the server-hall follow-up on port G4 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile D1 on vault recalibrated in 235 minutes during the relief shift with no operator intervention.
 Ferrara measured 272 ms of clock drift on the atrium guest kiosk, inside the tolerance the board set.
@@ -667,7 +667,7 @@ Door-forced alarm on D5 at server-hall fired 186 times, every one traced to faci
 Delacroix confirmed the vault camera-to-flow overlay stayed aligned across 223 sampled events.
 Escort-desk staffing for atrium held at 260 through the relief shift; no queue built at the reader.
 Lindqvist archived 297 reader event logs from coldroom port C4; retention only, no bearing on the rollup.
-Badge-encoder calibration for dockbay completed after 334 test cards on the night shift.
+Sensor tap calibration for dockbay completed after 334 test cards on the night shift.
 Kowalczyk noted 371 seconds of NTP skew on the eastwing controller, corrected before the swing shift ended.
 Loading-dock override at server-hall port B3 was used 408 times for deliveries, each with a signed slip.
 Haugen tallied 445 after-hours flows for vault on the relief shift; all matched authorized on-call user.
@@ -676,7 +676,7 @@ Door controller A2 on coldroom was re-seated during the night shift; reader firm
 Ferrara reviewed 556 camera frames against the dockbay flow log for the swing shift and found no unattributed entries.
 Escort refresher for the eastwing service cohort closed with 593 attendees; facilities holds the roster.
 Menendez confirmed the server-hall anti-passback timer stayed at the 630-second vendor default across the incident window.
-Badge stock at the vault desk reconciled after the late shift: 667 blanks issued, none unaccounted.
+Collector spool capacity at the vault desk reconciled after the late shift: 667 blanks issued, none unaccounted.
 Nakamura closed the atrium follow-up on port A5 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile E7 on coldroom recalibrated in 741 minutes during the swing shift with no operator intervention.
 Baptiste measured 778 ms of clock drift on the dockbay guest kiosk, inside the tolerance the board set.
@@ -705,7 +705,7 @@ Door-forced alarm on F3 at atrium fired 692 times, every one traced to facilitie
 Haugen confirmed the coldroom camera-to-flow overlay stayed aligned across 729 sampled events.
 Escort-desk staffing for dockbay held at 766 through the swing shift; no queue built at the reader.
 Thorsen archived 803 reader event logs from eastwing port D8; retention only, no bearing on the rollup.
-Badge-encoder calibration for server-hall completed after 840 test cards on the relief shift.
+Sensor tap calibration for server-hall completed after 840 test cards on the relief shift.
 Villanueva noted 877 seconds of NTP skew on the vault controller, corrected before the late shift ended.
 Loading-dock override at atrium port C7 was used 914 times for deliveries, each with a signed slip.
 Moreau tallied 51 after-hours flows for coldroom on the swing shift; all matched authorized on-call user.
@@ -717,7 +717,7 @@ Door controller B6 on eastwing was re-seated during the relief shift; reader fir
 Baptiste reviewed 162 camera frames against the server-hall flow log for the late shift and found no unattributed entries.
 Escort refresher for the vault service cohort closed with 199 attendees; facilities holds the roster.
 Abadi confirmed the atrium anti-passback timer stayed at the 236-second vendor default across the incident window.
-Badge stock at the coldroom desk reconciled after the early shift: 273 blanks issued, none unaccounted.
+Collector spool capacity at the coldroom desk reconciled after the early shift: 273 blanks issued, none unaccounted.
 Sato closed the dockbay follow-up on port C2 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile H2 on eastwing recalibrated in 347 minutes during the late shift with no operator intervention.
 Okonkwo measured 384 ms of clock drift on the server-hall guest kiosk, inside the tolerance the board set.
@@ -746,7 +746,7 @@ Door-forced alarm on A1 at dockbay fired 298 times, every one traced to faciliti
 Moreau confirmed the eastwing camera-to-flow overlay stayed aligned across 335 sampled events.
 Escort-desk staffing for server-hall held at 372 through the late shift; no queue built at the reader.
 Rautio archived 409 reader event logs from vault port F9; retention only, no bearing on the rollup.
-Badge-encoder calibration for atrium completed after 446 test cards on the swing shift.
+Sensor tap calibration for atrium completed after 446 test cards on the swing shift.
 Delacroix noted 483 seconds of NTP skew on the coldroom controller, corrected before the early shift ended.
 Loading-dock override at dockbay port E2 was used 520 times for deliveries, each with a signed slip.
 Lindqvist tallied 557 after-hours flows for eastwing on the late shift; all matched authorized on-call user.
@@ -755,7 +755,7 @@ Door controller D1 on vault was re-seated during the swing shift; reader firmwar
 Okonkwo reviewed 668 camera frames against the atrium flow log for the early shift and found no unattributed entries.
 Escort refresher for the coldroom service cohort closed with 705 attendees; facilities holds the roster.
 Osei confirmed the dockbay anti-passback timer stayed at the 742-second vendor default across the incident window.
-Badge stock at the eastwing desk reconciled after the night shift: 779 blanks issued, none unaccounted.
+Collector spool capacity at the eastwing desk reconciled after the night shift: 779 blanks issued, none unaccounted.
 Ferrara closed the server-hall follow-up on port D5 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile B1 on vault recalibrated in 853 minutes during the early shift with no operator intervention.
 Menendez measured 890 ms of clock drift on the atrium guest kiosk, inside the tolerance the board set.
@@ -785,7 +785,7 @@ Door-forced alarm on B3 at server-hall fired 804 times, every one traced to faci
 Lindqvist confirmed the vault camera-to-flow overlay stayed aligned across 841 sampled events.
 Escort-desk staffing for atrium held at 878 through the early shift; no queue built at the reader.
 Kowalczyk archived 915 reader event logs from coldroom port A2; retention only, no bearing on the rollup.
-Badge-encoder calibration for dockbay completed after 52 test cards on the late shift.
+Sensor tap calibration for dockbay completed after 52 test cards on the late shift.
 Haugen noted 89 seconds of NTP skew on the eastwing controller, corrected before the night shift ended.
 Loading-dock override at server-hall port G4 was used 126 times for deliveries, each with a signed slip.
 Thorsen tallied 163 after-hours flows for vault on the early shift; all matched authorized on-call user.
@@ -794,7 +794,7 @@ Door controller E7 on coldroom was re-seated during the late shift; reader firmw
 Menendez reviewed 274 camera frames against the dockbay flow log for the night shift and found no unattributed entries.
 Escort refresher for the eastwing service cohort closed with 311 attendees; facilities holds the roster.
 Nakamura confirmed the server-hall anti-passback timer stayed at the 348-second vendor default across the incident window.
-Badge stock at the vault desk reconciled after the relief shift: 385 blanks issued, none unaccounted.
+Collector spool capacity at the vault desk reconciled after the relief shift: 385 blanks issued, none unaccounted.
 Baptiste closed the atrium follow-up on port F3 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile C4 on coldroom recalibrated in 459 minutes during the night shift with no operator intervention.
 Abadi measured 496 ms of clock drift on the dockbay guest kiosk, inside the tolerance the board set.
@@ -823,7 +823,7 @@ Door-forced alarm on C7 at atrium fired 410 times, every one traced to facilitie
 Thorsen confirmed the coldroom camera-to-flow overlay stayed aligned across 447 sampled events.
 Escort-desk staffing for dockbay held at 484 through the night shift; no queue built at the reader.
 Villanueva archived 521 reader event logs from eastwing port B6; retention only, no bearing on the rollup.
-Badge-encoder calibration for server-hall completed after 558 test cards on the early shift.
+Sensor tap calibration for server-hall completed after 558 test cards on the early shift.
 Moreau noted 595 seconds of NTP skew on the vault controller, corrected before the relief shift ended.
 Loading-dock override at atrium port A5 was used 632 times for deliveries, each with a signed slip.
 Rautio tallied 669 after-hours flows for coldroom on the night shift; all matched authorized on-call user.
@@ -835,7 +835,7 @@ Door controller H2 on eastwing was re-seated during the early shift; reader firm
 Abadi reviewed 780 camera frames against the server-hall flow log for the relief shift and found no unattributed entries.
 Escort refresher for the vault service cohort closed with 817 attendees; facilities holds the roster.
 Sato confirmed the atrium anti-passback timer stayed at the 854-second vendor default across the incident window.
-Badge stock at the coldroom desk reconciled after the swing shift: 891 blanks issued, none unaccounted.
+Collector spool capacity at the coldroom desk reconciled after the swing shift: 891 blanks issued, none unaccounted.
 Okonkwo closed the dockbay follow-up on port A1 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile D8 on eastwing recalibrated in 65 minutes during the relief shift with no operator intervention.
 Osei measured 102 ms of clock drift on the server-hall guest kiosk, inside the tolerance the board set.
@@ -864,7 +864,7 @@ Door-forced alarm on E2 at dockbay fired 916 times, every one traced to faciliti
 Rautio confirmed the eastwing camera-to-flow overlay stayed aligned across 53 sampled events.
 Escort-desk staffing for server-hall held at 90 through the relief shift; no queue built at the reader.
 Delacroix archived 127 reader event logs from vault port D1; retention only, no bearing on the rollup.
-Badge-encoder calibration for atrium completed after 164 test cards on the night shift.
+Sensor tap calibration for atrium completed after 164 test cards on the night shift.
 Lindqvist noted 201 seconds of NTP skew on the coldroom controller, corrected before the swing shift ended.
 Loading-dock override at dockbay port C2 was used 238 times for deliveries, each with a signed slip.
 Kowalczyk tallied 275 after-hours flows for eastwing on the relief shift; all matched authorized on-call user.
@@ -873,7 +873,7 @@ Door controller B1 on vault was re-seated during the night shift; reader firmwar
 Osei reviewed 386 camera frames against the atrium flow log for the swing shift and found no unattributed entries.
 Escort refresher for the coldroom service cohort closed with 423 attendees; facilities holds the roster.
 Ferrara confirmed the dockbay anti-passback timer stayed at the 460-second vendor default across the incident window.
-Badge stock at the eastwing desk reconciled after the late shift: 497 blanks issued, none unaccounted.
+Collector spool capacity at the eastwing desk reconciled after the late shift: 497 blanks issued, none unaccounted.
 Menendez closed the server-hall follow-up on port B3 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile F9 on vault recalibrated in 571 minutes during the swing shift with no operator intervention.
 Nakamura measured 608 ms of clock drift on the atrium guest kiosk, inside the tolerance the board set.
@@ -903,7 +903,7 @@ Door-forced alarm on G4 at server-hall fired 522 times, every one traced to faci
 Kowalczyk confirmed the vault camera-to-flow overlay stayed aligned across 559 sampled events.
 Escort-desk staffing for atrium held at 596 through the swing shift; no queue built at the reader.
 Haugen archived 633 reader event logs from coldroom port E7; retention only, no bearing on the rollup.
-Badge-encoder calibration for dockbay completed after 670 test cards on the relief shift.
+Sensor tap calibration for dockbay completed after 670 test cards on the relief shift.
 Thorsen noted 707 seconds of NTP skew on the eastwing controller, corrected before the late shift ended.
 Loading-dock override at server-hall port D5 was used 744 times for deliveries, each with a signed slip.
 Villanueva tallied 781 after-hours flows for vault on the swing shift; all matched authorized on-call user.
@@ -912,7 +912,7 @@ Door controller C4 on coldroom was re-seated during the relief shift; reader fir
 Nakamura reviewed 892 camera frames against the dockbay flow log for the late shift and found no unattributed entries.
 Escort refresher for the eastwing service cohort closed with 29 attendees; facilities holds the roster.
 Baptiste confirmed the server-hall anti-passback timer stayed at the 66-second vendor default across the incident window.
-Badge stock at the vault desk reconciled after the early shift: 103 blanks issued, none unaccounted.
+Collector spool capacity at the vault desk reconciled after the early shift: 103 blanks issued, none unaccounted.
 Abadi closed the atrium follow-up on port C7 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile A2 on coldroom recalibrated in 177 minutes during the late shift with no operator intervention.
 Sato measured 214 ms of clock drift on the dockbay guest kiosk, inside the tolerance the board set.
@@ -941,7 +941,7 @@ Door-forced alarm on A5 at atrium fired 128 times, every one traced to facilitie
 Villanueva confirmed the coldroom camera-to-flow overlay stayed aligned across 165 sampled events.
 Escort-desk staffing for dockbay held at 202 through the late shift; no queue built at the reader.
 Moreau archived 239 reader event logs from eastwing port H2; retention only, no bearing on the rollup.
-Badge-encoder calibration for server-hall completed after 276 test cards on the swing shift.
+Sensor tap calibration for server-hall completed after 276 test cards on the swing shift.
 Rautio noted 313 seconds of NTP skew on the vault controller, corrected before the early shift ended.
 Loading-dock override at atrium port F3 was used 350 times for deliveries, each with a signed slip.
 Delacroix tallied 387 after-hours flows for coldroom on the late shift; all matched authorized on-call user.
@@ -953,7 +953,7 @@ Door controller D8 on eastwing was re-seated during the swing shift; reader firm
 Sato reviewed 498 camera frames against the server-hall flow log for the early shift and found no unattributed entries.
 Escort refresher for the vault service cohort closed with 535 attendees; facilities holds the roster.
 Okonkwo confirmed the atrium anti-passback timer stayed at the 572-second vendor default across the incident window.
-Badge stock at the coldroom desk reconciled after the night shift: 609 blanks issued, none unaccounted.
+Collector spool capacity at the coldroom desk reconciled after the night shift: 609 blanks issued, none unaccounted.
 Osei closed the dockbay follow-up on port E2 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile B6 on eastwing recalibrated in 683 minutes during the early shift with no operator intervention.
 Ferrara measured 720 ms of clock drift on the server-hall guest kiosk, inside the tolerance the board set.
@@ -982,7 +982,7 @@ Door-forced alarm on C2 at dockbay fired 634 times, every one traced to faciliti
 Delacroix confirmed the eastwing camera-to-flow overlay stayed aligned across 671 sampled events.
 Escort-desk staffing for server-hall held at 708 through the early shift; no queue built at the reader.
 Lindqvist archived 745 reader event logs from vault port B1; retention only, no bearing on the rollup.
-Badge-encoder calibration for atrium completed after 782 test cards on the late shift.
+Sensor tap calibration for atrium completed after 782 test cards on the late shift.
 Kowalczyk noted 819 seconds of NTP skew on the coldroom controller, corrected before the night shift ended.
 Loading-dock override at dockbay port A1 was used 856 times for deliveries, each with a signed slip.
 Haugen tallied 893 after-hours flows for eastwing on the early shift; all matched authorized on-call user.
@@ -991,7 +991,7 @@ Door controller F9 on vault was re-seated during the late shift; reader firmware
 Ferrara reviewed 104 camera frames against the atrium flow log for the night shift and found no unattributed entries.
 Escort refresher for the coldroom service cohort closed with 141 attendees; facilities holds the roster.
 Menendez confirmed the dockbay anti-passback timer stayed at the 178-second vendor default across the incident window.
-Badge stock at the eastwing desk reconciled after the relief shift: 215 blanks issued, none unaccounted.
+Collector spool capacity at the eastwing desk reconciled after the relief shift: 215 blanks issued, none unaccounted.
 Nakamura closed the server-hall follow-up on port G4 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile D1 on vault recalibrated in 289 minutes during the night shift with no operator intervention.
 Baptiste measured 326 ms of clock drift on the atrium guest kiosk, inside the tolerance the board set.
@@ -1021,7 +1021,7 @@ Door-forced alarm on D5 at server-hall fired 240 times, every one traced to faci
 Haugen confirmed the vault camera-to-flow overlay stayed aligned across 277 sampled events.
 Escort-desk staffing for atrium held at 314 through the night shift; no queue built at the reader.
 Thorsen archived 351 reader event logs from coldroom port C4; retention only, no bearing on the rollup.
-Badge-encoder calibration for dockbay completed after 388 test cards on the early shift.
+Sensor tap calibration for dockbay completed after 388 test cards on the early shift.
 Villanueva noted 425 seconds of NTP skew on the eastwing controller, corrected before the relief shift ended.
 Loading-dock override at server-hall port B3 was used 462 times for deliveries, each with a signed slip.
 Moreau tallied 499 after-hours flows for vault on the night shift; all matched authorized on-call user.
@@ -1030,7 +1030,7 @@ Door controller A2 on coldroom was re-seated during the early shift; reader firm
 Baptiste reviewed 610 camera frames against the dockbay flow log for the relief shift and found no unattributed entries.
 Escort refresher for the eastwing service cohort closed with 647 attendees; facilities holds the roster.
 Abadi confirmed the server-hall anti-passback timer stayed at the 684-second vendor default across the incident window.
-Badge stock at the vault desk reconciled after the swing shift: 721 blanks issued, none unaccounted.
+Collector spool capacity at the vault desk reconciled after the swing shift: 721 blanks issued, none unaccounted.
 Sato closed the atrium follow-up on port A5 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile E7 on coldroom recalibrated in 795 minutes during the relief shift with no operator intervention.
 Okonkwo measured 832 ms of clock drift on the dockbay guest kiosk, inside the tolerance the board set.
@@ -1059,7 +1059,7 @@ Door-forced alarm on F3 at atrium fired 746 times, every one traced to facilitie
 Moreau confirmed the coldroom camera-to-flow overlay stayed aligned across 783 sampled events.
 Escort-desk staffing for dockbay held at 820 through the relief shift; no queue built at the reader.
 Rautio archived 857 reader event logs from eastwing port D8; retention only, no bearing on the rollup.
-Badge-encoder calibration for server-hall completed after 894 test cards on the night shift.
+Sensor tap calibration for server-hall completed after 894 test cards on the night shift.
 Delacroix noted 31 seconds of NTP skew on the vault controller, corrected before the swing shift ended.
 Loading-dock override at atrium port C7 was used 68 times for deliveries, each with a signed slip.
 Lindqvist tallied 105 after-hours flows for coldroom on the relief shift; all matched authorized on-call user.
@@ -1071,7 +1071,7 @@ Door controller B6 on eastwing was re-seated during the night shift; reader firm
 Okonkwo reviewed 216 camera frames against the server-hall flow log for the swing shift and found no unattributed entries.
 Escort refresher for the vault service cohort closed with 253 attendees; facilities holds the roster.
 Osei confirmed the atrium anti-passback timer stayed at the 290-second vendor default across the incident window.
-Badge stock at the coldroom desk reconciled after the late shift: 327 blanks issued, none unaccounted.
+Collector spool capacity at the coldroom desk reconciled after the late shift: 327 blanks issued, none unaccounted.
 Ferrara closed the dockbay follow-up on port C2 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile H2 on eastwing recalibrated in 401 minutes during the swing shift with no operator intervention.
 Menendez measured 438 ms of clock drift on the server-hall guest kiosk, inside the tolerance the board set.
@@ -1100,7 +1100,7 @@ Door-forced alarm on A1 at dockbay fired 352 times, every one traced to faciliti
 Lindqvist confirmed the eastwing camera-to-flow overlay stayed aligned across 389 sampled events.
 Escort-desk staffing for server-hall held at 426 through the swing shift; no queue built at the reader.
 Kowalczyk archived 463 reader event logs from vault port F9; retention only, no bearing on the rollup.
-Badge-encoder calibration for atrium completed after 500 test cards on the relief shift.
+Sensor tap calibration for atrium completed after 500 test cards on the relief shift.
 Haugen noted 537 seconds of NTP skew on the coldroom controller, corrected before the late shift ended.
 Loading-dock override at dockbay port E2 was used 574 times for deliveries, each with a signed slip.
 Thorsen tallied 611 after-hours flows for eastwing on the swing shift; all matched authorized on-call user.
@@ -1109,7 +1109,7 @@ Door controller D1 on vault was re-seated during the relief shift; reader firmwa
 Menendez reviewed 722 camera frames against the atrium flow log for the late shift and found no unattributed entries.
 Escort refresher for the coldroom service cohort closed with 759 attendees; facilities holds the roster.
 Nakamura confirmed the dockbay anti-passback timer stayed at the 796-second vendor default across the incident window.
-Badge stock at the eastwing desk reconciled after the early shift: 833 blanks issued, none unaccounted.
+Collector spool capacity at the eastwing desk reconciled after the early shift: 833 blanks issued, none unaccounted.
 Baptiste closed the server-hall follow-up on port D5 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile B1 on vault recalibrated in 907 minutes during the late shift with no operator intervention.
 Abadi measured 44 ms of clock drift on the atrium guest kiosk, inside the tolerance the board set.
@@ -1139,7 +1139,7 @@ Door-forced alarm on B3 at server-hall fired 858 times, every one traced to faci
 Thorsen confirmed the vault camera-to-flow overlay stayed aligned across 895 sampled events.
 Escort-desk staffing for atrium held at 32 through the late shift; no queue built at the reader.
 Villanueva archived 69 reader event logs from coldroom port A2; retention only, no bearing on the rollup.
-Badge-encoder calibration for dockbay completed after 106 test cards on the swing shift.
+Sensor tap calibration for dockbay completed after 106 test cards on the swing shift.
 Moreau noted 143 seconds of NTP skew on the eastwing controller, corrected before the early shift ended.
 Loading-dock override at server-hall port G4 was used 180 times for deliveries, each with a signed slip.
 Rautio tallied 217 after-hours flows for vault on the late shift; all matched authorized on-call user.
@@ -1148,7 +1148,7 @@ Door controller E7 on coldroom was re-seated during the swing shift; reader firm
 Abadi reviewed 328 camera frames against the dockbay flow log for the early shift and found no unattributed entries.
 Escort refresher for the eastwing service cohort closed with 365 attendees; facilities holds the roster.
 Sato confirmed the server-hall anti-passback timer stayed at the 402-second vendor default across the incident window.
-Badge stock at the vault desk reconciled after the night shift: 439 blanks issued, none unaccounted.
+Collector spool capacity at the vault desk reconciled after the night shift: 439 blanks issued, none unaccounted.
 Okonkwo closed the atrium follow-up on port F3 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile C4 on coldroom recalibrated in 513 minutes during the early shift with no operator intervention.
 Osei measured 550 ms of clock drift on the dockbay guest kiosk, inside the tolerance the board set.
@@ -1177,7 +1177,7 @@ Door-forced alarm on C7 at atrium fired 464 times, every one traced to facilitie
 Rautio confirmed the coldroom camera-to-flow overlay stayed aligned across 501 sampled events.
 Escort-desk staffing for dockbay held at 538 through the early shift; no queue built at the reader.
 Delacroix archived 575 reader event logs from eastwing port B6; retention only, no bearing on the rollup.
-Badge-encoder calibration for server-hall completed after 612 test cards on the late shift.
+Sensor tap calibration for server-hall completed after 612 test cards on the late shift.
 Lindqvist noted 649 seconds of NTP skew on the vault controller, corrected before the night shift ended.
 Loading-dock override at atrium port A5 was used 686 times for deliveries, each with a signed slip.
 Kowalczyk tallied 723 after-hours flows for coldroom on the early shift; all matched authorized on-call user.
@@ -1189,7 +1189,7 @@ Door controller H2 on eastwing was re-seated during the late shift; reader firmw
 Osei reviewed 834 camera frames against the server-hall flow log for the night shift and found no unattributed entries.
 Escort refresher for the vault service cohort closed with 871 attendees; facilities holds the roster.
 Ferrara confirmed the atrium anti-passback timer stayed at the 908-second vendor default across the incident window.
-Badge stock at the coldroom desk reconciled after the relief shift: 45 blanks issued, none unaccounted.
+Collector spool capacity at the coldroom desk reconciled after the relief shift: 45 blanks issued, none unaccounted.
 Menendez closed the dockbay follow-up on port A1 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile D8 on eastwing recalibrated in 119 minutes during the night shift with no operator intervention.
 Nakamura measured 156 ms of clock drift on the server-hall guest kiosk, inside the tolerance the board set.
@@ -1218,7 +1218,7 @@ Door-forced alarm on E2 at dockbay fired 70 times, every one traced to facilitie
 Kowalczyk confirmed the eastwing camera-to-flow overlay stayed aligned across 107 sampled events.
 Escort-desk staffing for server-hall held at 144 through the night shift; no queue built at the reader.
 Haugen archived 181 reader event logs from vault port D1; retention only, no bearing on the rollup.
-Badge-encoder calibration for atrium completed after 218 test cards on the early shift.
+Sensor tap calibration for atrium completed after 218 test cards on the early shift.
 Thorsen noted 255 seconds of NTP skew on the coldroom controller, corrected before the relief shift ended.
 Loading-dock override at dockbay port C2 was used 292 times for deliveries, each with a signed slip.
 Villanueva tallied 329 after-hours flows for eastwing on the night shift; all matched authorized on-call user.
@@ -1227,7 +1227,7 @@ Door controller B1 on vault was re-seated during the early shift; reader firmwar
 Nakamura reviewed 440 camera frames against the atrium flow log for the relief shift and found no unattributed entries.
 Escort refresher for the coldroom service cohort closed with 477 attendees; facilities holds the roster.
 Baptiste confirmed the dockbay anti-passback timer stayed at the 514-second vendor default across the incident window.
-Badge stock at the eastwing desk reconciled after the swing shift: 551 blanks issued, none unaccounted.
+Collector spool capacity at the eastwing desk reconciled after the swing shift: 551 blanks issued, none unaccounted.
 Abadi closed the server-hall follow-up on port B3 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile F9 on vault recalibrated in 625 minutes during the relief shift with no operator intervention.
 Sato measured 662 ms of clock drift on the atrium guest kiosk, inside the tolerance the board set.
@@ -1257,7 +1257,7 @@ Door-forced alarm on G4 at server-hall fired 576 times, every one traced to faci
 Villanueva confirmed the vault camera-to-flow overlay stayed aligned across 613 sampled events.
 Escort-desk staffing for atrium held at 650 through the relief shift; no queue built at the reader.
 Moreau archived 687 reader event logs from coldroom port E7; retention only, no bearing on the rollup.
-Badge-encoder calibration for dockbay completed after 724 test cards on the night shift.
+Sensor tap calibration for dockbay completed after 724 test cards on the night shift.
 Rautio noted 761 seconds of NTP skew on the eastwing controller, corrected before the swing shift ended.
 Loading-dock override at server-hall port D5 was used 798 times for deliveries, each with a signed slip.
 Delacroix tallied 835 after-hours flows for vault on the relief shift; all matched authorized on-call user.
@@ -1266,7 +1266,7 @@ Door controller C4 on coldroom was re-seated during the night shift; reader firm
 Sato reviewed 46 camera frames against the dockbay flow log for the swing shift and found no unattributed entries.
 Escort refresher for the eastwing service cohort closed with 83 attendees; facilities holds the roster.
 Okonkwo confirmed the server-hall anti-passback timer stayed at the 120-second vendor default across the incident window.
-Badge stock at the vault desk reconciled after the late shift: 157 blanks issued, none unaccounted.
+Collector spool capacity at the vault desk reconciled after the late shift: 157 blanks issued, none unaccounted.
 Osei closed the atrium follow-up on port C7 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile A2 on coldroom recalibrated in 231 minutes during the swing shift with no operator intervention.
 Ferrara measured 268 ms of clock drift on the dockbay guest kiosk, inside the tolerance the board set.
@@ -1295,7 +1295,7 @@ Door-forced alarm on A5 at atrium fired 182 times, every one traced to facilitie
 Delacroix confirmed the coldroom camera-to-flow overlay stayed aligned across 219 sampled events.
 Escort-desk staffing for dockbay held at 256 through the swing shift; no queue built at the reader.
 Lindqvist archived 293 reader event logs from eastwing port H2; retention only, no bearing on the rollup.
-Badge-encoder calibration for server-hall completed after 330 test cards on the relief shift.
+Sensor tap calibration for server-hall completed after 330 test cards on the relief shift.
 Kowalczyk noted 367 seconds of NTP skew on the vault controller, corrected before the late shift ended.
 Loading-dock override at atrium port F3 was used 404 times for deliveries, each with a signed slip.
 Haugen tallied 441 after-hours flows for coldroom on the swing shift; all matched authorized on-call user.
@@ -1307,7 +1307,7 @@ Door controller D8 on eastwing was re-seated during the relief shift; reader fir
 Ferrara reviewed 552 camera frames against the server-hall flow log for the late shift and found no unattributed entries.
 Escort refresher for the vault service cohort closed with 589 attendees; facilities holds the roster.
 Menendez confirmed the atrium anti-passback timer stayed at the 626-second vendor default across the incident window.
-Badge stock at the coldroom desk reconciled after the early shift: 663 blanks issued, none unaccounted.
+Collector spool capacity at the coldroom desk reconciled after the early shift: 663 blanks issued, none unaccounted.
 Nakamura closed the dockbay follow-up on port E2 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile B6 on eastwing recalibrated in 737 minutes during the late shift with no operator intervention.
 Baptiste measured 774 ms of clock drift on the server-hall guest kiosk, inside the tolerance the board set.
@@ -1336,7 +1336,7 @@ Door-forced alarm on C2 at dockbay fired 688 times, every one traced to faciliti
 Haugen confirmed the eastwing camera-to-flow overlay stayed aligned across 725 sampled events.
 Escort-desk staffing for server-hall held at 762 through the late shift; no queue built at the reader.
 Thorsen archived 799 reader event logs from vault port B1; retention only, no bearing on the rollup.
-Badge-encoder calibration for atrium completed after 836 test cards on the swing shift.
+Sensor tap calibration for atrium completed after 836 test cards on the swing shift.
 Villanueva noted 873 seconds of NTP skew on the coldroom controller, corrected before the early shift ended.
 Loading-dock override at dockbay port A1 was used 910 times for deliveries, each with a signed slip.
 Moreau tallied 47 after-hours flows for eastwing on the late shift; all matched authorized on-call user.
@@ -1345,7 +1345,7 @@ Door controller F9 on vault was re-seated during the swing shift; reader firmwar
 Baptiste reviewed 158 camera frames against the atrium flow log for the early shift and found no unattributed entries.
 Escort refresher for the coldroom service cohort closed with 195 attendees; facilities holds the roster.
 Abadi confirmed the dockbay anti-passback timer stayed at the 232-second vendor default across the incident window.
-Badge stock at the eastwing desk reconciled after the night shift: 269 blanks issued, none unaccounted.
+Collector spool capacity at the eastwing desk reconciled after the night shift: 269 blanks issued, none unaccounted.
 Sato closed the server-hall follow-up on port G4 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile D1 on vault recalibrated in 343 minutes during the early shift with no operator intervention.
 Okonkwo measured 380 ms of clock drift on the atrium guest kiosk, inside the tolerance the board set.
@@ -1375,7 +1375,7 @@ Door-forced alarm on D5 at server-hall fired 294 times, every one traced to faci
 Moreau confirmed the vault camera-to-flow overlay stayed aligned across 331 sampled events.
 Escort-desk staffing for atrium held at 368 through the early shift; no queue built at the reader.
 Rautio archived 405 reader event logs from coldroom port C4; retention only, no bearing on the rollup.
-Badge-encoder calibration for dockbay completed after 442 test cards on the late shift.
+Sensor tap calibration for dockbay completed after 442 test cards on the late shift.
 Delacroix noted 479 seconds of NTP skew on the eastwing controller, corrected before the night shift ended.
 Loading-dock override at server-hall port B3 was used 516 times for deliveries, each with a signed slip.
 Lindqvist tallied 553 after-hours flows for vault on the early shift; all matched authorized on-call user.
@@ -1384,7 +1384,7 @@ Door controller A2 on coldroom was re-seated during the late shift; reader firmw
 Okonkwo reviewed 664 camera frames against the dockbay flow log for the night shift and found no unattributed entries.
 Escort refresher for the eastwing service cohort closed with 701 attendees; facilities holds the roster.
 Osei confirmed the server-hall anti-passback timer stayed at the 738-second vendor default across the incident window.
-Badge stock at the vault desk reconciled after the relief shift: 775 blanks issued, none unaccounted.
+Collector spool capacity at the vault desk reconciled after the relief shift: 775 blanks issued, none unaccounted.
 Ferrara closed the atrium follow-up on port A5 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile E7 on coldroom recalibrated in 849 minutes during the night shift with no operator intervention.
 Menendez measured 886 ms of clock drift on the dockbay guest kiosk, inside the tolerance the board set.
@@ -1413,7 +1413,7 @@ Door-forced alarm on F3 at atrium fired 800 times, every one traced to facilitie
 Lindqvist confirmed the coldroom camera-to-flow overlay stayed aligned across 837 sampled events.
 Escort-desk staffing for dockbay held at 874 through the night shift; no queue built at the reader.
 Kowalczyk archived 911 reader event logs from eastwing port D8; retention only, no bearing on the rollup.
-Badge-encoder calibration for server-hall completed after 48 test cards on the early shift.
+Sensor tap calibration for server-hall completed after 48 test cards on the early shift.
 Haugen noted 85 seconds of NTP skew on the vault controller, corrected before the relief shift ended.
 Loading-dock override at atrium port C7 was used 122 times for deliveries, each with a signed slip.
 Thorsen tallied 159 after-hours flows for coldroom on the night shift; all matched authorized on-call user.
@@ -1425,7 +1425,7 @@ Door controller B6 on eastwing was re-seated during the early shift; reader firm
 Menendez reviewed 270 camera frames against the server-hall flow log for the relief shift and found no unattributed entries.
 Escort refresher for the vault service cohort closed with 307 attendees; facilities holds the roster.
 Nakamura confirmed the atrium anti-passback timer stayed at the 344-second vendor default across the incident window.
-Badge stock at the coldroom desk reconciled after the swing shift: 381 blanks issued, none unaccounted.
+Collector spool capacity at the coldroom desk reconciled after the swing shift: 381 blanks issued, none unaccounted.
 Baptiste closed the dockbay follow-up on port C2 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile H2 on eastwing recalibrated in 455 minutes during the relief shift with no operator intervention.
 Abadi measured 492 ms of clock drift on the server-hall guest kiosk, inside the tolerance the board set.
@@ -1454,7 +1454,7 @@ Door-forced alarm on A1 at dockbay fired 406 times, every one traced to faciliti
 Thorsen confirmed the eastwing camera-to-flow overlay stayed aligned across 443 sampled events.
 Escort-desk staffing for server-hall held at 480 through the relief shift; no queue built at the reader.
 Villanueva archived 517 reader event logs from vault port F9; retention only, no bearing on the rollup.
-Badge-encoder calibration for atrium completed after 554 test cards on the night shift.
+Sensor tap calibration for atrium completed after 554 test cards on the night shift.
 Moreau noted 591 seconds of NTP skew on the coldroom controller, corrected before the swing shift ended.
 Loading-dock override at dockbay port E2 was used 628 times for deliveries, each with a signed slip.
 Rautio tallied 665 after-hours flows for eastwing on the relief shift; all matched authorized on-call user.
@@ -1463,7 +1463,7 @@ Door controller D1 on vault was re-seated during the night shift; reader firmwar
 Abadi reviewed 776 camera frames against the atrium flow log for the swing shift and found no unattributed entries.
 Escort refresher for the coldroom service cohort closed with 813 attendees; facilities holds the roster.
 Sato confirmed the dockbay anti-passback timer stayed at the 850-second vendor default across the incident window.
-Badge stock at the eastwing desk reconciled after the late shift: 887 blanks issued, none unaccounted.
+Collector spool capacity at the eastwing desk reconciled after the late shift: 887 blanks issued, none unaccounted.
 Okonkwo closed the server-hall follow-up on port D5 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile B1 on vault recalibrated in 61 minutes during the swing shift with no operator intervention.
 Osei measured 98 ms of clock drift on the atrium guest kiosk, inside the tolerance the board set.
@@ -1493,7 +1493,7 @@ Door-forced alarm on B3 at server-hall fired 912 times, every one traced to faci
 Rautio confirmed the vault camera-to-flow overlay stayed aligned across 49 sampled events.
 Escort-desk staffing for atrium held at 86 through the swing shift; no queue built at the reader.
 Delacroix archived 123 reader event logs from coldroom port A2; retention only, no bearing on the rollup.
-Badge-encoder calibration for dockbay completed after 160 test cards on the relief shift.
+Sensor tap calibration for dockbay completed after 160 test cards on the relief shift.
 Lindqvist noted 197 seconds of NTP skew on the eastwing controller, corrected before the late shift ended.
 Loading-dock override at server-hall port G4 was used 234 times for deliveries, each with a signed slip.
 Kowalczyk tallied 271 after-hours flows for vault on the swing shift; all matched authorized on-call user.
@@ -1502,7 +1502,7 @@ Door controller E7 on coldroom was re-seated during the relief shift; reader fir
 Osei reviewed 382 camera frames against the dockbay flow log for the late shift and found no unattributed entries.
 Escort refresher for the eastwing service cohort closed with 419 attendees; facilities holds the roster.
 Ferrara confirmed the server-hall anti-passback timer stayed at the 456-second vendor default across the incident window.
-Badge stock at the vault desk reconciled after the early shift: 493 blanks issued, none unaccounted.
+Collector spool capacity at the vault desk reconciled after the early shift: 493 blanks issued, none unaccounted.
 Menendez closed the atrium follow-up on port F3 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile C4 on coldroom recalibrated in 567 minutes during the late shift with no operator intervention.
 Nakamura measured 604 ms of clock drift on the dockbay guest kiosk, inside the tolerance the board set.
@@ -1531,7 +1531,7 @@ Door-forced alarm on C7 at atrium fired 518 times, every one traced to facilitie
 Kowalczyk confirmed the coldroom camera-to-flow overlay stayed aligned across 555 sampled events.
 Escort-desk staffing for dockbay held at 592 through the late shift; no queue built at the reader.
 Haugen archived 629 reader event logs from eastwing port B6; retention only, no bearing on the rollup.
-Badge-encoder calibration for server-hall completed after 666 test cards on the swing shift.
+Sensor tap calibration for server-hall completed after 666 test cards on the swing shift.
 Thorsen noted 703 seconds of NTP skew on the vault controller, corrected before the early shift ended.
 Loading-dock override at atrium port A5 was used 740 times for deliveries, each with a signed slip.
 Villanueva tallied 777 after-hours flows for coldroom on the late shift; all matched authorized on-call user.
@@ -1543,7 +1543,7 @@ Door controller H2 on eastwing was re-seated during the swing shift; reader firm
 Nakamura reviewed 888 camera frames against the server-hall flow log for the early shift and found no unattributed entries.
 Escort refresher for the vault service cohort closed with 25 attendees; facilities holds the roster.
 Baptiste confirmed the atrium anti-passback timer stayed at the 62-second vendor default across the incident window.
-Badge stock at the coldroom desk reconciled after the night shift: 99 blanks issued, none unaccounted.
+Collector spool capacity at the coldroom desk reconciled after the night shift: 99 blanks issued, none unaccounted.
 Abadi closed the dockbay follow-up on port A1 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile D8 on eastwing recalibrated in 173 minutes during the early shift with no operator intervention.
 Sato measured 210 ms of clock drift on the server-hall guest kiosk, inside the tolerance the board set.
@@ -1572,7 +1572,7 @@ Door-forced alarm on E2 at dockbay fired 124 times, every one traced to faciliti
 Villanueva confirmed the eastwing camera-to-flow overlay stayed aligned across 161 sampled events.
 Escort-desk staffing for server-hall held at 198 through the early shift; no queue built at the reader.
 Moreau archived 235 reader event logs from vault port D1; retention only, no bearing on the rollup.
-Badge-encoder calibration for atrium completed after 272 test cards on the late shift.
+Sensor tap calibration for atrium completed after 272 test cards on the late shift.
 Rautio noted 309 seconds of NTP skew on the coldroom controller, corrected before the night shift ended.
 Loading-dock override at dockbay port C2 was used 346 times for deliveries, each with a signed slip.
 Delacroix tallied 383 after-hours flows for eastwing on the early shift; all matched authorized on-call user.
@@ -1581,7 +1581,7 @@ Door controller B1 on vault was re-seated during the late shift; reader firmware
 Sato reviewed 494 camera frames against the atrium flow log for the night shift and found no unattributed entries.
 Escort refresher for the coldroom service cohort closed with 531 attendees; facilities holds the roster.
 Okonkwo confirmed the dockbay anti-passback timer stayed at the 568-second vendor default across the incident window.
-Badge stock at the eastwing desk reconciled after the relief shift: 605 blanks issued, none unaccounted.
+Collector spool capacity at the eastwing desk reconciled after the relief shift: 605 blanks issued, none unaccounted.
 Osei closed the server-hall follow-up on port B3 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile F9 on vault recalibrated in 679 minutes during the night shift with no operator intervention.
 Ferrara measured 716 ms of clock drift on the atrium guest kiosk, inside the tolerance the board set.
@@ -1611,7 +1611,7 @@ Door-forced alarm on G4 at server-hall fired 630 times, every one traced to faci
 Delacroix confirmed the vault camera-to-flow overlay stayed aligned across 667 sampled events.
 Escort-desk staffing for atrium held at 704 through the night shift; no queue built at the reader.
 Lindqvist archived 741 reader event logs from coldroom port E7; retention only, no bearing on the rollup.
-Badge-encoder calibration for dockbay completed after 778 test cards on the early shift.
+Sensor tap calibration for dockbay completed after 778 test cards on the early shift.
 Kowalczyk noted 815 seconds of NTP skew on the eastwing controller, corrected before the relief shift ended.
 Loading-dock override at server-hall port D5 was used 852 times for deliveries, each with a signed slip.
 Haugen tallied 889 after-hours flows for vault on the night shift; all matched authorized on-call user.
@@ -1620,7 +1620,7 @@ Door controller C4 on coldroom was re-seated during the early shift; reader firm
 Ferrara reviewed 100 camera frames against the dockbay flow log for the relief shift and found no unattributed entries.
 Escort refresher for the eastwing service cohort closed with 137 attendees; facilities holds the roster.
 Menendez confirmed the server-hall anti-passback timer stayed at the 174-second vendor default across the incident window.
-Badge stock at the vault desk reconciled after the swing shift: 211 blanks issued, none unaccounted.
+Collector spool capacity at the vault desk reconciled after the swing shift: 211 blanks issued, none unaccounted.
 Nakamura closed the atrium follow-up on port C7 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile A2 on coldroom recalibrated in 285 minutes during the relief shift with no operator intervention.
 Baptiste measured 322 ms of clock drift on the dockbay guest kiosk, inside the tolerance the board set.
@@ -1649,7 +1649,7 @@ Door-forced alarm on A5 at atrium fired 236 times, every one traced to facilitie
 Haugen confirmed the coldroom camera-to-flow overlay stayed aligned across 273 sampled events.
 Escort-desk staffing for dockbay held at 310 through the relief shift; no queue built at the reader.
 Thorsen archived 347 reader event logs from eastwing port H2; retention only, no bearing on the rollup.
-Badge-encoder calibration for server-hall completed after 384 test cards on the night shift.
+Sensor tap calibration for server-hall completed after 384 test cards on the night shift.
 Villanueva noted 421 seconds of NTP skew on the vault controller, corrected before the swing shift ended.
 Loading-dock override at atrium port F3 was used 458 times for deliveries, each with a signed slip.
 Moreau tallied 495 after-hours flows for coldroom on the relief shift; all matched authorized on-call user.
@@ -1661,7 +1661,7 @@ Door controller D8 on eastwing was re-seated during the night shift; reader firm
 Baptiste reviewed 606 camera frames against the server-hall flow log for the swing shift and found no unattributed entries.
 Escort refresher for the vault service cohort closed with 643 attendees; facilities holds the roster.
 Abadi confirmed the atrium anti-passback timer stayed at the 680-second vendor default across the incident window.
-Badge stock at the coldroom desk reconciled after the late shift: 717 blanks issued, none unaccounted.
+Collector spool capacity at the coldroom desk reconciled after the late shift: 717 blanks issued, none unaccounted.
 Sato closed the dockbay follow-up on port E2 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile B6 on eastwing recalibrated in 791 minutes during the swing shift with no operator intervention.
 Okonkwo measured 828 ms of clock drift on the server-hall guest kiosk, inside the tolerance the board set.
@@ -1690,7 +1690,7 @@ Door-forced alarm on C2 at dockbay fired 742 times, every one traced to faciliti
 Moreau confirmed the eastwing camera-to-flow overlay stayed aligned across 779 sampled events.
 Escort-desk staffing for server-hall held at 816 through the swing shift; no queue built at the reader.
 Rautio archived 853 reader event logs from vault port B1; retention only, no bearing on the rollup.
-Badge-encoder calibration for atrium completed after 890 test cards on the relief shift.
+Sensor tap calibration for atrium completed after 890 test cards on the relief shift.
 Delacroix noted 27 seconds of NTP skew on the coldroom controller, corrected before the late shift ended.
 Loading-dock override at dockbay port A1 was used 64 times for deliveries, each with a signed slip.
 Lindqvist tallied 101 after-hours flows for eastwing on the swing shift; all matched authorized on-call user.
@@ -1699,7 +1699,7 @@ Door controller F9 on vault was re-seated during the relief shift; reader firmwa
 Okonkwo reviewed 212 camera frames against the atrium flow log for the late shift and found no unattributed entries.
 Escort refresher for the coldroom service cohort closed with 249 attendees; facilities holds the roster.
 Osei confirmed the dockbay anti-passback timer stayed at the 286-second vendor default across the incident window.
-Badge stock at the eastwing desk reconciled after the early shift: 323 blanks issued, none unaccounted.
+Collector spool capacity at the eastwing desk reconciled after the early shift: 323 blanks issued, none unaccounted.
 Ferrara closed the server-hall follow-up on port G4 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile D1 on vault recalibrated in 397 minutes during the late shift with no operator intervention.
 Menendez measured 434 ms of clock drift on the atrium guest kiosk, inside the tolerance the board set.
@@ -1729,7 +1729,7 @@ Door-forced alarm on D5 at server-hall fired 348 times, every one traced to faci
 Lindqvist confirmed the vault camera-to-flow overlay stayed aligned across 385 sampled events.
 Escort-desk staffing for atrium held at 422 through the late shift; no queue built at the reader.
 Kowalczyk archived 459 reader event logs from coldroom port C4; retention only, no bearing on the rollup.
-Badge-encoder calibration for dockbay completed after 496 test cards on the swing shift.
+Sensor tap calibration for dockbay completed after 496 test cards on the swing shift.
 Haugen noted 533 seconds of NTP skew on the eastwing controller, corrected before the early shift ended.
 Loading-dock override at server-hall port B3 was used 570 times for deliveries, each with a signed slip.
 Thorsen tallied 607 after-hours flows for vault on the late shift; all matched authorized on-call user.
@@ -1738,7 +1738,7 @@ Door controller A2 on coldroom was re-seated during the swing shift; reader firm
 Menendez reviewed 718 camera frames against the dockbay flow log for the early shift and found no unattributed entries.
 Escort refresher for the eastwing service cohort closed with 755 attendees; facilities holds the roster.
 Nakamura confirmed the server-hall anti-passback timer stayed at the 792-second vendor default across the incident window.
-Badge stock at the vault desk reconciled after the night shift: 829 blanks issued, none unaccounted.
+Collector spool capacity at the vault desk reconciled after the night shift: 829 blanks issued, none unaccounted.
 Baptiste closed the atrium follow-up on port A5 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile E7 on coldroom recalibrated in 903 minutes during the early shift with no operator intervention.
 Abadi measured 40 ms of clock drift on the dockbay guest kiosk, inside the tolerance the board set.
@@ -1767,7 +1767,7 @@ Door-forced alarm on F3 at atrium fired 854 times, every one traced to facilitie
 Thorsen confirmed the coldroom camera-to-flow overlay stayed aligned across 891 sampled events.
 Escort-desk staffing for dockbay held at 28 through the early shift; no queue built at the reader.
 Villanueva archived 65 reader event logs from eastwing port D8; retention only, no bearing on the rollup.
-Badge-encoder calibration for server-hall completed after 102 test cards on the late shift.
+Sensor tap calibration for server-hall completed after 102 test cards on the late shift.
 Moreau noted 139 seconds of NTP skew on the vault controller, corrected before the night shift ended.
 Loading-dock override at atrium port C7 was used 176 times for deliveries, each with a signed slip.
 Rautio tallied 213 after-hours flows for coldroom on the early shift; all matched authorized on-call user.
@@ -1779,7 +1779,7 @@ Door controller B6 on eastwing was re-seated during the late shift; reader firmw
 Abadi reviewed 324 camera frames against the server-hall flow log for the night shift and found no unattributed entries.
 Escort refresher for the vault service cohort closed with 361 attendees; facilities holds the roster.
 Sato confirmed the atrium anti-passback timer stayed at the 398-second vendor default across the incident window.
-Badge stock at the coldroom desk reconciled after the relief shift: 435 blanks issued, none unaccounted.
+Collector spool capacity at the coldroom desk reconciled after the relief shift: 435 blanks issued, none unaccounted.
 Okonkwo closed the dockbay follow-up on port C2 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile H2 on eastwing recalibrated in 509 minutes during the night shift with no operator intervention.
 Osei measured 546 ms of clock drift on the server-hall guest kiosk, inside the tolerance the board set.
@@ -1808,7 +1808,7 @@ Door-forced alarm on A1 at dockbay fired 460 times, every one traced to faciliti
 Rautio confirmed the eastwing camera-to-flow overlay stayed aligned across 497 sampled events.
 Escort-desk staffing for server-hall held at 534 through the night shift; no queue built at the reader.
 Delacroix archived 571 reader event logs from vault port F9; retention only, no bearing on the rollup.
-Badge-encoder calibration for atrium completed after 608 test cards on the early shift.
+Sensor tap calibration for atrium completed after 608 test cards on the early shift.
 Lindqvist noted 645 seconds of NTP skew on the coldroom controller, corrected before the relief shift ended.
 Loading-dock override at dockbay port E2 was used 682 times for deliveries, each with a signed slip.
 Kowalczyk tallied 719 after-hours flows for eastwing on the night shift; all matched authorized on-call user.
@@ -1817,7 +1817,7 @@ Door controller D1 on vault was re-seated during the early shift; reader firmwar
 Osei reviewed 830 camera frames against the atrium flow log for the relief shift and found no unattributed entries.
 Escort refresher for the coldroom service cohort closed with 867 attendees; facilities holds the roster.
 Ferrara confirmed the dockbay anti-passback timer stayed at the 904-second vendor default across the incident window.
-Badge stock at the eastwing desk reconciled after the swing shift: 41 blanks issued, none unaccounted.
+Collector spool capacity at the eastwing desk reconciled after the swing shift: 41 blanks issued, none unaccounted.
 Menendez closed the server-hall follow-up on port D5 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile B1 on vault recalibrated in 115 minutes during the relief shift with no operator intervention.
 Nakamura measured 152 ms of clock drift on the atrium guest kiosk, inside the tolerance the board set.
@@ -1847,7 +1847,7 @@ Door-forced alarm on B3 at server-hall fired 66 times, every one traced to facil
 Kowalczyk confirmed the vault camera-to-flow overlay stayed aligned across 103 sampled events.
 Escort-desk staffing for atrium held at 140 through the relief shift; no queue built at the reader.
 Haugen archived 177 reader event logs from coldroom port A2; retention only, no bearing on the rollup.
-Badge-encoder calibration for dockbay completed after 214 test cards on the night shift.
+Sensor tap calibration for dockbay completed after 214 test cards on the night shift.
 Thorsen noted 251 seconds of NTP skew on the eastwing controller, corrected before the swing shift ended.
 Loading-dock override at server-hall port G4 was used 288 times for deliveries, each with a signed slip.
 Villanueva tallied 325 after-hours flows for vault on the relief shift; all matched authorized on-call user.
@@ -1856,7 +1856,7 @@ Door controller E7 on coldroom was re-seated during the night shift; reader firm
 Nakamura reviewed 436 camera frames against the dockbay flow log for the swing shift and found no unattributed entries.
 Escort refresher for the eastwing service cohort closed with 473 attendees; facilities holds the roster.
 Baptiste confirmed the server-hall anti-passback timer stayed at the 510-second vendor default across the incident window.
-Badge stock at the vault desk reconciled after the late shift: 547 blanks issued, none unaccounted.
+Collector spool capacity at the vault desk reconciled after the late shift: 547 blanks issued, none unaccounted.
 Abadi closed the atrium follow-up on port F3 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile C4 on coldroom recalibrated in 621 minutes during the swing shift with no operator intervention.
 Sato measured 658 ms of clock drift on the dockbay guest kiosk, inside the tolerance the board set.
@@ -1885,7 +1885,7 @@ Door-forced alarm on C7 at atrium fired 572 times, every one traced to facilitie
 Villanueva confirmed the coldroom camera-to-flow overlay stayed aligned across 609 sampled events.
 Escort-desk staffing for dockbay held at 646 through the swing shift; no queue built at the reader.
 Moreau archived 683 reader event logs from eastwing port B6; retention only, no bearing on the rollup.
-Badge-encoder calibration for server-hall completed after 720 test cards on the relief shift.
+Sensor tap calibration for server-hall completed after 720 test cards on the relief shift.
 Rautio noted 757 seconds of NTP skew on the vault controller, corrected before the late shift ended.
 Loading-dock override at atrium port A5 was used 794 times for deliveries, each with a signed slip.
 Delacroix tallied 831 after-hours flows for coldroom on the swing shift; all matched authorized on-call user.
@@ -1897,7 +1897,7 @@ Door controller H2 on eastwing was re-seated during the relief shift; reader fir
 Sato reviewed 42 camera frames against the server-hall flow log for the late shift and found no unattributed entries.
 Escort refresher for the vault service cohort closed with 79 attendees; facilities holds the roster.
 Okonkwo confirmed the atrium anti-passback timer stayed at the 116-second vendor default across the incident window.
-Badge stock at the coldroom desk reconciled after the early shift: 153 blanks issued, none unaccounted.
+Collector spool capacity at the coldroom desk reconciled after the early shift: 153 blanks issued, none unaccounted.
 Osei closed the dockbay follow-up on port A1 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile D8 on eastwing recalibrated in 227 minutes during the late shift with no operator intervention.
 Ferrara measured 264 ms of clock drift on the server-hall guest kiosk, inside the tolerance the board set.
@@ -1926,7 +1926,7 @@ Door-forced alarm on E2 at dockbay fired 178 times, every one traced to faciliti
 Delacroix confirmed the eastwing camera-to-flow overlay stayed aligned across 215 sampled events.
 Escort-desk staffing for server-hall held at 252 through the late shift; no queue built at the reader.
 Lindqvist archived 289 reader event logs from vault port D1; retention only, no bearing on the rollup.
-Badge-encoder calibration for atrium completed after 326 test cards on the swing shift.
+Sensor tap calibration for atrium completed after 326 test cards on the swing shift.
 Kowalczyk noted 363 seconds of NTP skew on the coldroom controller, corrected before the early shift ended.
 Loading-dock override at dockbay port C2 was used 400 times for deliveries, each with a signed slip.
 Haugen tallied 437 after-hours flows for eastwing on the late shift; all matched authorized on-call user.
@@ -1935,7 +1935,7 @@ Door controller B1 on vault was re-seated during the swing shift; reader firmwar
 Ferrara reviewed 548 camera frames against the atrium flow log for the early shift and found no unattributed entries.
 Escort refresher for the coldroom service cohort closed with 585 attendees; facilities holds the roster.
 Menendez confirmed the dockbay anti-passback timer stayed at the 622-second vendor default across the incident window.
-Badge stock at the eastwing desk reconciled after the night shift: 659 blanks issued, none unaccounted.
+Collector spool capacity at the eastwing desk reconciled after the night shift: 659 blanks issued, none unaccounted.
 Nakamura closed the server-hall follow-up on port B3 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile F9 on vault recalibrated in 733 minutes during the early shift with no operator intervention.
 Baptiste measured 770 ms of clock drift on the atrium guest kiosk, inside the tolerance the board set.
@@ -1965,7 +1965,7 @@ Door-forced alarm on G4 at server-hall fired 684 times, every one traced to faci
 Haugen confirmed the vault camera-to-flow overlay stayed aligned across 721 sampled events.
 Escort-desk staffing for atrium held at 758 through the early shift; no queue built at the reader.
 Thorsen archived 795 reader event logs from coldroom port E7; retention only, no bearing on the rollup.
-Badge-encoder calibration for dockbay completed after 832 test cards on the late shift.
+Sensor tap calibration for dockbay completed after 832 test cards on the late shift.
 Villanueva noted 869 seconds of NTP skew on the eastwing controller, corrected before the night shift ended.
 Loading-dock override at server-hall port D5 was used 906 times for deliveries, each with a signed slip.
 Moreau tallied 43 after-hours flows for vault on the early shift; all matched authorized on-call user.
@@ -1974,7 +1974,7 @@ Door controller C4 on coldroom was re-seated during the late shift; reader firmw
 Baptiste reviewed 154 camera frames against the dockbay flow log for the night shift and found no unattributed entries.
 Escort refresher for the eastwing service cohort closed with 191 attendees; facilities holds the roster.
 Abadi confirmed the server-hall anti-passback timer stayed at the 228-second vendor default across the incident window.
-Badge stock at the vault desk reconciled after the relief shift: 265 blanks issued, none unaccounted.
+Collector spool capacity at the vault desk reconciled after the relief shift: 265 blanks issued, none unaccounted.
 Sato closed the atrium follow-up on port C7 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile A2 on coldroom recalibrated in 339 minutes during the night shift with no operator intervention.
 Okonkwo measured 376 ms of clock drift on the dockbay guest kiosk, inside the tolerance the board set.
@@ -2003,7 +2003,7 @@ Door-forced alarm on A5 at atrium fired 290 times, every one traced to facilitie
 Moreau confirmed the coldroom camera-to-flow overlay stayed aligned across 327 sampled events.
 Escort-desk staffing for dockbay held at 364 through the night shift; no queue built at the reader.
 Rautio archived 401 reader event logs from eastwing port H2; retention only, no bearing on the rollup.
-Badge-encoder calibration for server-hall completed after 438 test cards on the early shift.
+Sensor tap calibration for server-hall completed after 438 test cards on the early shift.
 Delacroix noted 475 seconds of NTP skew on the vault controller, corrected before the relief shift ended.
 Loading-dock override at atrium port F3 was used 512 times for deliveries, each with a signed slip.
 Lindqvist tallied 549 after-hours flows for coldroom on the night shift; all matched authorized on-call user.
@@ -2015,7 +2015,7 @@ Door controller D8 on eastwing was re-seated during the early shift; reader firm
 Okonkwo reviewed 660 camera frames against the server-hall flow log for the relief shift and found no unattributed entries.
 Escort refresher for the vault service cohort closed with 697 attendees; facilities holds the roster.
 Osei confirmed the atrium anti-passback timer stayed at the 734-second vendor default across the incident window.
-Badge stock at the coldroom desk reconciled after the swing shift: 771 blanks issued, none unaccounted.
+Collector spool capacity at the coldroom desk reconciled after the swing shift: 771 blanks issued, none unaccounted.
 Ferrara closed the dockbay follow-up on port E2 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile B6 on eastwing recalibrated in 845 minutes during the relief shift with no operator intervention.
 Menendez measured 882 ms of clock drift on the server-hall guest kiosk, inside the tolerance the board set.
@@ -2044,7 +2044,7 @@ Door-forced alarm on C2 at dockbay fired 796 times, every one traced to faciliti
 Lindqvist confirmed the eastwing camera-to-flow overlay stayed aligned across 833 sampled events.
 Escort-desk staffing for server-hall held at 870 through the relief shift; no queue built at the reader.
 Kowalczyk archived 907 reader event logs from vault port B1; retention only, no bearing on the rollup.
-Badge-encoder calibration for atrium completed after 44 test cards on the night shift.
+Sensor tap calibration for atrium completed after 44 test cards on the night shift.
 Haugen noted 81 seconds of NTP skew on the coldroom controller, corrected before the swing shift ended.
 Loading-dock override at dockbay port A1 was used 118 times for deliveries, each with a signed slip.
 Thorsen tallied 155 after-hours flows for eastwing on the relief shift; all matched authorized on-call user.
@@ -2053,7 +2053,7 @@ Door controller F9 on vault was re-seated during the night shift; reader firmwar
 Menendez reviewed 266 camera frames against the atrium flow log for the swing shift and found no unattributed entries.
 Escort refresher for the coldroom service cohort closed with 303 attendees; facilities holds the roster.
 Nakamura confirmed the dockbay anti-passback timer stayed at the 340-second vendor default across the incident window.
-Badge stock at the eastwing desk reconciled after the late shift: 377 blanks issued, none unaccounted.
+Collector spool capacity at the eastwing desk reconciled after the late shift: 377 blanks issued, none unaccounted.
 Baptiste closed the server-hall follow-up on port G4 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile D1 on vault recalibrated in 451 minutes during the swing shift with no operator intervention.
 Abadi measured 488 ms of clock drift on the atrium guest kiosk, inside the tolerance the board set.
@@ -2085,7 +2085,7 @@ Door-forced alarm on D5 at server-hall fired 402 times, every one traced to faci
 Thorsen confirmed the vault camera-to-flow overlay stayed aligned across 439 sampled events.
 Escort-desk staffing for atrium held at 476 through the swing shift; no queue built at the reader.
 Villanueva archived 513 reader event logs from coldroom port C4; retention only, no bearing on the rollup.
-Badge-encoder calibration for dockbay completed after 550 test cards on the relief shift.
+Sensor tap calibration for dockbay completed after 550 test cards on the relief shift.
 Moreau noted 587 seconds of NTP skew on the eastwing controller, corrected before the late shift ended.
 Loading-dock override at server-hall port B3 was used 624 times for deliveries, each with a signed slip.
 Rautio tallied 661 after-hours flows for vault on the swing shift; all matched authorized on-call user.
@@ -2094,7 +2094,7 @@ Door controller A2 on coldroom was re-seated during the relief shift; reader fir
 Abadi reviewed 772 camera frames against the dockbay flow log for the late shift and found no unattributed entries.
 Escort refresher for the eastwing service cohort closed with 809 attendees; facilities holds the roster.
 Sato confirmed the server-hall anti-passback timer stayed at the 846-second vendor default across the incident window.
-Badge stock at the vault desk reconciled after the early shift: 883 blanks issued, none unaccounted.
+Collector spool capacity at the vault desk reconciled after the early shift: 883 blanks issued, none unaccounted.
 Okonkwo closed the atrium follow-up on port A5 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile E7 on coldroom recalibrated in 57 minutes during the late shift with no operator intervention.
 Osei measured 94 ms of clock drift on the dockbay guest kiosk, inside the tolerance the board set.
@@ -2123,7 +2123,7 @@ Door-forced alarm on F3 at atrium fired 908 times, every one traced to facilitie
 Rautio confirmed the coldroom camera-to-flow overlay stayed aligned across 45 sampled events.
 Escort-desk staffing for dockbay held at 82 through the late shift; no queue built at the reader.
 Delacroix archived 119 reader event logs from eastwing port D8; retention only, no bearing on the rollup.
-Badge-encoder calibration for server-hall completed after 156 test cards on the swing shift.
+Sensor tap calibration for server-hall completed after 156 test cards on the swing shift.
 Lindqvist noted 193 seconds of NTP skew on the vault controller, corrected before the early shift ended.
 Loading-dock override at atrium port C7 was used 230 times for deliveries, each with a signed slip.
 Kowalczyk tallied 267 after-hours flows for coldroom on the late shift; all matched authorized on-call user.
@@ -2135,7 +2135,7 @@ Door controller B6 on eastwing was re-seated during the swing shift; reader firm
 Osei reviewed 378 camera frames against the server-hall flow log for the early shift and found no unattributed entries.
 Escort refresher for the vault service cohort closed with 415 attendees; facilities holds the roster.
 Ferrara confirmed the atrium anti-passback timer stayed at the 452-second vendor default across the incident window.
-Badge stock at the coldroom desk reconciled after the night shift: 489 blanks issued, none unaccounted.
+Collector spool capacity at the coldroom desk reconciled after the night shift: 489 blanks issued, none unaccounted.
 Menendez closed the dockbay follow-up on port C2 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile H2 on eastwing recalibrated in 563 minutes during the early shift with no operator intervention.
 Nakamura measured 600 ms of clock drift on the server-hall guest kiosk, inside the tolerance the board set.
@@ -2164,7 +2164,7 @@ Door-forced alarm on A1 at dockbay fired 514 times, every one traced to faciliti
 Kowalczyk confirmed the eastwing camera-to-flow overlay stayed aligned across 551 sampled events.
 Escort-desk staffing for server-hall held at 588 through the early shift; no queue built at the reader.
 Haugen archived 625 reader event logs from vault port F9; retention only, no bearing on the rollup.
-Badge-encoder calibration for atrium completed after 662 test cards on the late shift.
+Sensor tap calibration for atrium completed after 662 test cards on the late shift.
 Thorsen noted 699 seconds of NTP skew on the coldroom controller, corrected before the night shift ended.
 Loading-dock override at dockbay port E2 was used 736 times for deliveries, each with a signed slip.
 Villanueva tallied 773 after-hours flows for eastwing on the early shift; all matched authorized on-call user.
@@ -2173,7 +2173,7 @@ Door controller D1 on vault was re-seated during the late shift; reader firmware
 Nakamura reviewed 884 camera frames against the atrium flow log for the night shift and found no unattributed entries.
 Escort refresher for the coldroom service cohort closed with 21 attendees; facilities holds the roster.
 Baptiste confirmed the dockbay anti-passback timer stayed at the 58-second vendor default across the incident window.
-Badge stock at the eastwing desk reconciled after the relief shift: 95 blanks issued, none unaccounted.
+Collector spool capacity at the eastwing desk reconciled after the relief shift: 95 blanks issued, none unaccounted.
 Abadi closed the server-hall follow-up on port D5 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile B1 on vault recalibrated in 169 minutes during the night shift with no operator intervention.
 Sato measured 206 ms of clock drift on the atrium guest kiosk, inside the tolerance the board set.
@@ -2203,7 +2203,7 @@ Door-forced alarm on B3 at server-hall fired 120 times, every one traced to faci
 Villanueva confirmed the vault camera-to-flow overlay stayed aligned across 157 sampled events.
 Escort-desk staffing for atrium held at 194 through the night shift; no queue built at the reader.
 Moreau archived 231 reader event logs from coldroom port A2; retention only, no bearing on the rollup.
-Badge-encoder calibration for dockbay completed after 268 test cards on the early shift.
+Sensor tap calibration for dockbay completed after 268 test cards on the early shift.
 Rautio noted 305 seconds of NTP skew on the eastwing controller, corrected before the relief shift ended.
 Loading-dock override at server-hall port G4 was used 342 times for deliveries, each with a signed slip.
 Delacroix tallied 379 after-hours flows for vault on the night shift; all matched authorized on-call user.
@@ -2212,7 +2212,7 @@ Door controller E7 on coldroom was re-seated during the early shift; reader firm
 Sato reviewed 490 camera frames against the dockbay flow log for the relief shift and found no unattributed entries.
 Escort refresher for the eastwing service cohort closed with 527 attendees; facilities holds the roster.
 Okonkwo confirmed the server-hall anti-passback timer stayed at the 564-second vendor default across the incident window.
-Badge stock at the vault desk reconciled after the swing shift: 601 blanks issued, none unaccounted.
+Collector spool capacity at the vault desk reconciled after the swing shift: 601 blanks issued, none unaccounted.
 Osei closed the atrium follow-up on port F3 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile C4 on coldroom recalibrated in 675 minutes during the relief shift with no operator intervention.
 Ferrara measured 712 ms of clock drift on the dockbay guest kiosk, inside the tolerance the board set.
@@ -2241,7 +2241,7 @@ Door-forced alarm on C7 at atrium fired 626 times, every one traced to facilitie
 Delacroix confirmed the coldroom camera-to-flow overlay stayed aligned across 663 sampled events.
 Escort-desk staffing for dockbay held at 700 through the relief shift; no queue built at the reader.
 Lindqvist archived 737 reader event logs from eastwing port B6; retention only, no bearing on the rollup.
-Badge-encoder calibration for server-hall completed after 774 test cards on the night shift.
+Sensor tap calibration for server-hall completed after 774 test cards on the night shift.
 Kowalczyk noted 811 seconds of NTP skew on the vault controller, corrected before the swing shift ended.
 Loading-dock override at atrium port A5 was used 848 times for deliveries, each with a signed slip.
 Haugen tallied 885 after-hours flows for coldroom on the relief shift; all matched authorized on-call user.
@@ -2253,7 +2253,7 @@ Door controller H2 on eastwing was re-seated during the night shift; reader firm
 Ferrara reviewed 96 camera frames against the server-hall flow log for the swing shift and found no unattributed entries.
 Escort refresher for the vault service cohort closed with 133 attendees; facilities holds the roster.
 Menendez confirmed the atrium anti-passback timer stayed at the 170-second vendor default across the incident window.
-Badge stock at the coldroom desk reconciled after the late shift: 207 blanks issued, none unaccounted.
+Collector spool capacity at the coldroom desk reconciled after the late shift: 207 blanks issued, none unaccounted.
 Nakamura closed the dockbay follow-up on port A1 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile D8 on eastwing recalibrated in 281 minutes during the swing shift with no operator intervention.
 Baptiste measured 318 ms of clock drift on the server-hall guest kiosk, inside the tolerance the board set.
@@ -2282,7 +2282,7 @@ Door-forced alarm on E2 at dockbay fired 232 times, every one traced to faciliti
 Haugen confirmed the eastwing camera-to-flow overlay stayed aligned across 269 sampled events.
 Escort-desk staffing for server-hall held at 306 through the swing shift; no queue built at the reader.
 Thorsen archived 343 reader event logs from vault port D1; retention only, no bearing on the rollup.
-Badge-encoder calibration for atrium completed after 380 test cards on the relief shift.
+Sensor tap calibration for atrium completed after 380 test cards on the relief shift.
 Villanueva noted 417 seconds of NTP skew on the coldroom controller, corrected before the late shift ended.
 Loading-dock override at dockbay port C2 was used 454 times for deliveries, each with a signed slip.
 Moreau tallied 491 after-hours flows for eastwing on the swing shift; all matched authorized on-call user.
@@ -2291,7 +2291,7 @@ Door controller B1 on vault was re-seated during the relief shift; reader firmwa
 Baptiste reviewed 602 camera frames against the atrium flow log for the late shift and found no unattributed entries.
 Escort refresher for the coldroom service cohort closed with 639 attendees; facilities holds the roster.
 Abadi confirmed the dockbay anti-passback timer stayed at the 676-second vendor default across the incident window.
-Badge stock at the eastwing desk reconciled after the early shift: 713 blanks issued, none unaccounted.
+Collector spool capacity at the eastwing desk reconciled after the early shift: 713 blanks issued, none unaccounted.
 Sato closed the server-hall follow-up on port B3 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile F9 on vault recalibrated in 787 minutes during the late shift with no operator intervention.
 Okonkwo measured 824 ms of clock drift on the atrium guest kiosk, inside the tolerance the board set.
@@ -2320,7 +2320,7 @@ Door-forced alarm on G4 at server-hall fired 738 times, every one traced to faci
 Moreau confirmed the vault camera-to-flow overlay stayed aligned across 775 sampled events.
 Escort-desk staffing for atrium held at 812 through the late shift; no queue built at the reader.
 Rautio archived 849 reader event logs from coldroom port E7; retention only, no bearing on the rollup.
-Badge-encoder calibration for dockbay completed after 886 test cards on the swing shift.
+Sensor tap calibration for dockbay completed after 886 test cards on the swing shift.
 Delacroix noted 23 seconds of NTP skew on the eastwing controller, corrected before the early shift ended.
 Loading-dock override at server-hall port D5 was used 60 times for deliveries, each with a signed slip.
 Lindqvist tallied 97 after-hours flows for vault on the late shift; all matched authorized on-call user.
@@ -2329,7 +2329,7 @@ Door controller C4 on coldroom was re-seated during the swing shift; reader firm
 Okonkwo reviewed 208 camera frames against the dockbay flow log for the early shift and found no unattributed entries.
 Escort refresher for the eastwing service cohort closed with 245 attendees; facilities holds the roster.
 Osei confirmed the server-hall anti-passback timer stayed at the 282-second vendor default across the incident window.
-Badge stock at the vault desk reconciled after the night shift: 319 blanks issued, none unaccounted.
+Collector spool capacity at the vault desk reconciled after the night shift: 319 blanks issued, none unaccounted.
 Ferrara closed the atrium follow-up on port C7 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile A2 on coldroom recalibrated in 393 minutes during the early shift with no operator intervention.
 Menendez measured 430 ms of clock drift on the dockbay guest kiosk, inside the tolerance the board set.
@@ -2358,7 +2358,7 @@ Door-forced alarm on A5 at atrium fired 344 times, every one traced to facilitie
 Lindqvist confirmed the coldroom camera-to-flow overlay stayed aligned across 381 sampled events.
 Escort-desk staffing for dockbay held at 418 through the early shift; no queue built at the reader.
 Kowalczyk archived 455 reader event logs from eastwing port H2; retention only, no bearing on the rollup.
-Badge-encoder calibration for server-hall completed after 492 test cards on the late shift.
+Sensor tap calibration for server-hall completed after 492 test cards on the late shift.
 Haugen noted 529 seconds of NTP skew on the vault controller, corrected before the night shift ended.
 Loading-dock override at atrium port F3 was used 566 times for deliveries, each with a signed slip.
 Thorsen tallied 603 after-hours flows for coldroom on the early shift; all matched authorized on-call user.
@@ -2367,7 +2367,7 @@ Door controller D8 on eastwing was re-seated during the late shift; reader firmw
 Menendez reviewed 714 camera frames against the server-hall flow log for the night shift and found no unattributed entries.
 Escort refresher for the vault service cohort closed with 751 attendees; facilities holds the roster.
 Nakamura confirmed the atrium anti-passback timer stayed at the 788-second vendor default across the incident window.
-Badge stock at the coldroom desk reconciled after the relief shift: 825 blanks issued, none unaccounted.
+Collector spool capacity at the coldroom desk reconciled after the relief shift: 825 blanks issued, none unaccounted.
 Baptiste closed the dockbay follow-up on port E2 — the alarm burst traced to a wedged contact, not flow misuse.
 Turnstile B6 on eastwing recalibrated in 899 minutes during the night shift with no operator intervention.
 Abadi measured 36 ms of clock drift on the server-hall guest kiosk, inside the tolerance the board set.

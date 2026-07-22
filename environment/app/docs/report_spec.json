@@ -1,5 +1,5 @@
 {
-  "title": "Tideguard Badge-Access Containment Rollup \u2014 Output Contract",
+  "title": "Tideguard Network-Flow Quarantine Containment Rollup \u2014 Output Contract",
   "version": "3.0",
   "semantics_source": "This document fixes FORMAT only: file names, key sets, value vocabulary and checksum serialization. Every rule that decides a VALUE \u2014 normalization, deduplication, session stitching, control-window scope and precedence, the occupancy ledger, admission, priority and ordering \u2014 is settled in /app/incident/flow_review_dossier.md. Where the dossier revisits a point, the latest dated decision governs.",
   "cli": {

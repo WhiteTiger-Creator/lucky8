@@ -35,11 +35,22 @@ Defects are emitted sorted by `defect_id` ascending.
 
 ## Repair audit
 
-`pre_repair_sha256` and `pre_repair_byte_count` are read from the **frozen** snapshot, so
-they are identical whether or not a repair already ran. The frozen file is read-only and
-must never be modified. `post_repair_*` describe the restored workflow on disk after the
-repair. `forbidden_tokens_removed` lists which of the spec's `forbidden_tokens` are absent
-from the restored source, sorted.
+`repair_audit.json` carries all eight keys of `repair_audit.required_keys` — a file with only
+the hash and token fields is incomplete:
+
+* `schema_version` — the literal string fixed by the spec.
+* `pre_repair_sha256` and `pre_repair_byte_count` — read from the **frozen** snapshot, so they
+  are identical whether or not a repair already ran. The frozen file is read-only and must
+  never be modified.
+* `post_repair_sha256` and `post_repair_byte_count` — describe the restored workflow on disk
+  after the repair.
+* `defects_repaired` — the array of repaired defect id strings, sorted ascending. It is a list
+  of ids, not a count.
+* `forbidden_tokens_removed` — which of the spec's `forbidden_tokens` are absent from the
+  restored source, sorted.
+* `artifacts` — the sorted array of artifact file names written by the repair.
+
+Their exact types are given in the spec's `repair_audit.required_keys_annotated`.
 
 ## Order of operations
 

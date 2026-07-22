@@ -9,7 +9,7 @@ subcategories = ["long_context"]
 number_of_milestones = 0
 codebase_size = "minimal"
 languages = ["python"]
-tags = ["security", "physical-access-control", "incident-response", "flow-audit", "cli"]
+tags = ["security", "network-flow-analysis", "incident-response", "flow-audit", "cli"]
 expert_time_estimate_min = 180
 junior_time_estimate_min = 360
 

@@ -71,10 +71,12 @@ def _hide_expected_fixture():
 
 # ----------------------------------------------------------------- CLI ------
 def test_cli_exists():
+    """The audit CLI is created at its operational path /app/flow_audit.py."""
     assert AUDIT.exists(), "the audit CLI was not created at /app/flow_audit.py"
 
 
 def test_repair_writes_all_five_artifacts(repaired):
+    """A repair run leaves exactly the five contracted artifacts and nothing else: the three containment records plus the diagnosis and the repair audit."""
     names = sorted(p.name for p in repaired.iterdir() if p.is_file())
     assert names == sorted(["quarantined.jsonl", "diagnosis.json", "repair_audit.json",
                             "summary.json", "subnet_matrix.json"])
@@ -94,6 +96,7 @@ def test_diagnose_is_stateless(tmp_path):
 
 
 def test_diagnose_after_repair_still_reports_every_defect(repaired, tmp_path):
+    """diagnose is stateless: run again after a repair has already completed, it still reports every known containment defect rather than an empty or already-fixed report."""
     report = tmp_path / "again.json"
     subprocess.run(
         [sys.executable, str(AUDIT), "diagnose", "--dossier", str(DOSSIER), "--report", str(report)],
@@ -104,6 +107,7 @@ def test_diagnose_after_repair_still_reports_every_defect(repaired, tmp_path):
 
 # ------------------------------------------------------------ diagnosis -----
 def test_diagnosis_schema(repaired):
+    """diagnosis.json carries exactly the contracted key set, the contracted schema_version literal, and the full input_stats key set."""
     body = json.loads((repaired / "diagnosis.json").read_text())
     assert set(body) == set(SPEC["diagnosis_report"]["required_keys"])
     assert body["schema_version"] == SPEC["diagnosis_report"]["schema_version"]
@@ -113,6 +117,7 @@ def test_diagnosis_schema(repaired):
 
 
 def test_diagnosis_input_stats_match_the_raw_stream(repaired):
+    """input_stats describe the RAW telemetry stream - raw row count, distinct flow ids and the excess-duplicate count all follow the input file, not the deduplicated set."""
     body = json.loads((repaired / "diagnosis.json").read_text())
     rows = json.loads(EVENTS.read_text())
     ids = [str(r.get("flow_id", "")).strip() for r in rows]
@@ -134,6 +139,7 @@ def test_dossier_quotes_are_verbatim_dossier_lines(repaired):
 
 
 def test_pipeline_evidence_comes_from_the_frozen_snapshot(repaired):
+    """Each defect's pipeline_evidence is a verbatim line from the FROZEN snapshot rather than the live workflow, so the evidence is unchanged by a repair having already run."""
     body = json.loads((repaired / "diagnosis.json").read_text())
     lines = {line.strip() for line in FROZEN.read_text().splitlines() if line.strip()}
     for defect in body["defects"]:
@@ -155,6 +161,7 @@ def test_each_defect_cites_the_expected_evidence(repaired):
 
 
 def test_diagnosis_checksum_consistent(repaired):
+    """The diagnosis checksum is the SHA-256 of the contracted per-defect payload, so it is reproducible from the report's own contents."""
     body = json.loads((repaired / "diagnosis.json").read_text())
     payload = "\n".join(
         f"{d['defect_id']}|{d['stage']}|{d['repair_action']}" for d in body["defects"])
@@ -163,12 +170,14 @@ def test_diagnosis_checksum_consistent(repaired):
 
 # ----------------------------------------------------------- repair audit ---
 def test_repair_audit_schema(repaired):
+    """repair_audit.json carries exactly the eight contracted keys and the contracted schema_version literal - the hash and token fields alone are an incomplete audit."""
     audit = json.loads((repaired / "repair_audit.json").read_text())
     assert set(audit) == set(SPEC["repair_audit"]["required_keys"])
     assert audit["schema_version"] == SPEC["repair_audit"]["schema_version"]
 
 
 def test_pre_repair_hash_is_read_from_the_frozen_snapshot(repaired):
+    """The pre-repair hash and byte count are read from the FROZEN snapshot, so they are identical whether or not a repair already ran."""
     audit = json.loads((repaired / "repair_audit.json").read_text())
     raw = FROZEN.read_bytes()
     assert audit["pre_repair_sha256"] == hashlib.sha256(raw).hexdigest()
@@ -176,10 +185,12 @@ def test_pre_repair_hash_is_read_from_the_frozen_snapshot(repaired):
 
 
 def test_frozen_snapshot_is_unchanged(repaired):
+    """The frozen pre-incident snapshot is read-only forensic evidence and remains byte-identical after the repair."""
     assert FROZEN.read_text() == EXPECTED["frozen_source"]
 
 
 def test_post_repair_hash_matches_the_restored_workflow(repaired):
+    """The post-repair hash and byte count describe the restored workflow actually on disk, so they differ from the frozen pre-repair pair."""
     audit = json.loads((repaired / "repair_audit.json").read_text())
     raw = WORKFLOW.read_bytes()
     assert audit["post_repair_sha256"] == hashlib.sha256(raw).hexdigest()
@@ -188,6 +199,7 @@ def test_post_repair_hash_matches_the_restored_workflow(repaired):
 
 
 def test_forbidden_tokens_are_gone_from_the_restored_workflow(repaired):
+    """Every forbidden construct named by the spec is absent from the restored source, and the audit reports exactly those tokens as removed."""
     source = WORKFLOW.read_text()
     audit = json.loads((repaired / "repair_audit.json").read_text())
     for token in SPEC["workflow_repair"]["forbidden_tokens"]:
@@ -197,6 +209,7 @@ def test_forbidden_tokens_are_gone_from_the_restored_workflow(repaired):
 
 
 def test_audit_lists_every_defect_and_artifact(repaired):
+    """defects_repaired lists every known defect id as a sorted array of id strings (not a count), and artifacts names the files the repair wrote."""
     audit = json.loads((repaired / "repair_audit.json").read_text())
     assert sorted(audit["defects_repaired"]) == sorted(
         d["defect_id"] for d in SPEC["known_defects"])
@@ -206,6 +219,7 @@ def test_audit_lists_every_defect_and_artifact(repaired):
 
 
 def test_source_does_not_reference_verifier_trees():
+    """Neither the audit CLI nor the restored workflow references the verifier tree, so the solution cannot read expected outputs."""
     source = AUDIT.read_text() + WORKFLOW.read_text()
     for token in ("/tests", "/solution", "expected_outputs.json"):
         assert token not in source
@@ -213,18 +227,22 @@ def test_source_does_not_reference_verifier_trees():
 
 # --------------------------------------------------------------- outputs ----
 def test_summary_matches_fixture(repaired):
+    """summary.json from the primary telemetry stream matches its expected values exactly."""
     assert json.loads((repaired / "summary.json").read_text()) == EXPECTED["primary"]["summary"]
 
 
 def test_subnet_matrix_matches_fixture(repaired):
+    """subnet_matrix.json from the primary telemetry stream matches its expected values exactly."""
     assert json.loads((repaired / "subnet_matrix.json").read_text()) == EXPECTED["primary"]["matrix"]
 
 
 def test_quarantined_queue_matches_fixture(repaired):
+    """quarantined.jsonl from the primary telemetry stream matches its expected rows exactly."""
     assert _jsonl(repaired / "quarantined.jsonl") == EXPECTED["primary"]["queue"]
 
 
 def test_summary_schema(repaired):
+    """summary.json carries the contracted key set, with tier_counts and priority_counts enumerating their vocabularies in the contracted order."""
     summary = json.loads((repaired / "summary.json").read_text())
     assert set(summary) == set(SPEC["outputs"]["summary_json"]["required_keys"])
     assert list(summary["tier_counts"]) == CLASS_ORDER
@@ -235,6 +253,7 @@ def test_summary_schema(repaired):
 
 
 def test_subnet_matrix_shape(repaired):
+    """subnet_matrix.json is an object keyed by subnet, each value carrying exactly the contracted per-subnet key set."""
     matrix = json.loads((repaired / "subnet_matrix.json").read_text())
     assert isinstance(matrix, dict) and matrix
     wanted = set(SPEC["outputs"]["subnet_matrix_json"]["required_keys"])
@@ -243,6 +262,7 @@ def test_subnet_matrix_shape(repaired):
 
 
 def test_queue_row_shape_and_vocabulary(repaired):
+    """Every queue row carries the complete contracted field set, and its trust tier and priority use only the contracted vocabularies."""
     rows = _jsonl(repaired / "quarantined.jsonl")
     wanted = set(SPEC["outputs"]["quarantined_jsonl"]["required_keys"])
     for row in rows:
@@ -254,6 +274,7 @@ def test_queue_row_shape_and_vocabulary(repaired):
 
 
 def test_quarantined_jsonl_is_compact(repaired):
+    """quarantined.jsonl uses compact JSON separators, with no space after a comma or colon."""
     for line in (repaired / "quarantined.jsonl").read_text().splitlines():
         if line.strip():
             assert ", " not in line and '": ' not in line
@@ -261,12 +282,14 @@ def test_quarantined_jsonl_is_compact(repaired):
 
 # ------------------------------------------------------------- behaviour ----
 def test_tier_counts_cover_every_canonical_row_including_blocked(repaired):
+    """tier_counts covers every canonical row including blocked flows, which open no session but are still counted."""
     summary = json.loads((repaired / "summary.json").read_text())
     assert sum(summary["tier_counts"].values()) == summary["canonical_flow_count"]
     assert summary["blocked_excluded_count"] > 0, "the stream must contain blocked flows"
 
 
 def test_duplicate_flows_are_collapsed_before_aggregates(repaired):
+    """Duplicate flow ids collapse before any aggregate, so the canonical count falls below the raw count while raw_flow_count still reflects the input."""
     summary = json.loads((repaired / "summary.json").read_text())
     rows = json.loads(EVENTS.read_text())
     assert summary["raw_flow_count"] == len(rows)
@@ -274,8 +297,8 @@ def test_duplicate_flows_are_collapsed_before_aggregates(repaired):
     assert summary["canonical_flow_count"] == summary["unique_flow_ids"]
 
 
-def test_unknown_trust_tier_falls_back_to_visitor(repaired):
-    """TQ-3316: an unrecognized class becomes visitor, the LOWEST class."""
+def test_unknown_trust_tier_falls_back_to_guest(repaired):
+    """TQ-3316: an unrecognized trust tier normalizes to guest, the LOWEST class."""
     rows = json.loads(EVENTS.read_text())
     unknown = [r for r in rows
                if str(r.get("trust_tier", "")).strip().lower() not in CLASS_RANK]
@@ -313,6 +336,7 @@ def test_carry_out_never_exceeds_the_retuned_cap(repaired):
 
 
 def test_queue_follows_the_pac_3334_ordering_chain(repaired):
+    """The queue follows the full governed tie-break chain - priority rank, then ledger hold, hold, flow count, subnet and start - rather than entry order."""
     rows = _jsonl(repaired / "quarantined.jsonl")
     rank = {n: len(PRIORITY_ORDER) - i for i, n in enumerate(PRIORITY_ORDER)}
     keys = [(-rank[r["priority"]], -r["ledger_hold_ms"], -r["hold_ms"],
@@ -339,6 +363,7 @@ def test_admission_floor_is_per_class(repaired):
 
 
 def test_hold_digest_consistent(repaired):
+    """Each queue row's hold digest is reproducible from that row's own contracted payload."""
     for row in _jsonl(repaired / "quarantined.jsonl"):
         payload = (f"{row['subnet']}|{row['start_ms']}|{row['end_ms']}"
                    f"|{','.join(row['flow_ids'])}|{row['top_tier']}|{row['ledger_hold_ms']}")
@@ -346,6 +371,7 @@ def test_hold_digest_consistent(repaired):
 
 
 def test_quarantine_checksum_consistent(repaired):
+    """The quarantine checksum is reproducible from the emitted queue rows in queue order."""
     summary = json.loads((repaired / "summary.json").read_text())
     rows = _jsonl(repaired / "quarantined.jsonl")
     payload = "\n".join(
@@ -354,6 +380,7 @@ def test_quarantine_checksum_consistent(repaired):
 
 
 def test_flow_policy_checksum_consistent(repaired):
+    """The flow-policy checksum is reproducible from the control windows in the contracted ordering."""
     summary = json.loads((repaired / "summary.json").read_text())
     controls = json.loads(CONTROLS.read_text())
     ordered = sorted(controls, key=lambda r: (
@@ -366,6 +393,7 @@ def test_flow_policy_checksum_consistent(repaired):
 
 # --------------------------------------------------------- generalization ---
 def test_repair_is_idempotent(tmp_path):
+    """Two independent repair runs produce byte-identical containment records."""
     first = _repair(tmp_path / "a")
     second = _repair(tmp_path / "b")
     for name in ("summary.json", "subnet_matrix.json", "quarantined.jsonl"):
@@ -373,6 +401,7 @@ def test_repair_is_idempotent(tmp_path):
 
 
 def test_generalizes_to_alternate_stream(tmp_path):
+    """The restored control produces correct output on an alternate telemetry capture it has never seen, so values cannot be hardcoded."""
     out = _repair(tmp_path / "alt", input_path=ALT_EVENTS)
     assert json.loads((out / "summary.json").read_text()) == EXPECTED["alternate"]["summary"]
     assert json.loads((out / "subnet_matrix.json").read_text()) == EXPECTED["alternate"]["matrix"]
@@ -380,6 +409,7 @@ def test_generalizes_to_alternate_stream(tmp_path):
 
 
 def test_custom_output_dir_is_honoured(tmp_path):
+    """--output-dir redirects every repair output to the requested directory."""
     out = tmp_path / "elsewhere"
     subprocess.run([sys.executable, str(AUDIT), "repair", "--output-dir", str(out)],
                    capture_output=True, text=True, check=True)
