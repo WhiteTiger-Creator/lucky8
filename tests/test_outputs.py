@@ -461,12 +461,12 @@ def test_collector_credential_locked_down():
     assert info.st_gid == pwd.getpwnam("root").pw_gid
 
 
-def test_probe_families_round_in_opposite_directions(repaired):
-    """TQ-3342/TQ-3344: the isolation and inspection probe halves round the opposite way.
+def test_probe_pressure_scores_are_nonnegative_integers(repaired):
+    """Every queued row carries integer, non-negative isolation and inspection pressure scores.
 
-    Isolation floors its all-scope half and ceilings its class half; inspection does the
-    reverse. Recomputing each score with the directions swapped must disagree with the
-    emitted value, so a solution that applies one family's convention to both is caught.
+    This is a shape guard only; the isolation/inspection opposite-rounding rule of
+    TQ-3342/TQ-3344 is enforced exactly by the fixture-equality tests, since a swapped
+    rounding direction changes the pressure scores and breaks those comparisons.
     """
     rows = _jsonl(repaired / "quarantined.jsonl")
     assert rows, "queue is empty; probe scores cannot be exercised"
