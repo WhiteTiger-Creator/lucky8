@@ -1,0 +1,226 @@
+[
+  {
+    "message_id": "msg-701",
+    "occurred_ms": 10740000000000,
+    "severity": "critical",
+    "mailbox": "ceo-office",
+    "detector": "credential phishing lure",
+    "dismissed": false
+  },
+  {
+    "message_id": "msg-702",
+    "occurred_ms": 10740000000250,
+    "severity": "Critical",
+    "mailbox": "ceo-office",
+    "detector": "display name spoof",
+    "dismissed": false
+  },
+  {
+    "message_id": "msg-703",
+    "occurred_ms": 10740000000800,
+    "severity": "high",
+    "mailbox": "ceo-office",
+    "detector": "reply chain hijack",
+    "dismissed": false
+  },
+  {
+    "message_id": "msg-710",
+    "occurred_ms": 10740000001100,
+    "severity": "HIGH ",
+    "mailbox": "finance-team",
+    "detector": "wire transfer request",
+    "dismissed": false
+  },
+  {
+    "message_id": "msg-711",
+    "occurred_ms": 10740000001500,
+    "severity": "high",
+    "mailbox": "finance-team",
+    "detector": "lookalike domain sender",
+    "dismissed": false
+  },
+  {
+    "message_id": "msg-720",
+    "occurred_ms": 10740000002000,
+    "severity": "high",
+    "mailbox": "it-admin",
+    "detector": "oauth consent phish",
+    "dismissed": false
+  },
+  {
+    "message_id": "msg-704",
+    "occurred_ms": 10740000003000,
+    "severity": "high",
+    "mailbox": "ceo-office",
+    "detector": "malicious attachment payload",
+    "dismissed": false
+  },
+  {
+    "message_id": "msg-705",
+    "occurred_ms": 10740000003150,
+    "severity": "critical",
+    "mailbox": "ceo-office",
+    "detector": "mailbox rule tampering",
+    "dismissed": false
+  },
+  {
+    "message_id": "msg-730",
+    "occurred_ms": 10740000003400,
+    "severity": "critical",
+    "mailbox": "hr-dept",
+    "detector": "credential phishing lure",
+    "dismissed": false
+  },
+  {
+    "message_id": "msg-731",
+    "occurred_ms": 10740000003700,
+    "severity": "critical",
+    "mailbox": "sales-ops",
+    "detector": "credential phishing lure",
+    "dismissed": false
+  },
+  {
+    "message_id": "msg-740",
+    "occurred_ms": 10740000003900,
+    "severity": "high",
+    "mailbox": "support-inbox",
+    "detector": "mass exfil forward",
+    "dismissed": false
+  },
+  {
+    "message_id": "msg-741",
+    "occurred_ms": 10740000005200,
+    "severity": "high",
+    "mailbox": "ceo-office",
+    "detector": "privileged grant abuse",
+    "dismissed": false
+  },
+  {
+    "message_id": "msg-742",
+    "occurred_ms": 10740000005400,
+    "severity": "medium",
+    "mailbox": "finance-team",
+    "detector": "unfamiliar client fingerprint",
+    "dismissed": false
+  },
+  {
+    "message_id": "msg-743",
+    "occurred_ms": 10740000005500,
+    "severity": "low",
+    "mailbox": "it-admin",
+    "detector": "stale token reuse",
+    "dismissed": false
+  },
+  {
+    "message_id": "msg-744",
+    "occurred_ms": 10740000005600,
+    "severity": "medium",
+    "mailbox": "support-inbox",
+    "detector": "login from vpn exit",
+    "dismissed": false
+  },
+  {
+    "message_id": "msg-750",
+    "occurred_ms": 10740000006200,
+    "severity": "high",
+    "mailbox": "ceo-office",
+    "detector": "credential phishing lure",
+    "dismissed": true
+  },
+  {
+    "message_id": "msg-751",
+    "occurred_ms": 10740000006300,
+    "severity": "critical",
+    "mailbox": "finance-team",
+    "detector": "wire transfer request",
+    "dismissed": "yes"
+  },
+  {
+    "message_id": "msg-760",
+    "occurred_ms": 10740000007200,
+    "severity": "high",
+    "mailbox": "sales-ops",
+    "detector": "lookalike domain sender",
+    "dismissed": false
+  },
+  {
+    "message_id": "msg-761",
+    "occurred_ms": 10740000007350,
+    "severity": "critical",
+    "mailbox": "sales-ops",
+    "detector": "lookalike domain sender",
+    "dismissed": false
+  },
+  {
+    "message_id": "msg-770",
+    "occurred_ms": 10740000008200,
+    "severity": "high",
+    "mailbox": "it-admin",
+    "detector": "credential phishing lure",
+    "dismissed": false
+  },
+  {
+    "message_id": "msg-771",
+    "occurred_ms": 10740000008500,
+    "severity": "high",
+    "mailbox": "hr-dept",
+    "detector": "brute force auth lockout",
+    "dismissed": false
+  },
+  {
+    "message_id": "msg-772",
+    "occurred_ms": 10740000008800,
+    "severity": "critical",
+    "mailbox": "ceo-office",
+    "detector": "privileged scope grant",
+    "dismissed": false
+  },
+  {
+    "message_id": "msg-773",
+    "occurred_ms": 10740000009200,
+    "severity": "high",
+    "mailbox": "finance-team",
+    "detector": "exfil via auto forward",
+    "dismissed": false
+  },
+  {
+    "message_id": "msg-774",
+    "occurred_ms": 10740000009400,
+    "severity": "critical",
+    "mailbox": "support-inbox",
+    "detector": "directory sync anomaly",
+    "dismissed": false
+  },
+  {
+    "message_id": "msg-780",
+    "occurred_ms": 10740000010200,
+    "severity": "high",
+    "mailbox": "it-admin",
+    "detector": "credential in message body",
+    "dismissed": false
+  },
+  {
+    "message_id": "msg-781",
+    "occurred_ms": 10740000010290,
+    "severity": "high",
+    "mailbox": "it-admin",
+    "detector": "signing key exposure",
+    "dismissed": false
+  },
+  {
+    "message_id": "msg-701",
+    "occurred_ms": 10740000000120,
+    "severity": "high",
+    "mailbox": "ceo-office",
+    "detector": "credential phishing lure",
+    "dismissed": false
+  },
+  {
+    "message_id": "msg-740",
+    "occurred_ms": 10740000003900,
+    "severity": "critical",
+    "mailbox": "support-inbox",
+    "detector": "mass exfil forward",
+    "dismissed": false
+  }
+]

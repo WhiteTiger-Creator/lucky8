@@ -1,0 +1,74 @@
+[
+  {
+    "mailbox": "sales-ops",
+    "severity_scope": "all",
+    "start_ms": 10740000007150,
+    "end_ms": 10740000007400
+  },
+  {
+    "mailbox": "ceo-office",
+    "severity_scope": "critical",
+    "start_ms": 10740000008750,
+    "end_ms": 10740000008850
+  },
+  {
+    "mailbox": "hr-dept",
+    "severity_scope": "high",
+    "start_ms": 10740000008450,
+    "end_ms": 10740000008480
+  },
+  {
+    "mailbox": "finance-team",
+    "severity_scope": "high",
+    "start_ms": 10740000001000,
+    "end_ms": 10740000001200
+  },
+  {
+    "mailbox": "ceo-office",
+    "severity_scope": "all",
+    "start_ms": 10740000000200,
+    "end_ms": 10740000000300
+  },
+  {
+    "mailbox": "ceo-office",
+    "severity_scope": "all",
+    "start_ms": 10740000000300,
+    "end_ms": 10740000000360
+  },
+  {
+    "mailbox": "it-admin",
+    "severity_scope": "all",
+    "start_ms": 10740000001800,
+    "end_ms": 10740000001847
+  },
+  {
+    "mailbox": "support-inbox",
+    "severity_scope": "all",
+    "start_ms": 10740000003700,
+    "end_ms": 10740000003761
+  },
+  {
+    "mailbox": "it-admin",
+    "severity_scope": "all",
+    "start_ms": 10740000008000,
+    "end_ms": 10740000008071
+  },
+  {
+    "mailbox": "hr-dept",
+    "severity_scope": "all",
+    "start_ms": 10740000008300,
+    "end_ms": 10740000008391
+  },
+  {
+    "mailbox": "finance-team",
+    "severity_scope": "all",
+    "start_ms": 10740000009000,
+    "end_ms": 10740000009047
+  },
+  {
+    "mailbox": "it-admin",
+    "severity_scope": "all",
+    "start_ms": 10740000010000,
+    "end_ms": 10740000010061
+  }
+]

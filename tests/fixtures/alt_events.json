@@ -1,0 +1,98 @@
+[
+  {
+    "message_id": "bz-01",
+    "occurred_ms": 10740000000000,
+    "severity": "critical",
+    "mailbox": "ceo-office",
+    "detector": "credential phishing lure",
+    "dismissed": false
+  },
+  {
+    "message_id": "bz-02",
+    "occurred_ms": 10740000000350,
+    "severity": "high",
+    "mailbox": "ceo-office",
+    "detector": "display name spoof",
+    "dismissed": false
+  },
+  {
+    "message_id": "bz-03",
+    "occurred_ms": 10740000001600,
+    "severity": "high",
+    "mailbox": "it-admin",
+    "detector": "lookalike domain sender",
+    "dismissed": false
+  },
+  {
+    "message_id": "bz-04",
+    "occurred_ms": 10740000002100,
+    "severity": "critical",
+    "mailbox": "finance-team",
+    "detector": "credential phishing lure",
+    "dismissed": false
+  },
+  {
+    "message_id": "bz-05",
+    "occurred_ms": 10740000002500,
+    "severity": "high",
+    "mailbox": "hr-dept",
+    "detector": "credential phishing lure",
+    "dismissed": false
+  },
+  {
+    "message_id": "bz-06",
+    "occurred_ms": 10740000003100,
+    "severity": "critical",
+    "mailbox": "support-inbox",
+    "detector": "directory sync anomaly",
+    "dismissed": false
+  },
+  {
+    "message_id": "bz-07",
+    "occurred_ms": 10740000003700,
+    "severity": "high",
+    "mailbox": "sales-ops",
+    "detector": "credential in message body",
+    "dismissed": false
+  },
+  {
+    "message_id": "bz-08",
+    "occurred_ms": 10740000004100,
+    "severity": "medium",
+    "mailbox": "ceo-office",
+    "detector": "privileged scope grant",
+    "dismissed": false
+  },
+  {
+    "message_id": "bz-09",
+    "occurred_ms": 10740000004300,
+    "severity": "low",
+    "mailbox": "it-admin",
+    "detector": "stale token reuse",
+    "dismissed": false
+  },
+  {
+    "message_id": "bz-10",
+    "occurred_ms": 10740000004700,
+    "severity": "high",
+    "mailbox": "finance-team",
+    "detector": "wire transfer request",
+    "dismissed": true
+  },
+  {
+    "message_id": "bz-11",
+    "occurred_ms": 10740000005100,
+    "severity": "high",
+    "mailbox": "support-inbox",
+    "detector": "mass exfil forward",
+    "dismissed": false
+  },
+  {
+    "message_id": "bz-12",
+    "occurred_ms": 10740000005400,
+    "severity": "high",
+    "mailbox": "ceo-office",
+    "detector": "reply chain hijack",
+    "dismissed": false
+  }
+]

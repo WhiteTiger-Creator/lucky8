@@ -1,437 +1,1460 @@
-"""Verifier tests for the Tideguard flow-access containment audit task."""
+"""Verify Mailguard audit CLI and repaired signal workflow."""
 
 from __future__ import annotations
 
+import ast
 import hashlib
 import json
+import os
+import shutil
 import subprocess
-import sys
+import tempfile
 from pathlib import Path
 
 import pytest
 
-AUDIT = Path("/app/flow_audit.py")
-WORKFLOW = Path("/app/workflow/export_report.py")
-FROZEN = Path("/app/workflow/.export_report.original")
-DOSSIER = Path("/app/incident/flow_review_dossier.md")
-SPEC_PATH = Path("/app/docs/report_spec.json")
-EVENTS = Path("/app/data/flow_events.json")
-CONTROLS = Path("/app/data/flow_policies.json")
-FIX = Path("/tests/fixtures")
-ALT_EVENTS = FIX / "alt_flow_events.json"
-
-SPEC = json.loads(SPEC_PATH.read_text())
-EXPECTED = json.loads((FIX / "expected_outputs.json").read_text())
-
-CLASS_ORDER = ["core", "service", "user", "guest"]
-PRIORITY_ORDER = ["critical", "elevated", "routine"]
-CLASS_RANK = {n: len(CLASS_ORDER) - i for i, n in enumerate(CLASS_ORDER)}
-
-
-def _jsonl(path: Path):
-    return [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
-
-
-def _repair(tmp: Path, input_path: Path | None = None) -> Path:
-    out = tmp / "out"
-    out.mkdir(parents=True, exist_ok=True)
-    cmd = [sys.executable, str(AUDIT), "repair", "--output-dir", str(out)]
-    res = subprocess.run(cmd, capture_output=True, text=True)
-    assert res.returncode == 0, res.stderr
-    if input_path is not None:
-        res = subprocess.run(
-            [sys.executable, str(WORKFLOW), "--input", str(input_path), "--output-dir", str(out)],
-            capture_output=True, text=True)
-        assert res.returncode == 0, res.stderr
-    return out
+OUTPUT_DIR = Path("/app/output")
+DIAGNOSIS_PATH = OUTPUT_DIR / "diagnosis.json"
+SUMMARY_PATH = OUTPUT_DIR / "summary.json"
+MATRIX_PATH = OUTPUT_DIR / "mailbox_matrix.json"
+FLAGGED_PATH = OUTPUT_DIR / "escalated.jsonl"
+REPAIR_AUDIT_PATH = OUTPUT_DIR / "repair_audit.json"
+CLI = Path("/app/message_audit.py")
+PIPELINE = Path("/app/workflow/export_report.py")
+ORIGINAL_PIPELINE = Path("/app/workflow/.export_report.original")
+DOSSIER_PATH = Path("/app/incident/export_dossier.md")
+INPUT_PATH = Path("/app/data/events.json")
+OVERRIDES_PATH = Path("/app/data/dismissal_overrides.json")
+REPORT_SPEC_PATH = Path("/app/docs/report_spec.json")
+ALT_INPUT = Path("/tests/fixtures/alt_events.json")
+BROKEN_PIPELINE_SHA256 = "2fcc36e92499e620a20f69f330a04f7da02a064f6205c505c44f6f3ec7c1d7e2"
+SPEC_DATA = json.loads(REPORT_SPEC_PATH.read_text())
+ISSUE_EVIDENCE_TERMS = SPEC_DATA["diagnosis_report"]["issues_found_item"]["evidence"][
+    "required_terms_by_issue"
+]
+REQUIRED_ISSUE_IDS = SPEC_DATA["diagnosis_report"]["issues_found_item"]["allowed_ids"]
+FORBIDDEN_TOKENS = ('event["occurred_at"]', 'severity == "critical"')
+ANOMALY_SEVERITIES = {"high", "critical"}
+SEVERITY_ORDER = ("critical", "high", "medium", "low")
+SEVERITY_RANK = {"low": 1, "medium": 2, "high": 3, "critical": 4}
 
 
-@pytest.fixture(scope="session")
-def repaired(tmp_path_factory) -> Path:
-    return _repair(tmp_path_factory.mktemp("primary"))
+def _normalize_ws(text: str) -> str:
+    return " ".join(text.split())
 
 
-@pytest.fixture(scope="session", autouse=True)
-def _hide_expected_fixture():
-    """Keep the expected-output fixture off disk while candidate code runs."""
-    stash = FIX / "expected_outputs.json.hidden"
-    moved = False
-    try:
-        if (FIX / "expected_outputs.json").exists():
-            (FIX / "expected_outputs.json").rename(stash)
-            moved = True
-    except OSError:
-        moved = False
-    try:
-        yield
-    finally:
-        if moved:
-            stash.rename(FIX / "expected_outputs.json")
+def _executable_text(src: str) -> str:
+    docstring_lines: set[int] = set()
+    tree = ast.parse(src)
+    for node in ast.walk(tree):
+        if not isinstance(node, (ast.Module, ast.ClassDef, ast.FunctionDef)):
+            continue
+        if not node.body:
+            continue
+        first = node.body[0]
+        if isinstance(first, ast.Expr) and isinstance(first.value, ast.Constant):
+            if isinstance(first.value.value, str):
+                end = getattr(first, "end_lineno", first.lineno)
+                docstring_lines.update(range(first.lineno, end + 1))
+
+    lines: list[str] = []
+    for line_number, line in enumerate(src.splitlines(), start=1):
+        if line_number in docstring_lines:
+            continue
+        stripped = line.strip()
+        if stripped.startswith("#"):
+            continue
+        if "#" in line:
+            line = line.split("#", 1)[0]
+        lines.append(line)
+    return "\n".join(lines)
 
 
-# ----------------------------------------------------------------- CLI ------
-def test_cli_exists():
-    """The audit CLI is created at its operational path /app/flow_audit.py."""
-    assert AUDIT.exists(), "the audit CLI was not created at /app/flow_audit.py"
+def _load_events(path: Path) -> list[dict]:
+    return json.loads(path.read_text())
 
 
-def test_repair_writes_all_five_artifacts(repaired):
-    """A repair run leaves exactly the five contracted artifacts and nothing else: the three containment records plus the diagnosis and the repair audit."""
-    names = sorted(p.name for p in repaired.iterdir() if p.is_file())
-    assert names == sorted(["quarantined.jsonl", "diagnosis.json", "repair_audit.json",
-                            "summary.json", "subnet_matrix.json"])
+def _normalize_severity(value: object) -> str:
+    return str(value if value is not None else "").strip().lower()
 
 
-def test_diagnose_is_stateless(tmp_path):
-    """An explicit diagnose call writes a full report with no prior repair."""
-    report = tmp_path / "d.json"
-    res = subprocess.run(
-        [sys.executable, str(AUDIT), "diagnose", "--dossier", str(DOSSIER), "--report", str(report)],
-        capture_output=True, text=True)
-    assert res.returncode == 0, res.stderr
-    body = json.loads(report.read_text())
-    assert body["defect_count"] == len(SPEC["known_defects"])
-    assert [d["defect_id"] for d in body["defects"]] == sorted(
-        d["defect_id"] for d in SPEC["known_defects"])
+def _normalize_mailbox(value: object) -> str:
+    return str(value if value is not None else "").strip().lower()
 
 
-def test_diagnose_after_repair_still_reports_every_defect(repaired, tmp_path):
-    """diagnose is stateless: run again after a repair has already completed, it still reports every known containment defect rather than an empty or already-fixed report."""
-    report = tmp_path / "again.json"
-    subprocess.run(
-        [sys.executable, str(AUDIT), "diagnose", "--dossier", str(DOSSIER), "--report", str(report)],
-        capture_output=True, text=True, check=True)
-    body = json.loads(report.read_text())
-    assert body["defect_count"] == len(SPEC["known_defects"])
+def _normalize_occurred_ms(value: object) -> int:
+    if isinstance(value, bool):
+        return int(value)
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float):
+        return int(value)
+    if isinstance(value, str):
+        text = value.strip()
+        try:
+            return int(text)
+        except ValueError:
+            return 0
+    return 0
 
 
-# ------------------------------------------------------------ diagnosis -----
-def test_diagnosis_schema(repaired):
-    """diagnosis.json carries exactly the contracted key set, the contracted schema_version literal, and the full input_stats key set."""
-    body = json.loads((repaired / "diagnosis.json").read_text())
-    assert set(body) == set(SPEC["diagnosis_report"]["required_keys"])
-    assert body["schema_version"] == SPEC["diagnosis_report"]["schema_version"]
-    assert set(body["input_stats"]) == set(SPEC["diagnosis_report"]["input_stats_keys"])
-    for defect in body["defects"]:
-        assert set(defect) == set(SPEC["diagnosis_report"]["defect_keys"])
+def _normalize_detector(value: object) -> str:
+    return " ".join(str(value if value is not None else "").split())
 
 
-def test_diagnosis_input_stats_match_the_raw_stream(repaired):
-    """input_stats describe the RAW telemetry stream - raw row count, distinct flow ids and the excess-duplicate count all follow the input file, not the deduplicated set."""
-    body = json.loads((repaired / "diagnosis.json").read_text())
-    rows = json.loads(EVENTS.read_text())
-    ids = [str(r.get("flow_id", "")).strip() for r in rows]
-    present = [i for i in ids if i]
-    stats = body["input_stats"]
-    assert stats["raw_flow_count"] == len(rows)
-    assert stats["unique_flow_ids"] == len(set(present))
-    assert stats["duplicate_flow_ids"] == len(present) - len(set(present))
-    assert stats["duplicate_flow_ids"] > 0, "the stream must contain duplicates"
+def _normalize_override_scope(value: object) -> str:
+    normalized = str(value if value is not None else "").strip().lower()
+    return normalized if normalized in {"all", "high", "critical"} else ""
 
 
-def test_dossier_quotes_are_verbatim_dossier_lines(repaired):
-    """Evidence must be copied character for character, not paraphrased."""
-    body = json.loads((repaired / "diagnosis.json").read_text())
-    lines = {line.strip() for line in DOSSIER.read_text().splitlines() if line.strip()}
-    for defect in body["defects"]:
-        assert defect["dossier_quote"] in lines, (
-            f"{defect['defect_id']}: dossier_quote is not a verbatim dossier line")
+def _normalize_dismissed(value: object) -> bool:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() in {"true", "1", "yes"}
+    return bool(value)
 
 
-def test_pipeline_evidence_comes_from_the_frozen_snapshot(repaired):
-    """Each defect's pipeline_evidence is a verbatim line from the FROZEN snapshot rather than the live workflow, so the evidence is unchanged by a repair having already run."""
-    body = json.loads((repaired / "diagnosis.json").read_text())
-    lines = {line.strip() for line in FROZEN.read_text().splitlines() if line.strip()}
-    for defect in body["defects"]:
-        assert defect["pipeline_evidence"] in lines, (
-            f"{defect['defect_id']}: pipeline_evidence is not a verbatim frozen-snapshot line")
+def _severity_rank(severity: str) -> int:
+    return SEVERITY_RANK.get(severity, 0)
 
 
-def test_each_defect_cites_the_expected_evidence(repaired):
-    """The quote for a defect must actually contain that defect's search terms."""
-    body = json.loads((repaired / "diagnosis.json").read_text())
-    by_id = {d["defect_id"]: d for d in body["defects"]}
-    for entry in SPEC["known_defects"]:
-        got = by_id[entry["defect_id"]]
-        low = got["dossier_quote"].lower()
-        for term in entry["dossier_terms"]:
-            assert term.lower() in low, f"{entry['defect_id']}: quote misses {term!r}"
-        assert got["stage"] == entry["stage"]
-        assert got["repair_action"] == entry["repair_action"]
+def _canonicalize_events(events: list[dict]) -> list[dict]:
+    deduped: dict[str, dict] = {}
+    for event in events:
+        normalized = dict(event)
+        normalized["occurred_ms"] = _normalize_occurred_ms(normalized.get("occurred_ms", 0))
+        normalized["severity"] = _normalize_severity(normalized.get("severity", ""))
+        normalized["mailbox"] = _normalize_mailbox(normalized.get("mailbox", ""))
+        normalized["dismissed"] = _normalize_dismissed(normalized.get("dismissed", False))
+        normalized["detector"] = _normalize_detector(normalized.get("detector", ""))
+        message_id = str(normalized["message_id"])
+        current = deduped.get(message_id)
+        if current is None:
+            deduped[message_id] = normalized
+            continue
+        replace = False
+        if normalized["occurred_ms"] > current["occurred_ms"]:
+            replace = True
+        elif normalized["occurred_ms"] == current["occurred_ms"]:
+            if _severity_rank(normalized["severity"]) > _severity_rank(current["severity"]):
+                replace = True
+            elif _severity_rank(normalized["severity"]) == _severity_rank(current["severity"]):
+                if int(_normalize_dismissed(normalized.get("dismissed", False))) < int(
+                    _normalize_dismissed(current.get("dismissed", False))
+                ):
+                    replace = True
+                elif int(_normalize_dismissed(normalized.get("dismissed", False))) == int(
+                    _normalize_dismissed(current.get("dismissed", False))
+                ):
+                    if _normalize_detector(normalized.get("detector", "")) > _normalize_detector(
+                        current.get("detector", "")
+                    ):
+                        replace = True
+                    elif _normalize_detector(normalized.get("detector", "")) == _normalize_detector(
+                        current.get("detector", "")
+                    ):
+                        if _normalize_mailbox(
+                            normalized.get("mailbox", "")
+                        ) > _normalize_mailbox(current.get("mailbox", "")):
+                            replace = True
+        if replace:
+            deduped[message_id] = normalized
+    return sorted(deduped.values(), key=lambda row: row["occurred_ms"])
 
 
-def test_diagnosis_checksum_consistent(repaired):
-    """The diagnosis checksum is the SHA-256 of the contracted per-defect payload, so it is reproducible from the report's own contents."""
-    body = json.loads((repaired / "diagnosis.json").read_text())
-    payload = "\n".join(
-        f"{d['defect_id']}|{d['stage']}|{d['repair_action']}" for d in body["defects"])
-    assert body["diagnosis_checksum"] == hashlib.sha256(payload.encode()).hexdigest()
+def _is_signal(event: dict) -> bool:
+    if _normalize_dismissed(event.get("dismissed", False)):
+        return False
+    return _normalize_severity(event.get("severity", "")) in ANOMALY_SEVERITIES
 
 
-# ----------------------------------------------------------- repair audit ---
-def test_repair_audit_schema(repaired):
-    """repair_audit.json carries exactly the eight contracted keys and the contracted schema_version literal - the hash and token fields alone are an incomplete audit."""
-    audit = json.loads((repaired / "repair_audit.json").read_text())
-    assert set(audit) == set(SPEC["repair_audit"]["required_keys"])
-    assert audit["schema_version"] == SPEC["repair_audit"]["schema_version"]
+def _build_mailbox_matrix(events: list[dict]) -> dict[str, dict[str, int]]:
+    matrix: dict[str, dict[str, int]] = {}
+    for event in events:
+        mailbox = _normalize_mailbox(event.get("mailbox", ""))
+        severity = _normalize_severity(event.get("severity", ""))
+        matrix.setdefault(mailbox, {name: 0 for name in SEVERITY_ORDER})
+        if severity in matrix[mailbox]:
+            matrix[mailbox][severity] += 1
+    return {mailbox: matrix[mailbox] for mailbox in sorted(matrix)}
 
 
-def test_pre_repair_hash_is_read_from_the_frozen_snapshot(repaired):
-    """The pre-repair hash and byte count are read from the FROZEN snapshot, so they are identical whether or not a repair already ran."""
-    audit = json.loads((repaired / "repair_audit.json").read_text())
-    raw = FROZEN.read_bytes()
-    assert audit["pre_repair_sha256"] == hashlib.sha256(raw).hexdigest()
-    assert audit["pre_repair_byte_count"] == len(raw)
-
-
-def test_frozen_snapshot_is_unchanged(repaired):
-    """The frozen pre-incident snapshot is read-only forensic evidence and remains byte-identical after the repair."""
-    assert FROZEN.read_text() == EXPECTED["frozen_source"]
-
-
-def test_post_repair_hash_matches_the_restored_workflow(repaired):
-    """The post-repair hash and byte count describe the restored workflow actually on disk, so they differ from the frozen pre-repair pair."""
-    audit = json.loads((repaired / "repair_audit.json").read_text())
-    raw = WORKFLOW.read_bytes()
-    assert audit["post_repair_sha256"] == hashlib.sha256(raw).hexdigest()
-    assert audit["post_repair_byte_count"] == len(raw)
-    assert audit["post_repair_sha256"] != audit["pre_repair_sha256"]
-
-
-def test_forbidden_tokens_are_gone_from_the_restored_workflow(repaired):
-    """Every forbidden construct named by the spec is absent from the restored source, and the audit reports exactly those tokens as removed."""
-    source = WORKFLOW.read_text()
-    audit = json.loads((repaired / "repair_audit.json").read_text())
-    for token in SPEC["workflow_repair"]["forbidden_tokens"]:
-        assert token not in source, f"defective construct still present: {token}"
-    assert sorted(audit["forbidden_tokens_removed"]) == sorted(
-        SPEC["workflow_repair"]["forbidden_tokens"])
-
-
-def test_audit_lists_every_defect_and_artifact(repaired):
-    """defects_repaired lists every known defect id as a sorted array of id strings (not a count), and artifacts names the files the repair wrote."""
-    audit = json.loads((repaired / "repair_audit.json").read_text())
-    assert sorted(audit["defects_repaired"]) == sorted(
-        d["defect_id"] for d in SPEC["known_defects"])
-    assert set(audit["artifacts"]) >= {
-        "summary.json", "subnet_matrix.json", "quarantined.jsonl",
-        "diagnosis.json", "repair_audit.json"}
-
-
-def test_source_does_not_reference_verifier_trees():
-    """Neither the audit CLI nor the restored workflow references the verifier tree, so the solution cannot read expected outputs."""
-    source = AUDIT.read_text() + WORKFLOW.read_text()
-    for token in ("/tests", "/solution", "expected_outputs.json"):
-        assert token not in source
-
-
-# --------------------------------------------------------------- outputs ----
-def test_summary_matches_fixture(repaired):
-    """summary.json from the primary telemetry stream matches its expected values exactly."""
-    assert json.loads((repaired / "summary.json").read_text()) == EXPECTED["primary"]["summary"]
-
-
-def test_subnet_matrix_matches_fixture(repaired):
-    """subnet_matrix.json from the primary telemetry stream matches its expected values exactly."""
-    assert json.loads((repaired / "subnet_matrix.json").read_text()) == EXPECTED["primary"]["matrix"]
-
-
-def test_quarantined_queue_matches_fixture(repaired):
-    """quarantined.jsonl from the primary telemetry stream matches its expected rows exactly."""
-    assert _jsonl(repaired / "quarantined.jsonl") == EXPECTED["primary"]["queue"]
-
-
-def test_summary_schema(repaired):
-    """summary.json carries the contracted key set, with tier_counts and priority_counts enumerating their vocabularies in the contracted order."""
-    summary = json.loads((repaired / "summary.json").read_text())
-    assert set(summary) == set(SPEC["outputs"]["summary_json"]["required_keys"])
-    assert list(summary["tier_counts"]) == CLASS_ORDER
-    assert list(summary["priority_counts"]) == PRIORITY_ORDER
-    assert summary["subnets"] == sorted(summary["subnets"])
-    for key in ("canonical_flow_checksum", "flow_policy_checksum", "quarantine_checksum"):
-        assert len(summary[key]) == 64
-
-
-def test_subnet_matrix_shape(repaired):
-    """subnet_matrix.json is an object keyed by subnet, each value carrying exactly the contracted per-subnet key set."""
-    matrix = json.loads((repaired / "subnet_matrix.json").read_text())
-    assert isinstance(matrix, dict) and matrix
-    wanted = set(SPEC["outputs"]["subnet_matrix_json"]["required_keys"])
-    for row in matrix.values():
-        assert set(row) == wanted
-
-
-def test_queue_row_shape_and_vocabulary(repaired):
-    """Every queue row carries the complete contracted field set, and its trust tier and priority use only the contracted vocabularies."""
-    rows = _jsonl(repaired / "quarantined.jsonl")
-    wanted = set(SPEC["outputs"]["quarantined_jsonl"]["required_keys"])
+def _compact_overrides(
+    rows: list[dict],
+) -> dict[tuple[str, str], list[tuple[int, int]]]:
+    by_key: dict[tuple[str, str], list[tuple[int, int]]] = {}
     for row in rows:
-        assert set(row) == wanted
-        assert row["top_tier"] in CLASS_ORDER
-        assert row["priority"] in PRIORITY_ORDER
-        assert row["flow_ids"] == sorted(row["flow_ids"])
-        assert row["case_id"] == f"{row['subnet']}:{row['start_ms']}-{row['end_ms']}"
+        mailbox = _normalize_mailbox(row.get("mailbox", ""))
+        scope = _normalize_override_scope(row.get("severity_scope", ""))
+        if not scope:
+            continue
+        start = _normalize_occurred_ms(row.get("start_ms", 0))
+        end = _normalize_occurred_ms(row.get("end_ms", 0))
+        if end <= start:
+            continue
+        by_key.setdefault((mailbox, scope), []).append((start, end))
+
+    compacted: dict[tuple[str, str], list[tuple[int, int]]] = {}
+    for key, intervals in by_key.items():
+        merged: list[list[int]] = []
+        for start, end in sorted(intervals):
+            if not merged or start > merged[-1][1]:
+                merged.append([start, end])
+            else:
+                merged[-1][1] = max(merged[-1][1], end)
+        compacted[key] = [(start, end) for start, end in merged]
+    return compacted
 
 
-def test_quarantined_jsonl_is_compact(repaired):
-    """quarantined.jsonl uses compact JSON separators, with no space after a comma or colon."""
-    for line in (repaired / "quarantined.jsonl").read_text().splitlines():
-        if line.strip():
-            assert ", " not in line and '": ' not in line
+def _is_override_suppressed(
+    event: dict,
+    compacted_overrides: dict[tuple[str, str], list[tuple[int, int]]],
+) -> bool:
+    mailbox = _normalize_mailbox(event.get("mailbox", ""))
+    severity = _normalize_severity(event.get("severity", ""))
+    occurred_ms = _normalize_occurred_ms(event.get("occurred_ms", 0))
+    for scope in ("all", severity):
+        for start, end in compacted_overrides.get((mailbox, scope), []):
+            if start <= occurred_ms < end:
+                return True
+    return False
 
 
-# ------------------------------------------------------------- behaviour ----
-def test_tier_counts_cover_every_canonical_row_including_blocked(repaired):
-    """tier_counts covers every canonical row including blocked flows, which open no session but are still counted."""
-    summary = json.loads((repaired / "summary.json").read_text())
-    assert sum(summary["tier_counts"].values()) == summary["canonical_flow_count"]
-    assert summary["blocked_excluded_count"] > 0, "the stream must contain blocked flows"
+def _override_compaction_checksum(
+    compacted_overrides: dict[tuple[str, str], list[tuple[int, int]]]
+) -> str:
+    return hashlib.sha256(
+        "\n".join(
+            f"{mailbox}|{scope}|{start}|{end}"
+            for mailbox, scope in sorted(compacted_overrides)
+            for start, end in compacted_overrides[(mailbox, scope)]
+        ).encode("utf-8")
+    ).hexdigest()
 
 
-def test_duplicate_flows_are_collapsed_before_aggregates(repaired):
-    """Duplicate flow ids collapse before any aggregate, so the canonical count falls below the raw count while raw_flow_count still reflects the input."""
-    summary = json.loads((repaired / "summary.json").read_text())
-    rows = json.loads(EVENTS.read_text())
-    assert summary["raw_flow_count"] == len(rows)
-    assert summary["canonical_flow_count"] < summary["raw_flow_count"]
-    assert summary["canonical_flow_count"] == summary["unique_flow_ids"]
+def _probe_overlap_ms(occurred_ms: int, spans: list[tuple[int, int]], lookback_ms: int = 120) -> int:
+    probe_start = occurred_ms - lookback_ms
+    probe_end = occurred_ms + 1
+    total = 0
+    for start, end in spans:
+        overlap_start = max(probe_start, start)
+        overlap_end = min(probe_end, end)
+        if overlap_end > overlap_start:
+            total += overlap_end - overlap_start
+    return total
 
 
-def test_unknown_trust_tier_falls_back_to_guest(repaired):
-    """TQ-3316: an unrecognized trust tier normalizes to guest, the LOWEST class."""
-    rows = json.loads(EVENTS.read_text())
-    unknown = [r for r in rows
-               if str(r.get("trust_tier", "")).strip().lower() not in CLASS_RANK]
-    assert unknown, "the stream must contain an unrecognized flow class"
-    summary = json.loads((repaired / "summary.json").read_text())
-    assert summary["tier_counts"]["guest"] >= len(unknown)
+def _annotate_chains(rows: list[dict]) -> None:
+    parent = list(range(len(rows)))
+
+    def find(index: int) -> int:
+        while parent[index] != index:
+            parent[index] = parent[parent[index]]
+            index = parent[index]
+        return index
+
+    def union(left: int, right: int) -> None:
+        left_root, right_root = find(left), find(right)
+        if left_root != right_root:
+            parent[max(left_root, right_root)] = min(left_root, right_root)
+
+    tokens = [set(str(row["detector"]).lower().split()) for row in rows]
+    for left in range(len(rows)):
+        for right in range(left + 1, len(rows)):
+            if abs(rows[left]["occurred_ms"] - rows[right]["occurred_ms"]) > 600:
+                continue
+            if (
+                rows[left]["mailbox"] == rows[right]["mailbox"]
+                or len(tokens[left] & tokens[right]) >= 2
+            ):
+                union(left, right)
+
+    components: dict[int, list[int]] = {}
+    for index in range(len(rows)):
+        components.setdefault(find(index), []).append(index)
+    for indexes in components.values():
+        message_ids = sorted(str(rows[index]["message_id"]) for index in indexes)
+        observed = [rows[index]["occurred_ms"] for index in indexes]
+        assets = {rows[index]["mailbox"] for index in indexes}
+        span_ms = max(observed) - min(observed)
+        risk_score = (
+            sum(_severity_rank(rows[index]["severity"]) for index in indexes)
+            + (len(assets) * 2)
+            + (span_ms // 60)
+        )
+        chain_id = hashlib.sha1(",".join(message_ids).encode("utf-8")).hexdigest()[:10]
+        chain_digest = hashlib.sha256(
+            (
+                f"{chain_id}|{len(indexes)}|{span_ms}|{risk_score}|"
+                f"{','.join(message_ids)}"
+            ).encode("utf-8")
+        ).hexdigest()[:12]
+        for index in indexes:
+            rows[index]["chain_id"] = chain_id
+            rows[index]["chain_size"] = len(indexes)
+            rows[index]["chain_span_ms"] = span_ms
+            rows[index]["chain_risk_score"] = risk_score
+            rows[index]["chain_digest"] = chain_digest
 
 
-def test_blocked_flows_open_no_session(repaired):
-    """TQ-3322: blocked rows are excluded from sessions but still counted."""
-    rows = json.loads(EVENTS.read_text())
-    blocked_ids = {
-        str(r["flow_id"]).strip() for r in rows
-        if r.get("blocked") is True
-        or (isinstance(r.get("blocked"), str) and r["blocked"].strip().lower() in {"true", "1", "yes"})
+def _annotate_chain_reach(rows: list[dict]) -> None:
+    chains: dict[str, dict] = {}
+    for index, row in enumerate(rows):
+        chain = chains.setdefault(
+            row["chain_id"],
+            {
+                "indexes": [],
+                "start_ms": row["occurred_ms"],
+                "end_ms": row["occurred_ms"],
+                "assets": set(),
+                "tokens": set(),
+                "risk_score": row["chain_risk_score"],
+            },
+        )
+        chain["indexes"].append(index)
+        chain["start_ms"] = min(chain["start_ms"], row["occurred_ms"])
+        chain["end_ms"] = max(chain["end_ms"], row["occurred_ms"])
+        chain["assets"].add(row["mailbox"])
+        chain["tokens"].update(str(row["detector"]).lower().split())
+
+    finalized: list[tuple[str, dict]] = []
+    for chain_id, chain in sorted(
+        chains.items(),
+        key=lambda item: (item[1]["start_ms"], item[1]["end_ms"], item[0]),
+    ):
+        best_score = chain["risk_score"]
+        best_path = (chain_id,)
+        for predecessor_id, predecessor in finalized:
+            gap_ms = chain["start_ms"] - predecessor["end_ms"]
+            if gap_ms <= 0 or gap_ms > 3000:
+                continue
+            shared_assets = len(chain["assets"] & predecessor["assets"])
+            shared_tokens = len(chain["tokens"] & predecessor["tokens"])
+            if shared_assets == 0 and shared_tokens == 0:
+                continue
+            edge_weight = (
+                1
+                + (2 * shared_assets)
+                + shared_tokens
+                + max(0, 3 - (gap_ms // 1000))
+            )
+            candidate_score = (
+                predecessor["reach_score"] + edge_weight + chain["risk_score"]
+            )
+            candidate_path = predecessor["reach_path"] + (chain_id,)
+            if candidate_score > best_score or (
+                candidate_score == best_score and candidate_path < best_path
+            ):
+                best_score = candidate_score
+                best_path = candidate_path
+        chain["reach_score"] = best_score
+        chain["reach_path"] = best_path
+        chain["reach_depth"] = len(best_path) - 1
+        chain["reach_digest"] = hashlib.sha256(
+            (
+                f"{chain_id}|{best_score}|{chain['reach_depth']}|"
+                f"{','.join(best_path)}"
+            ).encode("utf-8")
+        ).hexdigest()[:12]
+        finalized.append((chain_id, chain))
+
+    for _, chain in finalized:
+        for index in chain["indexes"]:
+            rows[index]["chain_reach_score"] = chain["reach_score"]
+            rows[index]["chain_reach_depth"] = chain["reach_depth"]
+            rows[index]["chain_reach_path"] = list(chain["reach_path"])
+            rows[index]["chain_reach_digest"] = chain["reach_digest"]
+
+
+def _compute_summary(events: list[dict], override_rows: list[dict] | None = None) -> dict:
+    canonical = _canonicalize_events(events)
+    severity_counts = {severity: 0 for severity in SEVERITY_ORDER}
+    mailboxs: set[str] = set()
+    override_rows = (
+        json.loads(OVERRIDES_PATH.read_text()) if override_rows is None else override_rows
+    )
+    compacted_overrides = _compact_overrides(override_rows)
+    signals = _compute_escalated(events, override_rows=override_rows)
+    for event in canonical:
+        severity = _normalize_severity(event.get("severity", ""))
+        if severity in severity_counts:
+            severity_counts[severity] += 1
+        mailboxs.add(_normalize_mailbox(event.get("mailbox", "")))
+    return {
+        "schema_version": "identity-triage-v2",
+        "raw_message_count": len(events),
+        "unique_message_ids": len({str(event["message_id"]) for event in events}),
+        "total_messages": len(canonical),
+        "severity_counts": severity_counts,
+        "mailboxs": sorted(mailboxs),
+        "escalated_count": len(signals),
+        "dismissed_excluded_count": sum(
+            1
+            for event in canonical
+            if _normalize_dismissed(event.get("dismissed", False))
+            and _normalize_severity(event.get("severity", "")) in ANOMALY_SEVERITIES
+        ),
+        "override_excluded_count": sum(
+            1
+            for event in canonical
+            if _normalize_severity(event.get("severity", "")) in ANOMALY_SEVERITIES
+            and not _normalize_dismissed(event.get("dismissed", False))
+            and _is_override_suppressed(event, compacted_overrides)
+        ),
+        "override_compaction_checksum": _override_compaction_checksum(compacted_overrides),
+        "max_wide_pressure_score": max(
+            (row["wide_pressure_score"] for row in signals),
+            default=0,
+        ),
+        "max_pressure_index": max(
+            (row["pressure_index"] for row in signals),
+            default=0,
+        ),
+        "max_override_pressure_score": max(
+            (row["override_pressure_score"] for row in signals),
+            default=0,
+        ),
+        "chain_count": len({row["chain_id"] for row in signals}),
+        "max_chain_risk_score": max(
+            (row["chain_risk_score"] for row in signals),
+            default=0,
+        ),
+        "chain_digest_checksum": hashlib.sha256(
+            "|".join(row["chain_digest"] for row in signals).encode("utf-8")
+        ).hexdigest(),
+        "max_chain_reach_score": max(
+            (row["chain_reach_score"] for row in signals),
+            default=0,
+        ),
+        "chain_reach_digest_checksum": hashlib.sha256(
+            "|".join(
+                row["chain_reach_digest"] for row in signals
+            ).encode("utf-8")
+        ).hexdigest(),
+        "signal_digest_checksum": hashlib.sha256(
+            "|".join(row["signal_digest"] for row in signals).encode("utf-8")
+        ).hexdigest(),
+        **_escalation_ledger(signals),
     }
-    assert blocked_ids
-    for row in _jsonl(repaired / "quarantined.jsonl"):
-        assert not (set(row["flow_ids"]) & blocked_ids)
 
 
-def test_isolation_and_inspection_overlaps_are_reported_unadjusted(repaired):
-    """TQ-3328 changes the subtraction only; both overlaps are reported raw."""
-    summary = json.loads((repaired / "summary.json").read_text())
-    assert summary["total_isolation_overlap_ms"] > 0
-    assert summary["total_inspection_overlap_ms"] > 0
-    assert summary["total_adjusted_hold_ms"] < summary["total_hold_ms"]
+def _escalation_ledger(signals: list[dict]) -> dict:
+    """Sequential escalation-pressure ledger per #ML-5122/5123.
+
+    Carry propagates between consecutive rows in export order; the carry credit
+    is ceilinged while the gap decay and chain-size debit are floored.
+    """
+    previous_occurred_ms = None
+    previous_carry_out = 0
+    critical_ids: list[str] = []
+    max_pressure = 0
+    rows: list[str] = []
+    for signal in signals:
+        gap_ms = (
+            0
+            if previous_occurred_ms is None
+            else max(previous_occurred_ms - signal["occurred_ms"], 0)
+        )
+        carry_in = max(previous_carry_out - (gap_ms // 150), 0)
+        pressure = signal["chain_risk_score"] + (-(-carry_in // 3))
+        carry_out = min(
+            carry_in + signal["chain_risk_score"] - (signal["chain_size"] // 2), 60
+        )
+        flag = 1 if pressure >= 16 else 0
+        if flag:
+            critical_ids.append(str(signal["message_id"]))
+        max_pressure = max(max_pressure, pressure)
+        rows.append(f"{signal['message_id']}|{pressure}|{flag}|{carry_out}")
+        previous_occurred_ms = signal["occurred_ms"]
+        previous_carry_out = carry_out
+    return {
+        "critical_escalation_ids": sorted(critical_ids),
+        "critical_escalation_count": len(critical_ids),
+        "max_escalation_pressure": max_pressure,
+        "escalation_ledger_checksum": hashlib.sha256(
+            "\n".join(rows).encode("utf-8")
+        ).hexdigest(),
+    }
 
 
-def test_carry_out_never_exceeds_the_retuned_cap(repaired):
-    """TQ-3324 retuned the carry-out cap; the superseded 2000 ms bound is not it."""
-    summary = json.loads((repaired / "summary.json").read_text())
-    assert summary["max_carry_out_ms"] <= 780
-    assert summary["max_carry_out_ms"] > 0
-
-
-def test_queue_follows_the_pac_3334_ordering_chain(repaired):
-    """The queue follows the full governed tie-break chain - priority rank, then ledger hold, hold, flow count, subnet and start - rather than entry order."""
-    rows = _jsonl(repaired / "quarantined.jsonl")
-    rank = {n: len(PRIORITY_ORDER) - i for i, n in enumerate(PRIORITY_ORDER)}
-    keys = [(-rank[r["priority"]], -r["ledger_hold_ms"], -r["hold_ms"],
-             -r["flow_count"], r["subnet"], r["start_ms"]) for r in rows]
-    assert keys == sorted(keys), "queue is not in the governing order"
-    assert [r["start_ms"] for r in rows] != sorted(r["start_ms"] for r in rows) or len(rows) < 3
-
-
-def test_subnet_capacity_cap_applied_after_ordering(repaired):
-    """TQ-3330: at most two rows per subnet, retained by the GLOBAL order."""
-    rows = _jsonl(repaired / "quarantined.jsonl")
-    per_subnet: dict[str, int] = {}
+def _compute_escalated(events: list[dict], override_rows: list[dict] | None = None) -> list[dict]:
+    override_rows = (
+        json.loads(OVERRIDES_PATH.read_text()) if override_rows is None else override_rows
+    )
+    compacted_overrides = _compact_overrides(override_rows)
+    rows = []
+    for event in _canonicalize_events(events):
+        if not _is_signal(event):
+            continue
+        if _is_override_suppressed(event, compacted_overrides):
+            continue
+        mailbox = _normalize_mailbox(event.get("mailbox", ""))
+        severity = _normalize_severity(event.get("severity", ""))
+        occurred_ms = _normalize_occurred_ms(event.get("occurred_ms", 0))
+        all_overlap_ms = _probe_overlap_ms(
+            occurred_ms, compacted_overrides.get((mailbox, "all"), [])
+        )
+        severity_overlap_ms = _probe_overlap_ms(
+            occurred_ms, compacted_overrides.get((mailbox, severity), [])
+        )
+        wide_all_overlap_ms = _probe_overlap_ms(
+            occurred_ms,
+            compacted_overrides.get((mailbox, "all"), []),
+            lookback_ms=300,
+        )
+        wide_severity_overlap_ms = _probe_overlap_ms(
+            occurred_ms,
+            compacted_overrides.get((mailbox, severity), []),
+            lookback_ms=300,
+        )
+        override_pressure_score = (all_overlap_ms // 38) + (-(-severity_overlap_ms // 27))
+        wide_pressure_score = (
+            (-(-wide_all_overlap_ms // 52)) + (wide_severity_overlap_ms // 35)
+        )
+        pressure_index = override_pressure_score + wide_pressure_score
+        rows.append(
+            {
+                "message_id": event["message_id"],
+                "occurred_ms": occurred_ms,
+                "severity": severity,
+                "mailbox": mailbox,
+                "detector": _normalize_detector(event["detector"]),
+                "override_pressure_score": override_pressure_score,
+                "wide_pressure_score": wide_pressure_score,
+                "pressure_index": pressure_index,
+            }
+        )
+    _annotate_chains(rows)
+    _annotate_chain_reach(rows)
     for row in rows:
-        per_subnet[row["subnet"]] = per_subnet.get(row["subnet"], 0) + 1
-    assert per_subnet and max(per_subnet.values()) <= 2
-    assert any(v == 2 for v in per_subnet.values()), "the cap never binds"
+        row["signal_digest"] = hashlib.sha1(
+            (
+                f"{row['message_id']}|{row['occurred_ms']}|{row['severity']}|"
+                f"{row['mailbox']}|{row['detector']}|{row['override_pressure_score']}|"
+                f"{row['pressure_index']}|"
+                f"{row['chain_id']}|{row['chain_size']}|{row['chain_span_ms']}|"
+                f"{row['chain_risk_score']}|{row['chain_digest']}|"
+                f"{row['chain_reach_score']}|{row['chain_reach_depth']}|"
+                f"{','.join(row['chain_reach_path'])}|"
+                f"{row['chain_reach_digest']}"
+            ).encode("utf-8")
+        ).hexdigest()[:12]
+    rows.sort(
+        key=lambda row: (
+            -row["occurred_ms"],
+            -_severity_rank(row["severity"]),
+            -row["chain_risk_score"],
+            -row["chain_reach_score"],
+            -row["override_pressure_score"],
+            str(row["message_id"]),
+        )
+    )
+    return rows
 
 
-def test_admission_floor_is_per_class(repaired):
-    """TQ-3332: every admitted session clears its own class floor."""
-    floors = {"core": 150, "service": 190, "user": 240, "guest": 300}
-    for row in _jsonl(repaired / "quarantined.jsonl"):
-        assert row["ledger_hold_ms"] >= floors[row["top_tier"]]
+def _run_pipeline(
+    pipeline: Path = PIPELINE,
+    input_path: Path = INPUT_PATH,
+    output_dir: Path = OUTPUT_DIR,
+) -> subprocess.CompletedProcess[str]:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    return subprocess.run(
+        [
+            "python3",
+            str(pipeline),
+            "--input",
+            str(input_path),
+            "--output-dir",
+            str(output_dir),
+        ],
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
 
 
-def test_hold_digest_consistent(repaired):
-    """Each queue row's hold digest is reproducible from that row's own contracted payload."""
-    for row in _jsonl(repaired / "quarantined.jsonl"):
-        payload = (f"{row['subnet']}|{row['start_ms']}|{row['end_ms']}"
-                   f"|{','.join(row['flow_ids'])}|{row['top_tier']}|{row['ledger_hold_ms']}"
-                   f"|{row['containment_index']}")
-        assert row["hold_digest"] == hashlib.sha256(payload.encode()).hexdigest()[:12]
+def _escalated_rows(path: Path = FLAGGED_PATH) -> list[dict]:
+    rows = []
+    for line in path.read_text().splitlines():
+        if line.strip():
+            rows.append(json.loads(line))
+    return rows
 
 
-def test_quarantine_checksum_consistent(repaired):
-    """The quarantine checksum is reproducible from the emitted queue rows in queue order."""
-    summary = json.loads((repaired / "summary.json").read_text())
-    rows = _jsonl(repaired / "quarantined.jsonl")
-    payload = "\n".join(
-        f"{r['case_id']}|{r['priority']}|{r['ledger_hold_ms']}|{r['hold_digest']}" for r in rows)
-    assert summary["quarantine_checksum"] == hashlib.sha256(payload.encode()).hexdigest()
+@pytest.fixture(scope="module")
+def expected() -> dict:
+    """Compute every expected value independently from the operational inputs.
+
+    Nothing here is hardcoded output: summaries, matrices, escalated rows and
+    checksums are all derived from /app/data at test time, for both the primary
+    and the alternate input.
+    """
+    events = _load_events(INPUT_PATH)
+    summary = _compute_summary(events)
+    escalated = _compute_escalated(events)
+    alternate_events = _load_events(ALT_INPUT)
+    alternate_summary = _compute_summary(alternate_events)
+    alternate_escalated = _compute_escalated(alternate_events)
+    return {
+        **summary,
+        "message_count": len(events),
+        "unique_ids": len({str(event["message_id"]) for event in events}),
+        "expected_mailbox_matrix": _build_mailbox_matrix(_canonicalize_events(events)),
+        "expected_escalated_ids_desc": [row["message_id"] for row in escalated],
+        "expected_escalated_ms_desc": [row["occurred_ms"] for row in escalated],
+        "broken_pipeline_sha256": BROKEN_PIPELINE_SHA256,
+        "alternate_input": str(ALT_INPUT),
+        "alternate_expected": {
+            **alternate_summary,
+            "escalated_ids_desc": [row["message_id"] for row in alternate_escalated],
+        },
+    }
 
 
-def test_flow_policy_checksum_consistent(repaired):
-    """The flow-policy checksum is reproducible from the control windows in the contracted ordering."""
-    summary = json.loads((repaired / "summary.json").read_text())
-    controls = json.loads(CONTROLS.read_text())
-    ordered = sorted(controls, key=lambda r: (
-        str(r["layer"]), str(r["scope"]), str(r["subnet"]).strip().lower(), int(r["start_ms"])))
-    payload = "\n".join(
-        f"{r['layer']}|{r['scope']}|{str(r['subnet']).strip().lower()}|{int(r['start_ms'])}|{int(r['end_ms'])}"
-        for r in ordered)
-    assert summary["flow_policy_checksum"] == hashlib.sha256(payload.encode()).hexdigest()
+@pytest.fixture(scope="module")
+def dossier_text() -> str:
+    return _normalize_ws(DOSSIER_PATH.read_text())
 
 
-# --------------------------------------------------------- generalization ---
-def test_repair_is_idempotent(tmp_path):
-    """Two independent repair runs produce byte-identical containment records."""
-    first = _repair(tmp_path / "a")
-    second = _repair(tmp_path / "b")
-    for name in ("summary.json", "subnet_matrix.json", "quarantined.jsonl"):
-        assert (first / name).read_text() == (second / name).read_text()
+@pytest.fixture(scope="module")
+def diagnosis() -> dict:
+    assert DIAGNOSIS_PATH.exists(), (
+        f"Missing {DIAGNOSIS_PATH}. Run: python3 {CLI} repair --output-dir /app/output"
+    )
+    return json.loads(DIAGNOSIS_PATH.read_text())
 
 
-def test_generalizes_to_alternate_stream(tmp_path):
-    """The restored control produces correct output on an alternate telemetry capture it has never seen, so values cannot be hardcoded."""
-    out = _repair(tmp_path / "alt", input_path=ALT_EVENTS)
-    assert json.loads((out / "summary.json").read_text()) == EXPECTED["alternate"]["summary"]
-    assert json.loads((out / "subnet_matrix.json").read_text()) == EXPECTED["alternate"]["matrix"]
-    assert _jsonl(out / "quarantined.jsonl") == EXPECTED["alternate"]["queue"]
+@pytest.fixture(scope="module")
+def summary(diagnosis: dict) -> dict:
+    assert SUMMARY_PATH.exists(), "missing summary.json"
+    data = json.loads(SUMMARY_PATH.read_text())
+    assert data == diagnosis["verified_summary"]
+    return data
 
 
-def test_custom_output_dir_is_honoured(tmp_path):
-    """--output-dir redirects every repair output to the requested directory."""
-    out = tmp_path / "elsewhere"
-    subprocess.run([sys.executable, str(AUDIT), "repair", "--output-dir", str(out)],
-                   capture_output=True, text=True, check=True)
-    assert (out / "summary.json").exists()
-    assert (out / "repair_audit.json").exists()
+@pytest.fixture(scope="module")
+def escalated_rows() -> list[dict]:
+    assert FLAGGED_PATH.exists(), "missing escalated.jsonl"
+    return _escalated_rows()
 
 
-# --- Host containment: the tampered automation's persistence and escalation paths ---
+def test_override_checksum_contract_and_touching_merge():
+    """Verify touching-window compaction and checksum serialization."""
+    contract = SPEC_DATA["outputs"]["summary_json"]["override_checksum_serialization"]
+    assert hashlib.sha256(
+        contract["test_vector_payload"].encode("utf-8")
+    ).hexdigest() == contract["test_vector_sha256"]
+    compacted = _compact_overrides(
+        [
+            {
+                "mailbox": "edge",
+                "severity_scope": "high",
+                "start_ms": 100,
+                "end_ms": 160,
+            },
+            {
+                "mailbox": "edge",
+                "severity_scope": "high",
+                "start_ms": 160,
+                "end_ms": 220,
+            },
+        ]
+    )
+    assert compacted[("edge", "high")] == [(100, 220)]
+
+
+def test_cli_exists():
+    assert CLI.exists(), f"CLI not found at {CLI}"
+
+
+def test_dossier_has_context():
+    minimum = SPEC_DATA["context"]["minimum_line_count"]
+    assert len(DOSSIER_PATH.read_text().splitlines()) >= minimum
+
+
+def test_repair_produces_required_outputs():
+    for path in (SUMMARY_PATH, MATRIX_PATH, FLAGGED_PATH, REPAIR_AUDIT_PATH):
+        assert path.exists(), f"missing required output: {path}"
+
+
+def test_diagnosis_schema_repaired(diagnosis: dict):
+    for key in ("pipeline_status", "issues_found", "input_stats", "verified_summary", "output_paths"):
+        assert key in diagnosis
+    assert diagnosis["pipeline_status"] == "repaired"
+
+
+def test_output_paths_exact(diagnosis: dict):
+    paths = diagnosis["output_paths"]
+    assert paths["summary_json"] == str(SUMMARY_PATH)
+    assert paths["escalated_jsonl"] == str(FLAGGED_PATH)
+    assert paths["mailbox_matrix_json"] == str(MATRIX_PATH)
+
+
+def test_issues_found_exactly_six_allowed_ids(diagnosis: dict):
+    assert len(diagnosis["issues_found"]) == 6
+    assert {item["id"] for item in diagnosis["issues_found"]} == set(REQUIRED_ISSUE_IDS)
+
+
+def test_issue_item_required_fields(diagnosis: dict):
+    for issue in diagnosis["issues_found"]:
+        for key in ("id", "severity", "description", "resolution", "evidence"):
+            assert key in issue
+
+
+def test_issue_evidence(diagnosis: dict):
+    original_pipeline = ORIGINAL_PIPELINE.read_text()
+    issues = {item["id"]: item for item in diagnosis["issues_found"]}
+    for issue_id, terms in ISSUE_EVIDENCE_TERMS.items():
+        evidence = issues[issue_id]["evidence"]
+        for key in ("dossier_quote", "pipeline_evidence", "repair_action"):
+            assert key in evidence
+            assert len(evidence[key]) >= 10
+        assert len(evidence["dossier_quote"]) >= 30
+        for term in terms["dossier_quote"]:
+            assert term in evidence["dossier_quote"]
+        for term in terms["pipeline_evidence"]:
+            assert term in evidence["pipeline_evidence"]
+        assert evidence["pipeline_evidence"] in original_pipeline
+        for term in terms["repair_action"]:
+            assert term in evidence["repair_action"]
+
+
+def test_dossier_quotes_are_verbatim(diagnosis: dict, dossier_text: str):
+    for issue in diagnosis["issues_found"]:
+        quote = _normalize_ws(issue["evidence"]["dossier_quote"])
+        assert quote in dossier_text
+
+
+def test_input_stats(diagnosis: dict, expected: dict):
+    stats = diagnosis["input_stats"]
+    assert stats["message_count"] == expected["message_count"]
+    assert stats["unique_message_ids"] == expected["unique_ids"]
+    assert stats["mailboxs"] == expected["mailboxs"]
+
+
+def test_verified_summary_matches_independent_computation(diagnosis: dict, expected: dict):
+    verified = diagnosis["verified_summary"]
+    for key in (
+        "schema_version",
+        "raw_message_count",
+        "unique_message_ids",
+        "total_messages",
+        "severity_counts",
+        "mailboxs",
+        "escalated_count",
+        "dismissed_excluded_count",
+        "override_excluded_count",
+        "override_compaction_checksum",
+        "max_override_pressure_score",
+        "chain_count",
+        "max_chain_risk_score",
+        "chain_digest_checksum",
+        "max_chain_reach_score",
+        "chain_reach_digest_checksum",
+        "signal_digest_checksum",
+        "critical_escalation_ids",
+        "critical_escalation_count",
+        "max_escalation_pressure",
+        "escalation_ledger_checksum",
+    ):
+        assert verified[key] == expected[key]
+    assert list(verified["severity_counts"].keys()) == list(SEVERITY_ORDER)
+    assert len(verified["chain_digest_checksum"]) == 64
+    assert len(verified["chain_reach_digest_checksum"]) == 64
+    assert len(verified["signal_digest_checksum"]) == 64
+
+
+def test_summary_computed_from_events(summary: dict):
+    assert summary == _compute_summary(_load_events(INPUT_PATH))
+
+
+def test_mailbox_matrix_matches_independent_computation(expected: dict):
+    matrix = json.loads(MATRIX_PATH.read_text())
+    assert matrix == expected["expected_mailbox_matrix"]
+    assert matrix == _build_mailbox_matrix(_canonicalize_events(_load_events(INPUT_PATH)))
+
+
+def test_escalated_computed_from_events(escalated_rows: list[dict]):
+    assert escalated_rows == _compute_escalated(_load_events(INPUT_PATH))
+
+
+def test_escalated_sorted_descending(escalated_rows: list[dict], expected: dict):
+    assert [row["message_id"] for row in escalated_rows] == expected["expected_escalated_ids_desc"]
+    assert [row["occurred_ms"] for row in escalated_rows] == expected["expected_escalated_ms_desc"]
+
+
+def test_escalated_severities(escalated_rows: list[dict]):
+    for row in escalated_rows:
+        assert row["severity"] in ANOMALY_SEVERITIES
+        assert isinstance(row["override_pressure_score"], int)
+        assert len(row["chain_id"]) == 10
+        assert isinstance(row["chain_size"], int)
+        assert isinstance(row["chain_span_ms"], int)
+        assert isinstance(row["chain_risk_score"], int)
+        assert len(row["chain_digest"]) == 12
+        assert isinstance(row["chain_reach_score"], int)
+        assert isinstance(row["chain_reach_depth"], int)
+        assert isinstance(row["chain_reach_path"], list)
+        assert len(row["chain_reach_digest"]) == 12
+        assert len(row["signal_digest"]) == 12
+
+
+def test_escalated_jsonl_compact_format():
+    for line in FLAGGED_PATH.read_text().splitlines():
+        if not line.strip():
+            continue
+        assert ": " not in line
+        parsed = json.loads(line)
+        assert json.dumps(parsed, separators=(",", ":")) == line
+
+
+def test_original_snapshot_preserved(expected: dict):
+    assert ORIGINAL_PIPELINE.exists()
+    digest = hashlib.sha256(ORIGINAL_PIPELINE.read_bytes()).hexdigest()
+    assert digest == expected["broken_pipeline_sha256"]
+    original = ORIGINAL_PIPELINE.read_text()
+    for token in FORBIDDEN_TOKENS:
+        assert token in original
+    assert ".lower(" not in original
+
+
+def test_pipeline_output_tracks_its_input(tmp_path_factory):
+    """The repaired pipeline computes from its --input rather than emitting fixed
+    values, so its output changes when the input changes. A solution that hard-coded
+    results or read verifier fixtures instead of the given message-log would fail this."""
+    base_events = _load_events(INPUT_PATH)
+    assert len(base_events) > 1
+
+    base_dir = tmp_path_factory.mktemp("track_base")
+    assert _run_pipeline(output_dir=base_dir).returncode == 0
+    base_summary = json.loads((base_dir / "summary.json").read_text())
+
+    perturbed = base_events[:-1]
+    perturbed_input = tmp_path_factory.mktemp("track_in") / "events.json"
+    perturbed_input.write_text(json.dumps(perturbed), encoding="utf-8")
+    perturbed_dir = tmp_path_factory.mktemp("track_out")
+    assert _run_pipeline(input_path=perturbed_input, output_dir=perturbed_dir).returncode == 0
+    perturbed_summary = json.loads((perturbed_dir / "summary.json").read_text())
+
+    assert perturbed_summary["raw_message_count"] == len(perturbed)
+    assert perturbed_summary["raw_message_count"] != base_summary["raw_message_count"]
+    assert perturbed_summary != base_summary
+
+
+def test_repair_runtime_does_not_read_tests_tree():
+    with tempfile.TemporaryDirectory() as tmp:
+        guard = Path(tmp) / "sitecustomize.py"
+        guard.write_text(
+            "\n".join(
+                [
+                    "import builtins",
+                    "from pathlib import Path",
+                    "_open = builtins.open",
+                    "_text = Path.read_text",
+                    "_bytes = Path.read_bytes",
+                    "def _blocked(value):",
+                    "    try: return '/tests' in str(Path(value).resolve())",
+                    "    except Exception: return False",
+                    "def guarded_open(file, *args, **kwargs):",
+                    "    if _blocked(file): raise PermissionError(file)",
+                    "    return _open(file, *args, **kwargs)",
+                    "def guarded_text(self, *args, **kwargs):",
+                    "    if _blocked(self): raise PermissionError(self)",
+                    "    return _text(self, *args, **kwargs)",
+                    "def guarded_bytes(self, *args, **kwargs):",
+                    "    if _blocked(self): raise PermissionError(self)",
+                    "    return _bytes(self, *args, **kwargs)",
+                    "builtins.open = guarded_open",
+                    "Path.read_text = guarded_text",
+                    "Path.read_bytes = guarded_bytes",
+                ]
+            )
+            + "\n"
+        )
+        out = Path(tmp) / "out"
+        env = dict(os.environ)
+        env["PYTHONPATH"] = tmp
+        result = subprocess.run(
+            [
+                "python3",
+                str(CLI),
+                "repair",
+                "--output-dir",
+                str(out),
+            ],
+            capture_output=True,
+            text=True,
+            timeout=60,
+            env=env,
+        )
+        assert result.returncode == 0, result.stderr
+
+
+def test_broken_snapshot_produces_wrong_export(expected: dict):
+    with tempfile.TemporaryDirectory() as tmp:
+        broken = Path(tmp) / "export_report.py"
+        out = Path(tmp) / "out"
+        shutil.copy(ORIGINAL_PIPELINE, broken)
+        result = _run_pipeline(pipeline=broken, output_dir=out)
+        assert result.returncode == 0, result.stderr
+        summary = json.loads((out / "summary.json").read_text())
+        escalated = _escalated_rows(out / "escalated.jsonl")
+        assert summary != _compute_summary(_load_events(INPUT_PATH))
+        assert escalated != _compute_escalated(_load_events(INPUT_PATH))
+        assert all(row["occurred_ms"] == 0 for row in escalated)
+
+
+def test_pipeline_patched():
+    ast.parse(PIPELINE.read_text())
+    code = _executable_text(PIPELINE.read_text())
+    for token in FORBIDDEN_TOKENS:
+        assert token not in code
+
+
+def test_repair_audit(diagnosis: dict, expected: dict, summary: dict):
+    audit = json.loads(REPAIR_AUDIT_PATH.read_text())
+    code = _executable_text(PIPELINE.read_text())
+    assert audit["patched_workflow"] == str(PIPELINE)
+    assert audit["processing_steps"] == SPEC_DATA["repair_audit"]["processing_steps"]
+    assert audit["removed_tokens"] == {token: token not in code for token in FORBIDDEN_TOKENS}
+    assert all(audit["removed_tokens"].values())
+    assert audit["pre_repair"]["pipeline_source_sha256"] == expected["broken_pipeline_sha256"]
+    assert audit["pre_repair"]["pipeline_tokens_present"] == {token: True for token in FORBIDDEN_TOKENS}
+    assert audit["post_repair"]["escalated_count"] == summary["escalated_count"]
+    assert audit["post_repair"]["rerun_escalated_count"] == summary["escalated_count"]
+
+
+def test_pipeline_reruns_idempotently(summary: dict, escalated_rows: list[dict], tmp_path_factory):
+    rerun_dir = tmp_path_factory.mktemp("rerun")
+    result = _run_pipeline(output_dir=rerun_dir)
+    assert result.returncode == 0, result.stderr
+    rerun_summary = json.loads((rerun_dir / "summary.json").read_text())
+    rerun_escalated = _escalated_rows(rerun_dir / "escalated.jsonl")
+    assert rerun_summary == summary
+    assert rerun_escalated == escalated_rows
+
+
+def test_patched_pipeline_supports_alternate_input(expected: dict, tmp_path_factory):
+    alt_dir = tmp_path_factory.mktemp("alt")
+    alt_input = Path(expected["alternate_input"])
+    result = _run_pipeline(input_path=alt_input, output_dir=alt_dir)
+    assert result.returncode == 0, result.stderr
+    summary = json.loads((alt_dir / "summary.json").read_text())
+    escalated = _escalated_rows(alt_dir / "escalated.jsonl")
+    events = _load_events(alt_input)
+    assert summary == _compute_summary(events)
+    assert escalated == _compute_escalated(events)
+    alt = expected["alternate_expected"]
+    assert summary["raw_message_count"] == alt["raw_message_count"]
+    assert summary["escalated_count"] == alt["escalated_count"]
+    assert summary["dismissed_excluded_count"] == alt["dismissed_excluded_count"]
+    assert summary["override_excluded_count"] == alt["override_excluded_count"]
+    assert summary["override_compaction_checksum"] == alt["override_compaction_checksum"]
+    assert summary["chain_count"] == alt["chain_count"]
+    assert summary["max_chain_risk_score"] == alt["max_chain_risk_score"]
+    assert summary["chain_digest_checksum"] == alt["chain_digest_checksum"]
+    assert summary["max_chain_reach_score"] == alt[
+        "max_chain_reach_score"
+    ]
+    assert summary["chain_reach_digest_checksum"] == alt[
+        "chain_reach_digest_checksum"
+    ]
+    assert summary["signal_digest_checksum"] == alt[
+        "signal_digest_checksum"
+    ]
+    assert [row["message_id"] for row in escalated] == alt["escalated_ids_desc"]
+
+
+def test_cli_diagnose_subcommand(expected: dict, dossier_text: str):
+    report = OUTPUT_DIR / "diagnosis_redundant.json"
+    if report.exists():
+        report.unlink()
+    result = subprocess.run(
+        [
+            "python3",
+            str(CLI),
+            "diagnose",
+            "--dossier",
+            str(DOSSIER_PATH),
+            "--report",
+            str(report),
+        ],
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    assert report.exists(), f"diagnose failed (rc={result.returncode}): {result.stderr}"
+    data = json.loads(report.read_text())
+    assert data["pipeline_status"] == "diagnosed"
+    assert "input_stats" in data
+    assert data["input_stats"]["message_count"] == expected["message_count"]
+    assert data["input_stats"]["unique_message_ids"] == expected["unique_ids"]
+    assert data["input_stats"]["mailboxs"] == expected["mailboxs"]
+    for key in ("verified_summary", "output_paths"):
+        assert key not in data
+    assert {item["id"] for item in data["issues_found"]} == set(REQUIRED_ISSUE_IDS)
+    for issue in data["issues_found"]:
+        for key in ("id", "severity", "description", "resolution", "evidence"):
+            assert key in issue
+        for key in ("dossier_quote", "pipeline_evidence", "repair_action"):
+            assert key in issue["evidence"]
+            assert len(issue["evidence"][key]) >= 10
+        quote = _normalize_ws(issue["evidence"]["dossier_quote"])
+        assert quote in dossier_text
+
+
+def test_diagnose_rejects_stray_input_flag(tmp_path_factory):
+    """diagnose is stateless: it accepts only --dossier/--report and rejects a stray --input."""
+    report = tmp_path_factory.mktemp("diag_reject") / "diagnosis.json"
+    result = subprocess.run(
+        [
+            "python3", str(CLI), "diagnose",
+            "--dossier", str(DOSSIER_PATH),
+            "--report", str(report),
+            "--input", str(DOSSIER_PATH),
+        ],
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    assert result.returncode != 0, "diagnose must reject a stray --input flag"
+    assert not report.exists(), "diagnose must not write a report when given an unknown flag"
+
+
+def test_repair_repatches_reset_workflow_with_custom_output_dir(
+    tmp_path_factory, expected: dict
+):
+    custom_dir = tmp_path_factory.mktemp("custom_output")
+    current = PIPELINE.read_text()
+    try:
+        shutil.copy(ORIGINAL_PIPELINE, PIPELINE)
+        result = subprocess.run(
+            ["python3", str(CLI), "repair", "--output-dir", str(custom_dir)],
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        assert result.returncode == 0, result.stderr
+        repaired_source = PIPELINE.read_text()
+        assert 'event["occurred_at"]' not in repaired_source
+        summary = json.loads((custom_dir / "summary.json").read_text())
+        escalated = _escalated_rows(custom_dir / "escalated.jsonl")
+        diagnosis = json.loads((custom_dir / "diagnosis.json").read_text())
+        assert summary == _compute_summary(_load_events(INPUT_PATH))
+        assert escalated == _compute_escalated(_load_events(INPUT_PATH))
+        assert diagnosis["output_paths"]["summary_json"] == str(custom_dir / "summary.json")
+        assert diagnosis["output_paths"]["escalated_jsonl"] == str(custom_dir / "escalated.jsonl")
+        assert diagnosis["output_paths"]["mailbox_matrix_json"] == str(custom_dir / "mailbox_matrix.json")
+        assert summary["escalated_count"] == expected["escalated_count"]
+    finally:
+        PIPELINE.write_text(current)
+
+
+def test_dedupe_tie_break_severity_and_detector():
+    events = [
+        {
+            "message_id": "x1",
+            "occurred_ms": 100,
+            "severity": "medium",
+            "mailbox": "edge",
+            "detector": "aaa",
+            "dismissed": False,
+        },
+        {
+            "message_id": "x1",
+            "occurred_ms": 100,
+            "severity": "HIGH",
+            "mailbox": "edge",
+            "detector": "bbb",
+            "dismissed": False,
+        },
+        {
+            "message_id": "x1",
+            "occurred_ms": 100,
+            "severity": "high",
+            "mailbox": "edge",
+            "detector": "zzz",
+            "dismissed": False,
+        },
+    ]
+    canonical = _canonicalize_events(events)
+    assert len(canonical) == 1
+    assert canonical[0]["severity"] == "high"
+    assert canonical[0]["detector"] == "zzz"
+
+
+def test_dismissed_string_normalization_excludes_signal():
+    events = [
+        {
+            "message_id": "m1",
+            "occurred_ms": 100,
+            "severity": "critical",
+            "mailbox": "beta",
+            "detector": "x",
+            "dismissed": "true",
+        },
+        {
+            "message_id": "m2",
+            "occurred_ms": 110,
+            "severity": "high",
+            "mailbox": "beta",
+            "detector": "y",
+            "dismissed": "1",
+        },
+        {
+            "message_id": "m3",
+            "occurred_ms": 120,
+            "severity": "critical",
+            "mailbox": "beta",
+            "detector": "z",
+            "dismissed": False,
+        },
+    ]
+    escalated = _compute_escalated(events)
+    assert [row["message_id"] for row in escalated] == ["m3"]
+
+
+def test_escalated_sort_tie_breaks_by_severity_then_message_id():
+    events = [
+        {
+            "message_id": "c2",
+            "occurred_ms": 500,
+            "severity": "critical",
+            "mailbox": "m",
+            "detector": "c2",
+            "dismissed": False,
+        },
+        {
+            "message_id": "h1",
+            "occurred_ms": 500,
+            "severity": "high",
+            "mailbox": "m",
+            "detector": "h1",
+            "dismissed": False,
+        },
+        {
+            "message_id": "c1",
+            "occurred_ms": 500,
+            "severity": "critical",
+            "mailbox": "m",
+            "detector": "c1",
+            "dismissed": False,
+        },
+    ]
+    escalated = _compute_escalated(events)
+    assert [row["message_id"] for row in escalated] == ["c1", "c2", "h1"]
+
+
+def test_pipeline_coerces_occurred_ms_and_normalizes_outputs(tmp_path_factory):
+    events = [
+        {
+            "message_id": "p1",
+            "occurred_ms": " 200 ",
+            "severity": " CRITICAL ",
+            "mailbox": " Core ",
+            "detector": " first   detector ",
+            "dismissed": "no",
+        },
+        {
+            "message_id": "p2",
+            "occurred_ms": "not-a-number",
+            "severity": "high",
+            "mailbox": "core",
+            "detector": "second",
+            "dismissed": False,
+        },
+        {
+            "message_id": "p3",
+            "occurred_ms": 150,
+            "severity": "high",
+            "mailbox": "core",
+            "detector": "dismissed row",
+            "dismissed": "yes",
+        },
+    ]
+    input_path = tmp_path_factory.mktemp("coerce") / "events.json"
+    input_path.write_text(json.dumps(events))
+    out_dir = tmp_path_factory.mktemp("coerce_out")
+    result = _run_pipeline(input_path=input_path, output_dir=out_dir)
+    assert result.returncode == 0, result.stderr
+
+    summary = json.loads((out_dir / "summary.json").read_text())
+    escalated = _escalated_rows(out_dir / "escalated.jsonl")
+    matrix = json.loads((out_dir / "mailbox_matrix.json").read_text())
+
+    assert summary["mailboxs"] == ["core"]
+    assert summary["escalated_count"] == 2
+    assert summary["dismissed_excluded_count"] == 1
+    assert [row["message_id"] for row in escalated] == ["p1", "p2"]
+    assert [row["occurred_ms"] for row in escalated] == [200, 0]
+    assert escalated[0]["detector"] == "first detector"
+    assert matrix == {"core": {"critical": 1, "high": 2, "medium": 0, "low": 0}}
+
+
+def test_pipeline_dedupe_tie_break_prefers_non_dismissed_then_detector(tmp_path_factory):
+    events = [
+        {
+            "message_id": "d1",
+            "occurred_ms": 100,
+            "severity": "high",
+            "mailbox": "m",
+            "detector": "zzz",
+            "dismissed": "yes",
+        },
+        {
+            "message_id": "d1",
+            "occurred_ms": 100,
+            "severity": "high",
+            "mailbox": "m",
+            "detector": "aaa",
+            "dismissed": False,
+        },
+        {
+            "message_id": "d1",
+            "occurred_ms": 100,
+            "severity": "high",
+            "mailbox": "m",
+            "detector": "bbb",
+            "dismissed": "0",
+        },
+    ]
+    input_path = tmp_path_factory.mktemp("dedupe") / "events.json"
+    input_path.write_text(json.dumps(events))
+    out_dir = tmp_path_factory.mktemp("dedupe_out")
+    result = _run_pipeline(input_path=input_path, output_dir=out_dir)
+    assert result.returncode == 0, result.stderr
+
+    escalated = _escalated_rows(out_dir / "escalated.jsonl")
+    summary = json.loads((out_dir / "summary.json").read_text())
+
+    assert summary["total_messages"] == 1
+    assert summary["dismissed_excluded_count"] == 0
+    assert [row["message_id"] for row in escalated] == ["d1"]
+    assert escalated[0]["detector"] == "bbb"
+
+
+def test_override_source_path_affects_output(tmp_path_factory):
+    original_overrides = OVERRIDES_PATH.read_text()
+    try:
+        base_dir = tmp_path_factory.mktemp("base_override")
+        base_result = _run_pipeline(output_dir=base_dir)
+        assert base_result.returncode == 0, base_result.stderr
+        base_summary = json.loads((base_dir / "summary.json").read_text())
+        base_escalated = _escalated_rows(base_dir / "escalated.jsonl")
+
+        OVERRIDES_PATH.write_text("[]\n")
+        no_override_dir = tmp_path_factory.mktemp("no_override")
+        no_override_result = _run_pipeline(output_dir=no_override_dir)
+        assert no_override_result.returncode == 0, no_override_result.stderr
+        no_override_summary = json.loads((no_override_dir / "summary.json").read_text())
+        no_override_escalated = _escalated_rows(no_override_dir / "escalated.jsonl")
+
+        assert base_summary["override_excluded_count"] > 0
+        assert no_override_summary["override_excluded_count"] == 0
+        assert (
+            base_summary["override_compaction_checksum"]
+            != no_override_summary["override_compaction_checksum"]
+        )
+        assert len(no_override_escalated) > len(base_escalated)
+    finally:
+        OVERRIDES_PATH.write_text(original_overrides)
+
+
+def test_override_compaction_and_scope_exercised(tmp_path_factory):
+    original_overrides = OVERRIDES_PATH.read_text()
+    try:
+        override_rows = [
+            {"mailbox": "edge", "severity_scope": "high", "start_ms": 100, "end_ms": 160},
+            {"mailbox": "edge", "severity_scope": "high", "start_ms": 160, "end_ms": 200},
+            {"mailbox": "edge", "severity_scope": "all", "start_ms": 220, "end_ms": 260},
+            {"mailbox": "edge", "severity_scope": "debug", "start_ms": 0, "end_ms": 1},
+        ]
+        OVERRIDES_PATH.write_text(json.dumps(override_rows, indent=2) + "\n")
+        events = [
+            {
+                "message_id": "o1",
+                "occurred_ms": 120,
+                "severity": "high",
+                "mailbox": "edge",
+                "detector": "silenced high",
+                "dismissed": False,
+            },
+            {
+                "message_id": "o2",
+                "occurred_ms": 120,
+                "severity": "critical",
+                "mailbox": "edge",
+                "detector": "kept critical",
+                "dismissed": False,
+            },
+            {
+                "message_id": "o3",
+                "occurred_ms": 230,
+                "severity": "critical",
+                "mailbox": "edge",
+                "detector": "silenced all",
+                "dismissed": False,
+            },
+            {
+                "message_id": "o4",
+                "occurred_ms": 280,
+                "severity": "high",
+                "mailbox": "edge",
+                "detector": "kept high",
+                "dismissed": False,
+            },
+        ]
+        input_path = tmp_path_factory.mktemp("override_scope") / "events.json"
+        input_path.write_text(json.dumps(events))
+        out_dir = tmp_path_factory.mktemp("override_scope_out")
+        result = _run_pipeline(input_path=input_path, output_dir=out_dir)
+        assert result.returncode == 0, result.stderr
+
+        summary = json.loads((out_dir / "summary.json").read_text())
+        escalated = _escalated_rows(out_dir / "escalated.jsonl")
+        assert summary["override_excluded_count"] == 2
+        assert [row["message_id"] for row in escalated] == ["o4", "o2"]
+    finally:
+        OVERRIDES_PATH.write_text(original_overrides)
+
+
+def test_chain_correlation_is_transitive_across_console_messages(tmp_path_factory):
+    """Require full connected components rather than direct-neighbor groups."""
+    original_overrides = OVERRIDES_PATH.read_text()
+    try:
+        OVERRIDES_PATH.write_text("[]\n")
+        events = [
+            {
+                "message_id": "c1",
+                "occurred_ms": 100,
+                "severity": "critical",
+                "mailbox": "edge",
+                "detector": "alpha beta one",
+                "dismissed": False,
+            },
+            {
+                "message_id": "c2",
+                "occurred_ms": 250,
+                "severity": "high",
+                "mailbox": "core",
+                "detector": "alpha beta two",
+                "dismissed": False,
+            },
+            {
+                "message_id": "c3",
+                "occurred_ms": 400,
+                "severity": "high",
+                "mailbox": "core",
+                "detector": "gamma delta",
+                "dismissed": False,
+            },
+        ]
+        input_path = tmp_path_factory.mktemp("chain") / "events.json"
+        input_path.write_text(json.dumps(events))
+        out_dir = tmp_path_factory.mktemp("chain_out")
+        result = _run_pipeline(input_path=input_path, output_dir=out_dir)
+        assert result.returncode == 0, result.stderr
+        rows = _escalated_rows(out_dir / "escalated.jsonl")
+        assert {row["chain_id"] for row in rows} == {rows[0]["chain_id"]}
+        assert {row["chain_size"] for row in rows} == {3}
+        assert {row["chain_span_ms"] for row in rows} == {300}
+        assert {row["chain_risk_score"] for row in rows} == {19}
+        summary = json.loads((out_dir / "summary.json").read_text())
+        assert summary["chain_count"] == 1
+        assert summary["max_chain_risk_score"] == 19
+    finally:
+        OVERRIDES_PATH.write_text(original_overrides)
+
+
+def test_chain_reach_propagates_over_strongest_directed_path(tmp_path_factory):
+    """Verify strongest-path dynamic programming across chain nodes."""
+    original_overrides = OVERRIDES_PATH.read_text()
+    try:
+        OVERRIDES_PATH.write_text("[]\n")
+        events = [
+            {
+                "message_id": "i1",
+                "occurred_ms": 100,
+                "severity": "critical",
+                "mailbox": "edge",
+                "detector": "alpha one",
+                "dismissed": False,
+            },
+            {
+                "message_id": "i2",
+                "occurred_ms": 1000,
+                "severity": "critical",
+                "mailbox": "edge",
+                "detector": "beta two",
+                "dismissed": False,
+            },
+            {
+                "message_id": "i3",
+                "occurred_ms": 2000,
+                "severity": "critical",
+                "mailbox": "core",
+                "detector": "beta gamma",
+                "dismissed": False,
+            },
+        ]
+        input_path = tmp_path_factory.mktemp("reach") / "events.json"
+        input_path.write_text(json.dumps(events))
+        out_dir = tmp_path_factory.mktemp("reach_out")
+        result = _run_pipeline(input_path=input_path, output_dir=out_dir)
+        assert result.returncode == 0, result.stderr
+        rows = {
+            row["message_id"]: row
+            for row in _escalated_rows(out_dir / "escalated.jsonl")
+        }
+        assert rows["i1"]["chain_reach_score"] == 6
+        assert rows["i2"]["chain_reach_score"] == 18
+        assert rows["i3"]["chain_reach_score"] == 28
+        assert rows["i3"]["chain_reach_depth"] == 2
+        assert rows["i3"]["chain_reach_path"] == [
+            rows["i1"]["chain_id"],
+            rows["i2"]["chain_id"],
+            rows["i3"]["chain_id"],
+        ]
+        summary = json.loads((out_dir / "summary.json").read_text())
+        assert summary["max_chain_reach_score"] == 28
+    finally:
+        OVERRIDES_PATH.write_text(original_overrides)
+
+
+def test_escalation_ledger_credit_is_ceilinged(summary: dict):
+    """The escalation carry credit rounds UP; a floored credit yields a different ledger."""
+    signals = _compute_escalated(_load_events(INPUT_PATH))
+    assert summary["escalation_ledger_checksum"] == _escalation_ledger(signals)[
+        "escalation_ledger_checksum"
+    ]
+    # Recompute with a floored credit -- the shipped data is tuned so they differ.
+    prev_ms, prev_out, rows = None, 0, []
+    for signal in signals:
+        gap = 0 if prev_ms is None else max(prev_ms - signal["occurred_ms"], 0)
+        carry_in = max(prev_out - (gap // 150), 0)
+        pressure = signal["chain_risk_score"] + (carry_in // 3)
+        carry_out = min(carry_in + signal["chain_risk_score"] - (signal["chain_size"] // 2), 60)
+        rows.append(f"{signal['message_id']}|{pressure}|{1 if pressure >= 16 else 0}|{carry_out}")
+        prev_ms, prev_out = signal["occurred_ms"], carry_out
+    floored = hashlib.sha256("\n".join(rows).encode("utf-8")).hexdigest()
+    assert summary["escalation_ledger_checksum"] != floored
+
+
+# --- Host containment: persistence and escalation left by the sync automation ---
 
 ROOT_AUTH_KEYS = Path("/root/.ssh/authorized_keys")
-SUDOERS_DROPIN = Path("/etc/sudoers.d/tideguard-flow")
-COLLECTOR_KEY = Path("/app/secrets/flow_collector.key")
-SENTINEL_KEY_MARKER = "netops-oncall@bastion"
+SUDOERS_DROPIN = Path("/etc/sudoers.d/mailrelay-sync")
+SIGNING_KEY = Path("/app/secrets/mail_signing.key")
+SENTINEL_KEY_MARKER = "ops-oncall@bastion"
 
 
 def test_sentinel_ssh_key_survives_containment():
     """Containment revokes the rogue key WITHOUT destroying legitimate access.
 
-    root's authorized_keys also holds the netops on-call bastion key. Truncating the
-    file or rewriting it wholesale removes the rogue entry but locks responders out,
-    so the sentinel must still be present and the file still mode 0600.
+    root's authorized_keys also holds the ops on-call bastion key. Truncating or rewriting
+    the file removes the rogue entry but locks responders out of the mailrelay, so the sentinel
+    must still be present and the file still mode 0600.
     """
     assert ROOT_AUTH_KEYS.exists(), "authorized_keys was deleted; on-call access lost"
     text = ROOT_AUTH_KEYS.read_text(encoding="utf-8")
@@ -439,62 +1462,23 @@ def test_sentinel_ssh_key_survives_containment():
     assert oct(ROOT_AUTH_KEYS.stat().st_mode)[-3:] == "600"
 
 
-def test_rogue_ssh_key_revoked():
-    """The flow-quarantine automation's SSH persistence key is removed from root's authorized_keys."""
+def test_rogue_sync_key_revoked():
+    """The sync automation's SSH persistence key is removed from root's authorized_keys."""
     if ROOT_AUTH_KEYS.exists():
-        assert "flow-quarantine-automation" not in ROOT_AUTH_KEYS.read_text()
+        assert "mailrelay-sync-automation" not in ROOT_AUTH_KEYS.read_text()
 
 
 def test_sudoers_escalation_removed():
-    """The passwordless sudoers drop-in for svc-tideguard is deleted entirely."""
+    """The passwordless sudoers drop-in for svc-mailrelay is deleted entirely, not narrowed."""
     assert not SUDOERS_DROPIN.exists()
 
 
-def test_collector_credential_locked_down():
-    """The flow-collector credential is retained but restricted to root-only 0600."""
+def test_mail_signing_key_locked_down():
+    """The mail message-signing key is retained but restricted to root-only 0600."""
     import pwd
 
-    assert COLLECTOR_KEY.exists(), "the collector still needs the credential in place"
-    info = COLLECTOR_KEY.stat()
+    assert SIGNING_KEY.exists(), "the mailrelay still needs the signing key in place"
+    info = SIGNING_KEY.stat()
     assert (info.st_mode & 0o777) == 0o600
     assert info.st_uid == pwd.getpwnam("root").pw_uid
     assert info.st_gid == pwd.getpwnam("root").pw_gid
-
-
-def test_probe_pressure_scores_are_nonnegative_integers(repaired):
-    """Every queued row carries integer, non-negative isolation and inspection pressure scores.
-
-    This is a shape guard only; the isolation/inspection opposite-rounding rule of
-    TQ-3342/TQ-3344 is enforced exactly by the fixture-equality tests, since a swapped
-    rounding direction changes the pressure scores and breaks those comparisons.
-    """
-    rows = _jsonl(repaired / "quarantined.jsonl")
-    assert rows, "queue is empty; probe scores cannot be exercised"
-    for row in rows:
-        assert isinstance(row["isolation_pressure_score"], int)
-        assert isinstance(row["inspection_pressure_score"], int)
-        assert row["isolation_pressure_score"] >= 0
-        assert row["inspection_pressure_score"] >= 0
-
-
-def test_containment_index_is_the_sum_of_both_probe_families(repaired):
-    """TQ-3346: containment_index = isolation + inspection pressure + floored adjusted hold.
-
-    The index is reproducible from fields already on the row, so an implementation that
-    computes it from a different combination is detected without re-deriving the probes.
-    """
-    for row in _jsonl(repaired / "quarantined.jsonl"):
-        expected = (row["isolation_pressure_score"] + row["inspection_pressure_score"]
-                    + (row["adjusted_hold_ms"] // 40))
-        assert row["containment_index"] == expected
-
-
-def test_containment_index_participates_in_priority(repaired):
-    """TQ-3346: a session with containment_index >= 12 is at least elevated.
-
-    The index is a promotion path independent of ledger_hold_ms and flow_count, so an
-    implementation that ignores it leaves such sessions at routine.
-    """
-    for row in _jsonl(repaired / "quarantined.jsonl"):
-        if row["containment_index"] >= 12:
-            assert row["priority"] in ("critical", "elevated"), row["case_id"]

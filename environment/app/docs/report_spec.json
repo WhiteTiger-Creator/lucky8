@@ -1,277 +1,538 @@
 {
-  "title": "Tideguard Network-Flow Quarantine Containment Rollup \u2014 Output Contract",
-  "version": "3.0",
-  "semantics_source": "This document fixes FORMAT only: file names, key sets, value vocabulary and checksum serialization. Every rule that decides a VALUE \u2014 normalization, deduplication, session stitching, control-window scope and precedence, the occupancy ledger, admission, priority and ordering \u2014 is settled in /app/incident/flow_review_dossier.md. Where the dossier revisits a point, the latest dated decision governs.",
-  "cli": {
-    "path": "/app/flow_audit.py",
-    "diagnose": "python3 /app/flow_audit.py diagnose --dossier PATH --report PATH",
-    "repair": "python3 /app/flow_audit.py repair --output-dir PATH",
-    "diagnose_is_stateless": "Every explicit diagnose call writes a full report regardless of workflow state or of any earlier repair.",
-    "report_flag_is_output": "`--report PATH` is the OUTPUT path the diagnosis JSON is written to (created if absent); `--dossier PATH` is the review log read as input. Do not treat --report as an input path."
-  },
-  "known_defects": [
-    {
-      "defect_id": "admission_filter",
-      "stage": "containment_admission",
-      "dossier_terms": [
-        "TQ-3332",
-        "admission floor"
+  "title": "Mailguard Signal Rollup \u2014 Audit & Export Spec",
+  "version": "5.0",
+  "human_implementation_guide": "/app/docs/output_contract.md",
+  "quick_contract_index": {
+    "required_issue_ids": [
+      "wrong_source_field",
+      "risk_threshold_filter",
+      "recency_order",
+      "risk_class_normalization",
+      "dedupe_event",
+      "benign_filter"
+    ],
+    "diagnose_is_stateless": "every explicit diagnose invocation writes pipeline_status=diagnosed and omits verified_summary/output_paths, regardless of existing repaired files or active workflow contents",
+    "issue_item_shape": {
+      "top_level": [
+        "id",
+        "severity",
+        "description",
+        "resolution",
+        "evidence"
       ],
-      "pipeline_terms": [
-        "if event.get(\"trust_tier\") == \"core\""
+      "nested_evidence": [
+        "dossier_quote",
+        "pipeline_evidence",
+        "repair_action"
       ],
-      "repair_action": "admit sessions by the per-class admission floor of TQ-3332 instead of a trust_tier equality test"
+      "minimum_lengths": [
+        30,
+        10,
+        10
+      ],
+      "required_term_case": "case-sensitive for all three evidence strings, including agent-composed repair_action"
     },
-    {
-      "defect_id": "wrong_entry_field",
-      "stage": "canonicalization",
-      "dossier_terms": [
-        "TQ-3314",
-        "opened_ms"
-      ],
-      "pipeline_terms": [
-        "event[\"granted_at\"]"
-      ],
-      "repair_action": "read the entry timestamp from opened_ms as TQ-3314 requires, not from granted_at"
-    },
-    {
-      "defect_id": "queue_ordering",
-      "stage": "queue_ordering",
-      "dossier_terms": [
-        "TQ-3334",
-        "ordered strictly"
-      ],
-      "pipeline_terms": [
-        "quarantined.sort(key=lambda row: row[\"entered_ms\"])"
-      ],
-      "repair_action": "order the containment queue by the TQ-3334 chain, not ascending entry time"
-    },
-    {
-      "defect_id": "tier_normalization",
-      "stage": "canonicalization",
-      "dossier_terms": [
-        "TQ-3316",
-        "FALLS BACK"
-      ],
-      "pipeline_terms": [
-        "trust_tier = str(event.get(\"trust_tier\", \"\"))"
-      ],
-      "repair_action": "normalize trust_tier per TQ-3316 and fall back to guest for any unrecognized value"
-    },
-    {
-      "defect_id": "dedupe_flow",
-      "stage": "deduplication",
-      "dossier_terms": [
-        "TQ-3318",
-        "duplicate"
-      ],
-      "pipeline_terms": [
-        "unique_flow_ids"
-      ],
-      "repair_action": "collapse repeated flow_id rows per TQ-3318 before any aggregate is computed"
-    },
-    {
-      "defect_id": "blocked_filter",
-      "stage": "session_construction",
-      "dossier_terms": [
-        "TQ-3322",
-        "blocked"
-      ],
-      "pipeline_terms": [
-        "\"blocked_excluded_count\": 0"
-      ],
-      "repair_action": "exclude blocked flows from session construction per TQ-3322 while still counting them in tier_counts"
-    }
-  ],
-  "diagnosis_report": {
-    "output_name": "diagnosis.json",
-    "schema_version": "tideguard-diagnosis-v2",
-    "required_keys": [
+    "repair_post_repair_exact_fields": [
+      "escalated_count",
+      "rerun_escalated_count"
+    ],
+    "forbidden_executable_tokens": [
+      "event[\"occurred_at\"]",
+      "severity == \"critical\""
+    ],
+    "repair_output_path_keys": [
+      "summary_json",
+      "escalated_jsonl",
+      "mailbox_matrix_json"
+    ],
+    "final_default_state": "/app/output/diagnosis.json must be the repaired-mode report",
+    "read_in_full": "This file is the authoritative schema reference; every key set and payload it lists applies in full.",
+    "input_stats_exact_keys": [
+      "message_count",
+      "unique_message_ids",
+      "mailboxs"
+    ],
+    "verified_summary_required_fields": [
       "schema_version",
-      "input_stats",
-      "defect_count",
-      "defects",
-      "diagnosis_checksum"
-    ],
-    "input_stats_keys": [
-      "raw_flow_count",
-      "unique_flow_ids",
-      "duplicate_flow_ids",
-      "blocked_row_count"
-    ],
-    "defect_keys": [
-      "defect_id",
-      "stage",
-      "dossier_quote",
-      "pipeline_evidence",
-      "repair_action"
-    ],
-    "ordering": "defects sorted by defect_id ascending",
-    "evidence_contract": "dossier_quote is a line from the dossier copied VERBATIM, character for character, with surrounding whitespace stripped and nothing else altered; pipeline_evidence is likewise a verbatim stripped line from the FROZEN snapshot at /app/workflow/.export_report.original.",
-    "diagnosis_checksum": "sha256 over one line per defect in defect_id order, 'defect_id|stage|repair_action', joined by newline",
-    "input_stats_types": {
-      "raw_flow_count": "integer",
-      "unique_flow_ids": "integer",
-      "duplicate_flow_ids": "integer count of EXCESS duplicate rows = (raw row count) - (distinct flow_id count); NOT a list of ids, and NOT the number of rows that carry a duplicated id",
-      "blocked_row_count": "integer"
-    },
-    "input_stats_keys_annotated": [
-      "raw_flow_count: integer",
-      "unique_flow_ids: integer",
-      "duplicate_flow_ids: integer - EXCESS duplicate rows = (raw rows) - (distinct flow_ids). NOT a list, NOT the count of rows carrying a duplicated id.",
-      "blocked_row_count: integer"
-    ],
-    "defect_keys_annotated": [
-      "defect_id: string",
-      "stage: string - the pipeline stage the defect belongs to, exactly as listed for that defect in known_defects",
-      "dossier_quote: string - ONE verbatim line copied from the dossier, whitespace-stripped. Not a list, not a paraphrase.",
-      "pipeline_evidence: string - ONE verbatim stripped line from the FROZEN snapshot /app/workflow/.export_report.original. Not a list, not a dict.",
-      "repair_action: string"
+      "raw_message_count",
+      "unique_message_ids",
+      "total_messages",
+      "severity_counts",
+      "mailboxs",
+      "escalated_count",
+      "dismissed_excluded_count",
+      "override_excluded_count",
+      "override_compaction_checksum",
+      "max_override_pressure_score",
+      "max_pressure_index",
+      "max_wide_pressure_score",
+      "chain_count",
+      "max_chain_risk_score",
+      "chain_digest_checksum",
+      "max_chain_reach_score",
+      "chain_reach_digest_checksum",
+      "signal_digest_checksum",
+      "critical_escalation_ids",
+      "critical_escalation_count",
+      "max_escalation_pressure",
+      "escalation_ledger_checksum"
     ]
+  },
+  "cli": {
+    "path": "/app/message_audit.py",
+    "subcommands": {
+      "diagnose": {
+        "usage": "python3 /app/message_audit.py diagnose --dossier PATH --report PATH",
+        "defaults": {
+          "dossier": "/app/incident/export_dossier.md",
+          "report": "/app/output/diagnosis.json"
+        },
+        "must_include_all_allowed_ids": true,
+        "state_contract": "diagnose is stateless: always set pipeline_status to diagnosed and omit verified_summary/output_paths even when repair artifacts already exist or the active workflow is repaired",
+        "must_not_include_repaired_keys": [
+          "verified_summary",
+          "output_paths"
+        ],
+        "input_events_path": "/app/data/events.json"
+      },
+      "repair": {
+        "usage": "python3 /app/message_audit.py repair --output-dir PATH",
+        "defaults": {
+          "output_dir": "/app/output"
+        },
+        "output_dir_contract": "must write all repair outputs under the provided --output-dir path; do not hardcode /app/output when a custom path is supplied",
+        "required_output_files": [
+          "summary.json",
+          "mailbox_matrix.json",
+          "escalated.jsonl",
+          "diagnosis.json",
+          "repair_audit.json"
+        ]
+      }
+    }
+  },
+  "diagnosis_report": {
+    "required_keys_diagnosed": [
+      "pipeline_status",
+      "issues_found",
+      "input_stats"
+    ],
+    "required_keys_repaired": [
+      "pipeline_status",
+      "issues_found",
+      "input_stats",
+      "verified_summary",
+      "output_paths"
+    ],
+    "pipeline_status_diagnosed": "diagnosed",
+    "pipeline_status_repaired": "repaired",
+    "issues_found_item": {
+      "required_fields": [
+        "id",
+        "severity",
+        "description",
+        "resolution",
+        "evidence"
+      ],
+      "allowed_ids": [
+        "wrong_source_field",
+        "risk_threshold_filter",
+        "recency_order",
+        "risk_class_normalization",
+        "dedupe_event",
+        "benign_filter"
+      ],
+      "evidence": {
+        "required_fields": [
+          "dossier_quote",
+          "pipeline_evidence",
+          "repair_action"
+        ],
+        "pipeline_evidence_source": "/app/workflow/.export_report.original",
+        "pipeline_evidence_format": "literal substring excerpt from frozen original workflow source",
+        "dossier_quote_format": "verbatim excerpt from /app/incident/export_dossier.md (whitespace-normalized match)",
+        "minimum_lengths": {
+          "dossier_quote": 30,
+          "pipeline_evidence": 10,
+          "repair_action": 10
+        },
+        "term_matching": "case-sensitive substring match for every required_terms_by_issue entry in dossier_quote, pipeline_evidence, and repair_action; repair_action is agent-composed but its required terms still match case-sensitively",
+        "required_terms_by_issue": {
+          "wrong_source_field": {
+            "dossier_quote": [
+              "timestamp",
+              "mismatch"
+            ],
+            "pipeline_evidence": [
+              "event[\"occurred_at\"]"
+            ],
+            "repair_action": [
+              "timestamp source"
+            ]
+          },
+          "risk_threshold_filter": {
+            "dossier_quote": [
+              "queue",
+              "missing"
+            ],
+            "pipeline_evidence": [
+              "severity == \"critical\""
+            ],
+            "repair_action": [
+              "severity coverage"
+            ]
+          },
+          "recency_order": {
+            "dossier_quote": [
+              "ordering",
+              "inconsistent"
+            ],
+            "pipeline_evidence": [
+              "sort",
+              "occurred_ms"
+            ],
+            "repair_action": [
+              "recency ordering"
+            ]
+          },
+          "risk_class_normalization": {
+            "dossier_quote": [
+              "mixed-case",
+              "diverged"
+            ],
+            "pipeline_evidence": [
+              "severity"
+            ],
+            "repair_action": [
+              "normalize severity"
+            ]
+          },
+          "dedupe_event": {
+            "dossier_quote": [
+              "duplicate",
+              "competing"
+            ],
+            "pipeline_evidence": [
+              "for event in events"
+            ],
+            "repair_action": [
+              "deterministic collapse"
+            ]
+          },
+          "benign_filter": {
+            "dossier_quote": [
+              "dismissed",
+              "leaked"
+            ],
+            "pipeline_evidence": [
+              "signals.append"
+            ],
+            "repair_action": [
+              "exclude dismissed"
+            ]
+          }
+        }
+      }
+    },
+    "input_stats": {
+      "required_fields": [
+        "message_count",
+        "unique_message_ids",
+        "mailboxs"
+      ],
+      "exact_key_names": "input_stats keys must be exactly message_count, unique_message_ids, mailboxs",
+      "mailboxs_sort": "ascending alphabetical",
+      "source_events_path": "/app/data/events.json"
+    },
+    "verified_summary": {
+      "required_fields": [
+        "schema_version",
+        "raw_message_count",
+        "unique_message_ids",
+        "total_messages",
+        "severity_counts",
+        "mailboxs",
+        "escalated_count",
+        "dismissed_excluded_count",
+        "override_excluded_count",
+        "override_compaction_checksum",
+        "max_override_pressure_score",
+        "max_pressure_index",
+        "max_wide_pressure_score",
+        "chain_count",
+        "max_chain_risk_score",
+        "chain_digest_checksum",
+        "max_chain_reach_score",
+        "chain_reach_digest_checksum",
+        "signal_digest_checksum",
+        "critical_escalation_ids",
+        "critical_escalation_count",
+        "max_escalation_pressure",
+        "escalation_ledger_checksum"
+      ]
+    },
+    "output_paths": {
+      "summary_json": "<output-dir>/summary.json",
+      "escalated_jsonl": "<output-dir>/escalated.jsonl",
+      "mailbox_matrix_json": "<output-dir>/mailbox_matrix.json",
+      "key_naming_contract": "keys are semantic snake_case names, not filenames"
+    }
   },
   "repair_audit": {
-    "output_name": "repair_audit.json",
-    "schema_version": "tideguard-repair-v2",
     "required_keys": [
-      "schema_version",
-      "pre_repair_sha256",
-      "pre_repair_byte_count",
-      "post_repair_sha256",
-      "post_repair_byte_count",
-      "defects_repaired",
-      "forbidden_tokens_removed",
-      "artifacts"
+      "patched_workflow",
+      "processing_steps",
+      "removed_tokens",
+      "pre_repair",
+      "post_repair"
     ],
-    "pre_repair_source": "the FROZEN bytes at /app/workflow/.export_report.original, never the live workflow, so the value is identical whether or not a repair already ran",
-    "artifacts_field": "a JSON array of the output file BASENAMES written to the output directory, sorted ascending, and INCLUDING repair_audit.json itself even though it is written last",
-    "field_types": {
-      "schema_version": "string",
-      "pre_repair_sha256": "string, 64-char hex sha256",
-      "pre_repair_byte_count": "integer",
-      "post_repair_sha256": "string, 64-char hex sha256",
-      "post_repair_byte_count": "integer",
-      "defects_repaired": "JSON array of the defect id strings that were repaired, sorted ascending",
-      "forbidden_tokens_removed": "JSON array of the forbidden token strings removed from the restored workflow, sorted",
-      "artifacts": "JSON array of output basenames, sorted, including repair_audit.json"
+    "processing_steps": [
+      "normalize_occurred_ms",
+      "normalize_severity",
+      "dedupe_message_id",
+      "load_dismissal_overrides",
+      "apply_override_suppression",
+      "filter_dismissed",
+      "correlate_chains",
+      "score_chains",
+      "propagate_chain_reach",
+      "build_signals"
+    ],
+    "patched_workflow": "/app/workflow/export_report.py",
+    "forbidden_executable_tokens": [
+      "event[\"occurred_at\"]",
+      "severity == \"critical\""
+    ],
+    "removed_tokens_schema": {
+      "description": "Map each forbidden_executable_tokens literal string to a boolean that indicates it was removed from executable behavior.",
+      "required_key_source": "keys must be the exact literal strings from forbidden_executable_tokens (no semantic aliases)",
+      "required_keys_exact": [
+        "event[\"occurred_at\"]",
+        "severity == \"critical\""
+      ],
+      "example_valid": {
+        "event[\"occurred_at\"]": true,
+        "severity == \"critical\"": false
+      },
+      "example_invalid": {
+        "reads_occurred_at": true,
+        "critical_only_filter": false
+      }
     },
-    "required_keys_annotated": [
-      "schema_version: string",
-      "pre_repair_sha256: string (64-char lowercase hex)",
-      "pre_repair_byte_count: integer",
-      "post_repair_sha256: string (64-char lowercase hex)",
-      "post_repair_byte_count: integer",
-      "defects_repaired: string[] - the defect id strings that were repaired, sorted ascending. NOT a count.",
-      "forbidden_tokens_removed: string[] - the spec's workflow_repair.forbidden_tokens that were removed, sorted. NOT a count.",
-      "artifacts: string[] - artifact file names written, sorted"
-    ]
+    "pre_repair": {
+      "required_fields": [
+        "pipeline_source_sha256",
+        "pipeline_tokens_present"
+      ],
+      "capture_order": "before any write to export_report.py",
+      "capture_source": "/app/workflow/.export_report.original",
+      "capture_rule": "pipeline_source_sha256 is hashlib.sha256(Path('/app/workflow/.export_report.original').read_bytes()).hexdigest(); pipeline_tokens_present is computed from that frozen original before applying any patch",
+      "pipeline_tokens_present_schema": {
+        "description": "Map each forbidden_executable_tokens literal string to a boolean that indicates it was present before repair.",
+        "required_key_source": "keys must be the exact literal strings from forbidden_executable_tokens (no semantic aliases)",
+        "required_keys_exact": [
+          "event[\"occurred_at\"]",
+          "severity == \"critical\""
+        ]
+      }
+    },
+    "post_repair": {
+      "required_fields": [
+        "escalated_count",
+        "rerun_escalated_count"
+      ]
+    }
   },
   "workflow_repair": {
     "path": "/app/workflow/export_report.py",
-    "frozen_snapshot": "/app/workflow/.export_report.original",
-    "forbidden_tokens": [
-      "event[\"granted_at\"]",
-      "if event.get(\"trust_tier\") == \"core\"",
-      "quarantined.sort(key=lambda row: row[\"entered_ms\"])",
-      "\"blocked_excluded_count\": 0"
-    ],
-    "generalization_contract": "Graded on behaviour, not source text. The repaired workflow must derive every value from the inputs and the governing decisions, accept an alternate flow stream via --input, and produce identical output on reruns. No particular identifiers or code structure are required."
+    "cli_usage": "python3 /app/workflow/export_report.py --input PATH --output-dir PATH",
+    "defaults": {
+      "input": "/app/data/events.json",
+      "output_dir": "/app/output",
+      "dismissal_overrides": "/app/data/dismissal_overrides.json"
+    },
+    "implementation_freedom": "helper names, constant names, normalization syntax, graph representation, and sorting syntax are implementation details; generated behavior is contractual",
+    "acceptance_contract": "The repaired workflow must satisfy canonicalization and outputs without relying on test or solution artifacts.",
+    "repair_state_contract": {
+      "self_contained": "every message_audit.py repair invocation must write a correct repaired implementation to /app/workflow/export_report.py before running it",
+      "starting_state": "verification may copy /app/workflow/.export_report.original over the active workflow immediately before repair, including with a custom --output-dir; never assume solve.sh or an earlier command already patched it",
+      "sequence": [
+        "capture pre-repair hash and token evidence from the frozen original",
+        "install the corrected active workflow",
+        "run it with the requested output directory",
+        "run it again to verify idempotency"
+      ],
+      "frozen_original": "never write to /app/workflow/.export_report.original"
+    }
   },
   "outputs": {
     "summary_json": {
-      "output_name": "summary.json",
-      "required_keys": [
-        "schema_version",
-        "raw_flow_count",
-        "unique_flow_ids",
-        "canonical_flow_count",
-        "tier_counts",
-        "subnets",
-        "subnet_count",
-        "blocked_excluded_count",
-        "session_count",
-        "total_hold_ms",
-        "total_adjusted_hold_ms",
-        "total_ledger_hold_ms",
-        "total_isolation_overlap_ms",
-        "total_inspection_overlap_ms",
-        "max_ledger_hold_ms",
-        "max_carry_out_ms",
-        "max_containment_index",
-        "max_inspection_pressure_score",
-        "max_isolation_pressure_score",
-        "longest_session_ms",
-        "quarantined_count",
-        "priority_counts",
-        "canonical_flow_checksum",
-        "flow_policy_checksum",
-        "quarantine_checksum"
+      "schema_version": "identity-triage-v2",
+      "severity_counts_key_order": [
+        "critical",
+        "high",
+        "medium",
+        "low"
       ],
-      "tier_counts": "always enumerates core, service, user, guest in that order, emitting 0 for a class with no canonical rows; counts EVERY canonical row including blocked ones",
-      "priority_counts": "always enumerates critical, elevated, routine in that order, emitting 0 for an empty tier",
-      "subnets": "JSON array of subnet names sorted ascending",
-      "schema_version_value": "flow-quarantine-v2",
-      "aggregate_scope": "SCOPE OF THE AGGREGATES. Every session-derived value in summary.json is computed over ALL constructed sessions across all subnets - session_count, total_hold_ms, total_adjusted_hold_ms, total_ledger_hold_ms, total_isolation_overlap_ms, total_inspection_overlap_ms, max_ledger_hold_ms, max_carry_out_ms and longest_session_ms. They are NOT restricted to the sessions that reached the quarantine queue. The responder capacity cap narrows only quarantined.jsonl and the two queue-derived values quarantined_count and priority_counts."
+      "override_excluded_count": "count of signal candidates excluded by canonicalized override windows",
+      "override_compaction_checksum": "SHA-256 of the exact payload defined by override_checksum_serialization",
+      "override_checksum_serialization": {
+        "row_format": "mailbox|severity_scope|start_ms|end_ms",
+        "row_order": "sort by (mailbox,severity_scope) ascending, then compacted interval (start_ms,end_ms) ascending",
+        "row_delimiter": "one LF character (\\n)",
+        "trailing_delimiter": "none; do not append LF or | after the final row",
+        "encoding": "UTF-8",
+        "empty_input": "hash the empty byte string",
+        "digest": "lowercase hashlib.sha256(payload.encode('utf-8')).hexdigest()",
+        "test_vector_payload": "edge|critical|300|360\nedge|high|100|220",
+        "test_vector_sha256": "03185b505ae526bc703c4e14bd088572497a9f801a18fba4fc50d2fdab082522"
+      },
+      "max_override_pressure_score": "maximum override_pressure_score across final signal rows (0 when none)",
+      "max_wide_pressure_score": "maximum wide_pressure_score across final signal rows (0 when none)",
+      "max_pressure_index": "maximum pressure_index (override_pressure_score + wide_pressure_score) across final signal rows (0 when none)",
+      "chain_count": "number of distinct chain_id values across final signal rows",
+      "max_chain_risk_score": "maximum chain_risk_score across final signal rows (0 when none)",
+      "chain_digest_checksum": "sha256('|'.join(chain_digest values in final signal order)) lowercase 64 hex chars",
+      "max_chain_reach_score": "maximum chain_reach_score across final signal rows (0 when none)",
+      "chain_reach_digest_checksum": "sha256('|'.join(chain_reach_digest values in final signal order)) lowercase 64 hex chars",
+      "signal_digest_checksum": "sha256('|'.join(signal_digest values in final signal order)) lowercase 64 hex chars"
     },
-    "subnet_matrix_json": {
-      "output_name": "subnet_matrix.json",
-      "shape": "JSON object keyed by subnet name; each value carries exactly the keys below",
-      "required_keys": [
-        "session_count",
-        "total_hold_ms",
-        "total_ledger_hold_ms",
-        "max_carry_out_ms",
-        "queued_count"
-      ],
-      "aggregate_scope": "Per-subnet session_count, total_hold_ms, total_ledger_hold_ms and max_carry_out_ms are computed over every session in that subnet, not only its queued rows. Only queued_count counts that subnet's rows that survived the responder capacity cap."
+    "mailbox_matrix_json": {
+      "description": "Flat map of mailbox -> per-severity counts from canonical deduped messages.",
+      "shape": {
+        "<mailbox>": {
+          "critical": 0,
+          "high": 0,
+          "medium": 0,
+          "low": 0
+        }
+      },
+      "mailbox_sort": "ascending alphabetical",
+      "severity_key_order": [
+        "critical",
+        "high",
+        "medium",
+        "low"
+      ]
     },
-    "quarantined_jsonl": {
-      "output_name": "quarantined.jsonl",
-      "shape": "one compact JSON object per line, separators (',',':'), in the dossier's queue order",
-      "required_keys": [
-        "case_id",
-        "subnet",
-        "start_ms",
-        "end_ms",
-        "top_tier",
-        "priority",
-        "hold_ms",
-        "adjusted_hold_ms",
-        "ledger_hold_ms",
-        "isolation_overlap_ms",
-        "inspection_overlap_ms",
-        "carry_in_ms",
-        "carry_out_ms",
-        "containment_index",
-        "inspection_pressure_score",
-        "isolation_pressure_score",
-        "flow_count",
-        "flow_ids",
-        "hold_digest"
+    "escalated_jsonl": {
+      "required_fields": [
+        "message_id",
+        "occurred_ms",
+        "severity",
+        "mailbox",
+        "detector",
+        "override_pressure_score",
+        "pressure_index",
+        "wide_pressure_score",
+        "chain_id",
+        "chain_size",
+        "chain_span_ms",
+        "chain_risk_score",
+        "chain_digest",
+        "chain_reach_score",
+        "chain_reach_depth",
+        "chain_reach_path",
+        "chain_reach_digest",
+        "signal_digest"
       ],
-      "case_id_format": "{subnet}:{start_ms}-{end_ms}",
-      "flow_ids": "JSON array of flow-id strings sorted ascending",
-      "top_tier": "exactly one of the lowercase strings core, service, user, guest",
-      "priority": "exactly one of the lowercase strings critical, elevated, routine"
-    }
-  },
-  "digest_payloads": {
-    "hold_digest": "first 12 lowercase hex chars of sha256('subnet|start_ms|end_ms|comma_joined_sorted_flow_ids|top_tier|ledger_hold_ms|containment_index')",
-    "canonical_flow_checksum": "sha256 over one line per canonical row in emitted order, 'flow_id|src_addr|trust_tier|subnet|opened_ms|closed_ms|blocked_as_1_or_0'. Emitted order is the canonical rows sorted by (subnet, opened_ms, flow_id) ascending.",
-    "flow_policy_checksum": "sha256 over one line per control window, 'layer|scope|subnet|start_ms|end_ms', ordered by layer, then scope, then subnet, then start_ms",
-    "quarantine_checksum": "sha256 over one line per queue row in queue order, 'case_id|priority|ledger_hold_ms|hold_digest'",
-    "serialization_contract": {
-      "text_encoding": "UTF-8",
-      "field_delimiter": "|",
-      "row_delimiter": "one LF character (\\n) BETWEEN rows",
-      "trailing_delimiter": "none: do NOT append a newline or pipe after the final row. The payload is exactly '\\n'.join(rows) and does not end in a newline.",
-      "empty_input": "when there are no rows the payload is the empty string, and the digest is sha256 of the empty string"
+      "sort": "occurred_ms desc, severity rank desc, chain_risk_score desc, chain_reach_score desc, override_pressure_score desc, message_id asc",
+      "severities_included": [
+        "high",
+        "critical"
+      ],
+      "exclude_dismissed": true,
+      "json_format": "compact (no space after colon)",
+      "field_types": {
+        "chain_reach_path": "JSON array (list) of chain_id strings naming the strongest reach path in order. Emit the array itself, not a joined string. The 'comma_joined_chain_reach_path' token used inside chain_reach_digest and signal_digest is a DIGEST-ONLY derivation (','.join of this array) and does not change the emitted field type, which is the array.",
+        "chain_reach_score": "integer",
+        "chain_reach_depth": "integer",
+        "override_pressure_score": "integer"
+      }
     }
   },
   "guardrails": {
-    "frozen_snapshot": "never modify /app/workflow/.export_report.original",
-    "verifier_trees": "never read or import external grading resources"
+    "frozen_original": "/app/workflow/.export_report.original must remain byte-identical",
+    "test_artifacts": "The repaired source must derive every value from the operational inputs and the governing decisions, and must not read external grading resources.",
+    "generalization": "derive outputs from --input and fixed operational data sources rather than fixture values"
   },
-  "inputs": {
-    "control_policies_path": "The isolation/inspection control windows are ALWAYS read from the fixed absolute path /app/data/flow_policies.json. --input reparameterizes only the flow-telemetry stream; the policies path is never derived from the input path and never becomes relative to the input or output directory."
+  "context": {
+    "dossier_path": "/app/incident/export_dossier.md",
+    "minimum_line_count": 350
+  },
+  "dismissal_overrides": {
+    "source_path": "/app/data/dismissal_overrides.json",
+    "row_fields": [
+      "mailbox",
+      "severity_scope",
+      "start_ms",
+      "end_ms"
+    ]
+  },
+  "digest_payloads": {
+    "chain_digest": "first 12 lowercase SHA256 hex chars of chain_id|chain_size|chain_span_ms|chain_risk_score|comma_joined_chain_message_ids",
+    "chain_id": "first 10 lowercase SHA1 hex chars of comma_joined_chain_message_ids",
+    "chain_reach_digest": "first 12 lowercase SHA256 hex chars of chain_id|chain_reach_score|chain_reach_depth|comma_joined_chain_reach_path",
+    "signal_digest": "first 12 lowercase SHA1 hex chars of message_id|occurred_ms|severity|mailbox|detector|override_pressure_score|pressure_index|chain_id|chain_size|chain_span_ms|chain_risk_score|chain_digest|chain_reach_score|chain_reach_depth|comma_joined_chain_reach_path|chain_reach_digest",
+    "escalation_ledger_checksum": "SHA-256 over one line per signal row in escalated.jsonl export order, `message_id|escalation_pressure|c|carry_out` with c=1 for an escalation-critical row else 0, joined by a single newline, no trailing newline, hashed over UTF-8. The values themselves are governed by the dossier."
+  },
+  "semantics_source": {
+    "notes": "This document is the output contract only: CLI shapes, report schemas, exact key sets, checksum serialization and digest payload encodings. It does NOT define how values are derived.",
+    "authority": "Normalization, dedupe tie-breaks, override windows/matching/pressure, chain correlation and the directed reach propagation were settled during the Mailguard review; the authoritative message is the #ML-ticketed decision notes inside /app/incident/export_dossier.md. Where an early triage proposal conflicts with a later decision, the later decision wins."
+  },
+  "field_types": {
+    "critical_escalation_ids": {
+      "type": "array",
+      "items": "string",
+      "order": "sorted lexicographically ascending",
+      "note": "message_id values as strings, sorted -- not in export order."
+    },
+    "_note": "Declares the exact key name, JSON type and container shape of every field are matched literally. These are output-format facts only; how each value is derived is governed by the dossier's ticketed decisions.",
+    "pipeline_status": {
+      "type": "string",
+      "enum": [
+        "diagnosed",
+        "repaired"
+      ],
+      "note": "The key is named exactly `pipeline_status`. `diagnosis`, `status` and `state` are not accepted. A diagnose run reports `diagnosed`; a repair run reports `repaired`."
+    },
+    "input_stats": {
+      "type": "object",
+      "keys": [
+        "message_count",
+        "unique_message_ids",
+        "mailboxs"
+      ],
+      "note": "Exactly these three keys, no aliases and no extras."
+    },
+    "mailboxs": {
+      "type": "array",
+      "items": "string",
+      "order": "sorted ascending",
+      "note": "A JSON array of the distinct asset-group names, sorted. It is NOT a count -- returning an integer here fails, even when the integer equals the array length."
+    },
+    "message_count": {
+      "type": "integer",
+      "note": "Number of message messages read from the input, counted BEFORE deduplication."
+    },
+    "unique_message_ids": {
+      "type": "integer",
+      "note": "Number of distinct message_id values in the input. This is the deduplicated count; message_count is not."
+    },
+    "raw_message_count": {
+      "type": "integer",
+      "note": "verified_summary field. Raw input message count BEFORE deduplication -- do not substitute the deduplicated count here."
+    },
+    "issues_found_item": {
+      "type": "object",
+      "keys": [
+        "id",
+        "severity",
+        "description",
+        "resolution",
+        "evidence"
+      ],
+      "note": "Every finding carries all five keys; `evidence` is itself an object with exactly `dossier_quote`, `pipeline_evidence` and `repair_action`. Omitting severity, description or resolution fails the schema check."
+    }
   }
 }
