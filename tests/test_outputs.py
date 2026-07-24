@@ -27,7 +27,7 @@ INPUT_PATH = Path("/app/data/events.json")
 OVERRIDES_PATH = Path("/app/data/dismissal_overrides.json")
 REPORT_SPEC_PATH = Path("/app/docs/report_spec.json")
 ALT_INPUT = Path("/tests/fixtures/alt_events.json")
-BROKEN_PIPELINE_SHA256 = "2fcc36e92499e620a20f69f330a04f7da02a064f6205c505c44f6f3ec7c1d7e2"
+BROKEN_PIPELINE_SHA256 = "83595dc1871542206a589fe76f8de79f041e9aa774afa6df2468894c4c8dcb48"
 SPEC_DATA = json.loads(REPORT_SPEC_PATH.read_text())
 ISSUE_EVIDENCE_TERMS = SPEC_DATA["diagnosis_report"]["issues_found_item"]["evidence"][
     "required_terms_by_issue"
@@ -52,7 +52,7 @@ def _executable_text(src: str) -> str:
         if not node.body:
             continue
         first = node.body[0]
-        if isinstance(first, ast.Expr) and isinstance(first.value, ast.Constant):
+        if isinstance(first, ast.Expr) and isinstance(first.value, ast.Constant):  # noqa: SIM102
             if isinstance(first.value.value, str):
                 end = getattr(first, "end_lineno", first.lineno)
                 docstring_lines.update(range(first.lineno, end + 1))
@@ -151,7 +151,7 @@ def _canonicalize_events(events: list[dict]) -> list[dict]:
                         current.get("detector", "")
                     ):
                         replace = True
-                    elif _normalize_detector(normalized.get("detector", "")) == _normalize_detector(
+                    elif _normalize_detector(normalized.get("detector", "")) == _normalize_detector(  # noqa: SIM102
                         current.get("detector", "")
                     ):
                         if _normalize_mailbox(
@@ -288,7 +288,7 @@ def _annotate_chains(rows: list[dict]) -> None:
             (
                 f"{chain_id}|{len(indexes)}|{span_ms}|{risk_score}|"
                 f"{','.join(message_ids)}"
-            ).encode("utf-8")
+            ).encode()
         ).hexdigest()[:12]
         for index in indexes:
             rows[index]["chain_id"] = chain_id
@@ -355,7 +355,7 @@ def _annotate_chain_reach(rows: list[dict]) -> None:
             (
                 f"{chain_id}|{best_score}|{chain['reach_depth']}|"
                 f"{','.join(best_path)}"
-            ).encode("utf-8")
+            ).encode()
         ).hexdigest()[:12]
         finalized.append((chain_id, chain))
 
@@ -538,7 +538,7 @@ def _compute_escalated(events: list[dict], override_rows: list[dict] | None = No
                 f"{row['chain_reach_score']}|{row['chain_reach_depth']}|"
                 f"{','.join(row['chain_reach_path'])}|"
                 f"{row['chain_reach_digest']}"
-            ).encode("utf-8")
+            ).encode()
         ).hexdigest()[:12]
     rows.sort(
         key=lambda row: (
@@ -559,7 +559,7 @@ def _run_pipeline(
     output_dir: Path = OUTPUT_DIR,
 ) -> subprocess.CompletedProcess[str]:
     output_dir.mkdir(parents=True, exist_ok=True)
-    return subprocess.run(
+    return subprocess.run(  # noqa: PLW1510
         [
             "python3",
             str(pipeline),
@@ -665,26 +665,31 @@ def test_override_checksum_contract_and_touching_merge():
 
 
 def test_cli_exists():
+    """The audit CLI is created at /app/message_audit.py."""
     assert CLI.exists(), f"CLI not found at {CLI}"
 
 
 def test_dossier_has_context():
+    """The review dossier carries enough governing context to reconstruct the rules."""
     minimum = SPEC_DATA["context"]["minimum_line_count"]
     assert len(DOSSIER_PATH.read_text().splitlines()) >= minimum
 
 
 def test_repair_produces_required_outputs():
+    """repair writes all required output artifacts to the output directory."""
     for path in (SUMMARY_PATH, MATRIX_PATH, FLAGGED_PATH, REPAIR_AUDIT_PATH):
         assert path.exists(), f"missing required output: {path}"
 
 
 def test_diagnosis_schema_repaired(diagnosis: dict):
+    """diagnosis.json matches the contracted diagnosis schema after a repair."""
     for key in ("pipeline_status", "issues_found", "input_stats", "verified_summary", "output_paths"):
         assert key in diagnosis
     assert diagnosis["pipeline_status"] == "repaired"
 
 
 def test_output_paths_exact(diagnosis: dict):
+    """The diagnosis records the exact output file paths the contract requires."""
     paths = diagnosis["output_paths"]
     assert paths["summary_json"] == str(SUMMARY_PATH)
     assert paths["escalated_jsonl"] == str(FLAGGED_PATH)
@@ -692,17 +697,20 @@ def test_output_paths_exact(diagnosis: dict):
 
 
 def test_issues_found_exactly_six_allowed_ids(diagnosis: dict):
+    """The diagnosis reports exactly the six allowed defect ids, no more or fewer."""
     assert len(diagnosis["issues_found"]) == 6
     assert {item["id"] for item in diagnosis["issues_found"]} == set(REQUIRED_ISSUE_IDS)
 
 
 def test_issue_item_required_fields(diagnosis: dict):
+    """Each reported defect carries the full contracted set of fields."""
     for issue in diagnosis["issues_found"]:
         for key in ("id", "severity", "description", "resolution", "evidence"):
             assert key in issue
 
 
 def test_issue_evidence(diagnosis: dict):
+    """Each defect's evidence contains the case-sensitive required substrings and is a verbatim source excerpt."""
     original_pipeline = ORIGINAL_PIPELINE.read_text()
     issues = {item["id"]: item for item in diagnosis["issues_found"]}
     for issue_id, terms in ISSUE_EVIDENCE_TERMS.items():
@@ -721,12 +729,14 @@ def test_issue_evidence(diagnosis: dict):
 
 
 def test_dossier_quotes_are_verbatim(diagnosis: dict, dossier_text: str):
+    """Each dossier_quote is a verbatim line from the review dossier."""
     for issue in diagnosis["issues_found"]:
         quote = _normalize_ws(issue["evidence"]["dossier_quote"])
         assert quote in dossier_text
 
 
 def test_input_stats(diagnosis: dict, expected: dict):
+    """The diagnosis input stats match the raw event stream counts."""
     stats = diagnosis["input_stats"]
     assert stats["message_count"] == expected["message_count"]
     assert stats["unique_message_ids"] == expected["unique_ids"]
@@ -734,6 +744,7 @@ def test_input_stats(diagnosis: dict, expected: dict):
 
 
 def test_verified_summary_matches_independent_computation(diagnosis: dict, expected: dict):
+    """The verified summary equals an independent from-scratch recomputation, field for field."""
     verified = diagnosis["verified_summary"]
     for key in (
         "schema_version",
@@ -766,25 +777,30 @@ def test_verified_summary_matches_independent_computation(diagnosis: dict, expec
 
 
 def test_summary_computed_from_events(summary: dict):
+    """summary.json equals the summary recomputed directly from the events."""
     assert summary == _compute_summary(_load_events(INPUT_PATH))
 
 
 def test_mailbox_matrix_matches_independent_computation(expected: dict):
+    """mailbox_matrix.json equals an independent recomputation from the canonical events."""
     matrix = json.loads(MATRIX_PATH.read_text())
     assert matrix == expected["expected_mailbox_matrix"]
     assert matrix == _build_mailbox_matrix(_canonicalize_events(_load_events(INPUT_PATH)))
 
 
 def test_escalated_computed_from_events(escalated_rows: list[dict]):
+    """escalated.jsonl equals the escalation queue recomputed directly from the events."""
     assert escalated_rows == _compute_escalated(_load_events(INPUT_PATH))
 
 
 def test_escalated_sorted_descending(escalated_rows: list[dict], expected: dict):
+    """The escalation queue is sorted by occurred_ms descending."""
     assert [row["message_id"] for row in escalated_rows] == expected["expected_escalated_ids_desc"]
     assert [row["occurred_ms"] for row in escalated_rows] == expected["expected_escalated_ms_desc"]
 
 
 def test_escalated_severities(escalated_rows: list[dict]):
+    """Only high and critical, non-dismissed, unsuppressed signals appear in the escalation queue."""
     for row in escalated_rows:
         assert row["severity"] in ANOMALY_SEVERITIES
         assert isinstance(row["override_pressure_score"], int)
@@ -801,6 +817,7 @@ def test_escalated_severities(escalated_rows: list[dict]):
 
 
 def test_escalated_jsonl_compact_format():
+    """escalated.jsonl is one compact JSON object per line."""
     for line in FLAGGED_PATH.read_text().splitlines():
         if not line.strip():
             continue
@@ -810,6 +827,7 @@ def test_escalated_jsonl_compact_format():
 
 
 def test_original_snapshot_preserved(expected: dict):
+    """The frozen pre-incident snapshot is left byte-for-byte unmodified."""
     assert ORIGINAL_PIPELINE.exists()
     digest = hashlib.sha256(ORIGINAL_PIPELINE.read_bytes()).hexdigest()
     assert digest == expected["broken_pipeline_sha256"]
@@ -843,10 +861,11 @@ def test_pipeline_output_tracks_its_input(tmp_path_factory):
 
 
 def test_repair_runtime_does_not_read_tests_tree():
+    """The repair run never reads from the verifier /tests tree."""
     with tempfile.TemporaryDirectory() as tmp:
         guard = Path(tmp) / "sitecustomize.py"
         guard.write_text(
-            "\n".join(
+            "\n".join(  # noqa: FLY002
                 [
                     "import builtins",
                     "from pathlib import Path",
@@ -875,7 +894,7 @@ def test_repair_runtime_does_not_read_tests_tree():
         out = Path(tmp) / "out"
         env = dict(os.environ)
         env["PYTHONPATH"] = tmp
-        result = subprocess.run(
+        result = subprocess.run(  # noqa: PLW1510
             [
                 "python3",
                 str(CLI),
@@ -892,6 +911,7 @@ def test_repair_runtime_does_not_read_tests_tree():
 
 
 def test_broken_snapshot_produces_wrong_export(expected: dict):
+    """The tampered pipeline demonstrably produces a wrong export, confirming the defect is real."""
     with tempfile.TemporaryDirectory() as tmp:
         broken = Path(tmp) / "export_report.py"
         out = Path(tmp) / "out"
@@ -906,6 +926,7 @@ def test_broken_snapshot_produces_wrong_export(expected: dict):
 
 
 def test_pipeline_patched():
+    """repair restores the workflow so the forbidden tokens are gone and it runs correctly."""
     ast.parse(PIPELINE.read_text())
     code = _executable_text(PIPELINE.read_text())
     for token in FORBIDDEN_TOKENS:
@@ -913,6 +934,7 @@ def test_pipeline_patched():
 
 
 def test_repair_audit(diagnosis: dict, expected: dict, summary: dict):
+    """repair_audit.json records the patched path, processing steps, removed tokens, and pre/post hashes."""
     audit = json.loads(REPAIR_AUDIT_PATH.read_text())
     code = _executable_text(PIPELINE.read_text())
     assert audit["patched_workflow"] == str(PIPELINE)
@@ -926,6 +948,7 @@ def test_repair_audit(diagnosis: dict, expected: dict, summary: dict):
 
 
 def test_pipeline_reruns_idempotently(summary: dict, escalated_rows: list[dict], tmp_path_factory):
+    """Re-running the repaired pipeline produces identical output."""
     rerun_dir = tmp_path_factory.mktemp("rerun")
     result = _run_pipeline(output_dir=rerun_dir)
     assert result.returncode == 0, result.stderr
@@ -936,6 +959,7 @@ def test_pipeline_reruns_idempotently(summary: dict, escalated_rows: list[dict],
 
 
 def test_patched_pipeline_supports_alternate_input(expected: dict, tmp_path_factory):
+    """The repaired pipeline generalizes to an alternate event stream via --input."""
     alt_dir = tmp_path_factory.mktemp("alt")
     alt_input = Path(expected["alternate_input"])
     result = _run_pipeline(input_path=alt_input, output_dir=alt_dir)
@@ -967,10 +991,11 @@ def test_patched_pipeline_supports_alternate_input(expected: dict, tmp_path_fact
 
 
 def test_cli_diagnose_subcommand(expected: dict, dossier_text: str):
+    """The diagnose subcommand runs and writes its report to the --report path."""
     report = OUTPUT_DIR / "diagnosis_redundant.json"
     if report.exists():
         report.unlink()
-    result = subprocess.run(
+    result = subprocess.run(  # noqa: PLW1510
         [
             "python3",
             str(CLI),
@@ -1007,7 +1032,7 @@ def test_cli_diagnose_subcommand(expected: dict, dossier_text: str):
 def test_diagnose_rejects_stray_input_flag(tmp_path_factory):
     """diagnose is stateless: it accepts only --dossier/--report and rejects a stray --input."""
     report = tmp_path_factory.mktemp("diag_reject") / "diagnosis.json"
-    result = subprocess.run(
+    result = subprocess.run(  # noqa: PLW1510
         [
             "python3", str(CLI), "diagnose",
             "--dossier", str(DOSSIER_PATH),
@@ -1025,11 +1050,12 @@ def test_diagnose_rejects_stray_input_flag(tmp_path_factory):
 def test_repair_repatches_reset_workflow_with_custom_output_dir(
     tmp_path_factory, expected: dict
 ):
+    """repair re-patches a reset workflow and honors a custom --output-dir."""
     custom_dir = tmp_path_factory.mktemp("custom_output")
     current = PIPELINE.read_text()
     try:
         shutil.copy(ORIGINAL_PIPELINE, PIPELINE)
-        result = subprocess.run(
+        result = subprocess.run(  # noqa: PLW1510
             ["python3", str(CLI), "repair", "--output-dir", str(custom_dir)],
             capture_output=True,
             text=True,
@@ -1052,6 +1078,7 @@ def test_repair_repatches_reset_workflow_with_custom_output_dir(
 
 
 def test_dedupe_tie_break_severity_and_detector():
+    """Duplicate message_ids are collapsed under the severity-then-detector tie-break."""
     events = [
         {
             "message_id": "x1",
@@ -1085,6 +1112,7 @@ def test_dedupe_tie_break_severity_and_detector():
 
 
 def test_dismissed_string_normalization_excludes_signal():
+    """Dismissed-flag string normalization excludes dismissed signals from the queue."""
     events = [
         {
             "message_id": "m1",
@@ -1116,6 +1144,7 @@ def test_dismissed_string_normalization_excludes_signal():
 
 
 def test_escalated_sort_tie_breaks_by_severity_then_message_id():
+    """Escalation ties break by severity then message_id."""
     events = [
         {
             "message_id": "c2",
@@ -1147,6 +1176,7 @@ def test_escalated_sort_tie_breaks_by_severity_then_message_id():
 
 
 def test_pipeline_coerces_occurred_ms_and_normalizes_outputs(tmp_path_factory):
+    """occurred_ms is coerced and output fields are normalized as the rules require."""
     events = [
         {
             "message_id": "p1",
@@ -1193,6 +1223,7 @@ def test_pipeline_coerces_occurred_ms_and_normalizes_outputs(tmp_path_factory):
 
 
 def test_pipeline_dedupe_tie_break_prefers_non_dismissed_then_detector(tmp_path_factory):
+    """On a dedupe tie the non-dismissed row wins, then the detector tie-break applies."""
     events = [
         {
             "message_id": "d1",
@@ -1235,6 +1266,7 @@ def test_pipeline_dedupe_tie_break_prefers_non_dismissed_then_detector(tmp_path_
 
 
 def test_override_source_path_affects_output(tmp_path_factory):
+    """The dismissal-override windows are read from their fixed path and affect the output."""
     original_overrides = OVERRIDES_PATH.read_text()
     try:
         base_dir = tmp_path_factory.mktemp("base_override")
@@ -1262,6 +1294,7 @@ def test_override_source_path_affects_output(tmp_path_factory):
 
 
 def test_override_compaction_and_scope_exercised(tmp_path_factory):
+    """Override compaction and per-scope matching are exercised and correct."""
     original_overrides = OVERRIDES_PATH.read_text()
     try:
         override_rows = [

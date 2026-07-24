@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Diagnostic and repair CLI for Mailguard signal workflow."""
 
 from __future__ import annotations

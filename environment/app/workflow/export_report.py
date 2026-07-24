@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Broken Mailguard signal workflow used for repair task."""
 
 from __future__ import annotations
@@ -32,7 +31,7 @@ def export_report(events: list[dict], output_dir: Path) -> None:
             signals.append(
                 {
                     "message_id": event["message_id"],
-                    "occurred_ms": event["occurred_at"] if "occurred_at" in event else 0,
+                    "occurred_ms": event["occurred_at"] if "occurred_at" in event else 0,  # noqa: SIM401
                     "severity": event["severity"],
                     "mailbox": event["mailbox"],
                     "detector": event["detector"],
